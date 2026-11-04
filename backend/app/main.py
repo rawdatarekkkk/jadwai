@@ -277,39 +277,6 @@ def update_calendar(
     return {"version": ws.version}
 
 
-@app.get("/api/student/schedule")
-def student_schedule(user=Depends(current_user), db: DB = Depends(db_session)):
-    from app.models import ScheduleRun
-    if user.role != "student":
-        fail(403, "permission_denied")
-    group = db.get(Record, user.group_id) if user.group_id else None
-    if not group or group.kind != "groups":
-        return {"group": None, "run": None}
-    rows = db.scalars(select(ScheduleRun).where(ScheduleRun.status == "completed").order_by(ScheduleRun.created_at.desc()))
-    for row in rows:
-        if not row.result or not row.result.get("validation", {}).get("passed"):
-            continue
-        records = row.snapshot["records"]
-        courses = {r["id"] for r in records if r["kind"] == "courses" and group.id in r.get("group_ids", [])}
-        if not any(r["id"] == group.id and r["kind"] == "groups" for r in records):
-            continue
-        assignments = [a for a in row.result.get("assignments", []) if a["activity_id"] in courses]
-        ids = {group.id} | courses | {a[k] for a in assignments for k in ("room_id", "instructor_id")}
-        safe_records = []
-        for r in records:
-            if r["id"] in ids:
-                safe = {k: v for k, v in r.items() if k in ("id", "kind", "name", "code", "year", "major")}
-                if r["kind"] == "courses":
-                    safe["group_ids"] = [group.id]
-                safe_records.append(safe)
-        return {"group": {"id": group.id, **group.data}, "run": {
-            "id": row.id, "status": "completed", "created_at": row.created_at,
-            "input_version": row.input_version, "stale": row.input_version != db.get(Workspace, 1).version,
-            "snapshot": {"name": row.snapshot["name"], "term": row.snapshot["term"], "calendar": row.snapshot["calendar"], "records": safe_records},
-            "result": {"assignments": assignments},
-        }}
-    return {"group": {"id": group.id, **group.data}, "run": None}
-
 from app.source_timetables import router as source_timetables_router
 app.include_router(source_timetables_router)
 
@@ -321,3 +288,6 @@ app.include_router(model_calls_router)
 
 from app.scenarios import router as scenarios_router
 app.include_router(scenarios_router)
+
+from app.portal import router as portal_router
+app.include_router(portal_router)

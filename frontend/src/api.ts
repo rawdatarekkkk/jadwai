@@ -1,5 +1,5 @@
 export type RecordKind = "courses" | "instructors" | "rooms" | "groups";
-export type CatalogCourse = {source_info?: {program_semesters?: {faculty_section:string; program_or_cohort:string|null;semester:number|null}[];name_variants?:string[];source_pages?:number[];source_document?:string}; id: string; name: string; code: string; eligibility: Record<string, string[]>; group_ids: string[]};
+export type CatalogCourse = {expected_students?: number | null; source_info?: {program_semesters?: {faculty_section:string; program_or_cohort:string|null;semester:number|null}[];name_variants?:string[];source_pages?:number[];source_document?:string}; id: string; name: string; code: string; eligibility: Record<string, string[]>; group_ids: string[]};
 export type DataRecord = {
   course_id?: string | null;
   id: string;
@@ -14,6 +14,7 @@ export type DataRecord = {
   year?: number | null;
   major?: string | null;
   day_off?: string | null;
+  position?: "doctor" | "ta" | null;
   room_type?: string;
   room_types?: string[];
   equipment?: string[];
@@ -31,13 +32,21 @@ export type Rule = {
   room_id?: string | null;
   group_id?: string | null;
   activity_id?: string | null;
-  type: "unavailable" | "preferred_period" | "room_unavailable" | "group_unavailable" | "activity_allowed" | "group_allowed";
-  day: string;
-  start_hour: number;
-  end_hour: number;
+  type: RuleType;
+  /** null = every teaching day; limit rules have no day or hours. */
+  day: string | null;
+  start_hour: number | null;
+  end_hour: number | null;
   strength: "mandatory" | "preferred";
   status: "draft" | "approved";
+  params?: RuleParams;
 };
+export type RuleType = "unavailable" | "preferred_period" | "room_unavailable" | "group_unavailable" | "activity_allowed" | "group_allowed"
+  | "activity_room" | "activities_not_same_day" | "instructor_max_daily_hours" | "group_max_daily_hours" | "instructor_max_days";
+export type RuleParams = {room_ids?: string[] | null; activity_ids?: string[] | null; hours?: number | null; days?: number | null};
+export const LIMIT_RULES: RuleType[] = ["activity_room", "activities_not_same_day", "instructor_max_daily_hours", "group_max_daily_hours", "instructor_max_days"];
+/** 8.5 -> "08:30" */
+export const clockHour = (h: number) => `${String(Math.floor(h)).padStart(2, "0")}:${h % 1 ? "30" : "00"}`;
 export type AssignmentLock = {id:string;source_run_id:string;activity_id:string;occurrence:number;instructor_id:string|null;room_id:string|null;day:string|null;start_minute:number|null;status:"draft"|"approved";approved_by?:string|null};
 export type Workspace = {
   course_catalog?: CatalogCourse[];
@@ -74,6 +83,7 @@ export type User = {
   email: string;
   role: string;
   group_id?: string | null;
+  instructor_id?: string | null;
   active: boolean;
   version: number;
 };
@@ -81,6 +91,7 @@ export class ApiError extends Error {
   constructor(
     public code: string,
     public status: number,
+    public details: {errors?: string[]} = {},
   ) {
     super(code);
   }
@@ -114,9 +125,11 @@ export async function api<T>(
     )
       window.dispatchEvent(new Event("jadwai-session-expired"));
     const error = await response.json().catch(() => ({}));
+    const detail = error.detail;
     throw new ApiError(
-      typeof error.detail === "string" ? error.detail : "invalid_input",
+      typeof detail === "string" ? detail : typeof detail?.code === "string" ? detail.code : "invalid_input",
       response.status,
+      typeof detail === "object" && detail && !Array.isArray(detail) ? detail : {},
     );
   }
   return response.status === 204 ? (undefined as T) : response.json();
@@ -146,6 +159,9 @@ export type ScheduleRun = {
     | "cancelled";
   cancel_requested: boolean;
   created_at: string;
+  name?: string | null;
+  parent_run_id?: string | null;
+  published_at?: string | null;
   snapshot: {
     name: string;
     term: string;

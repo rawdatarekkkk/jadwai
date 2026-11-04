@@ -21,6 +21,11 @@ def test_student_scoped_access(environment):
     assert client.post('/api/records/courses', headers=version(client), json={'name':'Private other course','code':'OTHER-C','activity_type':'lecture','sessions':1,'duration':60,'eligible_instructors':['teacher'],'group_ids':[other['id']]}).status_code == 201
     run_id = start(client).json()['id']
     assert process_one(factory)
+    # Students only ever see the published timetable.
+    login(client, 's@example.test')
+    assert client.get('/api/student/schedule').json()['run'] is None
+    login(client)
+    assert client.post(f'/api/schedules/{run_id}/publish', headers=version(client)).status_code == 200
     login(client, 's@example.test')
     for path in ('/api/workspace', '/api/users', '/api/schedules', f'/api/schedules/{run_id}', f'/api/schedules/{run_id}/statistics'):
         assert client.get(path).status_code == 403
@@ -48,4 +53,31 @@ def test_student_empty(environment):
     with factory.begin() as db:
         db.add(User(id='student',email='s@example.test',name='Student',role='student',password=hash_password('test-password-123')))
     login(client, 's@example.test')
-    assert client.get('/api/student/schedule').json() == {'group':None,'run':None}
+    assert client.get('/api/student/schedule').json() == {'group':None,'run':None,'exams':[]}
+
+
+def test_instructor_sees_only_own_published_sessions_and_duties(environment):
+    client, factory = environment
+    login(client)
+    setup_data(client, factory)
+    group = next(r for r in client.get('/api/workspace').json()['records'] if r['kind'] == 'groups')
+    other = client.post('/api/records/instructors', headers=version(client), json={'name': 'Other', 'code': 'OTH', 'department': 'CS'}).json()['id']
+    assert client.post('/api/records/courses', headers=version(client), json={'name': 'Other course', 'code': 'OC', 'activity_type': 'lecture', 'sessions': 1, 'duration': 60, 'eligible_instructors': [other], 'group_ids': [group['id']]}).status_code == 201
+    response = client.post('/api/users', json={'name': 'Teacher', 'email': 't@example.test', 'role': 'instructor', 'instructor_id': 'teacher'})
+    with factory.begin() as db:
+        db.get(User, response.json()['user']['id']).password = hash_password('test-password-123')
+    run_id = start(client).json()['id']
+    assert process_one(factory)
+    assert client.post(f'/api/schedules/{run_id}/publish', headers=version(client)).status_code == 200
+    login(client, 't@example.test')
+    for path in ('/api/workspace', '/api/schedules', '/api/users', '/api/exam-schedules'):
+        assert client.get(path).status_code == 403
+    data = client.get('/api/me/schedule').json()
+    assert data['instructor']['id'] == 'teacher'
+    assignments = data['run']['result']['assignments']
+    assert len(assignments) == 2 and all(a['instructor_id'] == 'teacher' for a in assignments)
+    assert 'Other course' not in str(data)
+    exported = client.get('/api/me/schedule.csv')
+    assert exported.status_code == 200 and 'Course' in exported.text and 'Other course' not in exported.text
+    login(client)
+    assert 'Other course' in client.get(f'/api/schedules/{run_id}/export.csv').text

@@ -14,6 +14,7 @@ type Props = {
 };
 export function Accounts({ user, t, lang, onSessionLost, onChanged }: Props) {
   const [groups, setGroups] = useState<Workspace["records"]>([]);
+  const [teachers, setTeachers] = useState<Workspace["records"]>([]);
   const [selectedRole, setSelectedRole] = useState("viewer");
   const [rows, setRows] = useState<Account[]>([]),
     [busy, setBusy] = useState(false),
@@ -37,7 +38,7 @@ export function Accounts({ user, t, lang, onSessionLost, onChanged }: Props) {
   };
   useEffect(() => {
     void load();
-    void api<Workspace>("/workspace").then(w => setGroups(w.records.filter(r => r.kind === "groups"))).catch(() => {});
+    void api<Workspace>("/workspace").then(w => { setGroups(w.records.filter(r => r.kind === "groups")); setTeachers(w.records.filter(r => r.kind === "instructors")); }).catch(() => {});
   }, []);
   const close = () => {
     if (busy) return;
@@ -100,7 +101,7 @@ export function Accounts({ user, t, lang, onSessionLost, onChanged }: Props) {
             <h3>{row.name}</h3>
             <p dir="ltr">{row.email}</p>
             <span className="pill neutral">
-              {row.role === "student" ? (lang === "ar" ? "طالب" : "Student") : t(row.role === "administrator" ? "admin" : "viewer")}
+              {row.role === "student" ? (lang === "ar" ? "طالب" : "Student") : row.role === "instructor" ? t("instructorRole") : t(row.role === "administrator" ? "admin" : "viewer")}
             </span>
             {row.id === user.id && (
               <span className="pill lilac">{t("you")}</span>
@@ -173,6 +174,7 @@ export function Accounts({ user, t, lang, onSessionLost, onChanged }: Props) {
                         email: f.get("email"),
                         role: f.get("role"),
                         group_id: f.get("role") === "student" ? f.get("group_id") : null,
+                        instructor_id: f.get("role") === "instructor" ? f.get("instructor_id") : null,
                       },
                     );
                     setModal({ type: "link", reset: result.reset });
@@ -185,6 +187,7 @@ export function Accounts({ user, t, lang, onSessionLost, onChanged }: Props) {
                         name: f.get("name"),
                         role: f.get("role"),
                         group_id: f.get("role") === "student" ? f.get("group_id") : null,
+                        instructor_id: f.get("role") === "instructor" ? f.get("instructor_id") : null,
                         active: f.get("active") === "on",
                       },
                       modal.row!.version,
@@ -223,11 +226,13 @@ export function Accounts({ user, t, lang, onSessionLost, onChanged }: Props) {
                 {t("accountRole")}
                 <select name="role" value={selectedRole} onChange={e => setSelectedRole(e.target.value)}>
                   <option value="student">{lang === "ar" ? "طالب" : "Student"}</option>
+                  <option value="instructor">{t("instructorRole")}</option>
                   <option value="viewer">{t("viewer")}</option>
                   <option value="administrator">{t("admin")}</option>
                 </select>
               </label>
               {selectedRole === "student" && <label>{lang === "ar" ? "مجموعة الطالب" : "Student group"}<select name="group_id" required defaultValue={modal.row?.group_id || ""}><option value="">{lang === "ar" ? "اختر المجموعة" : "Choose a group"}</option>{groups.map(g => <option key={g.id} value={g.id}>{g.year ? `Year ${g.year} · ` : ""}{g.major || ""} · {g.name}</option>)}</select></label>}
+              {selectedRole === "instructor" && <label>{t("linkedInstructor")}<select name="instructor_id" required defaultValue={modal.row?.instructor_id || ""}><option value="">{t("linkedInstructor")}</option>{teachers.map(r => <option key={r.id} value={r.id}>{r.name} · {r.code}{r.position ? ` · ${t(r.position)}` : ""}</option>)}</select></label>}
               {modal.type === "edit" && (
                 <label className="check-label">
                   <input

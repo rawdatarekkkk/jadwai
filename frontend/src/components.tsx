@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useId } from "react";
-import type { Workspace, DataRecord, RecordKind } from "./api";
+import { clockHour, LIMIT_RULES, type Workspace, type DataRecord, type RecordKind, type Rule, type RuleType } from "./api";
+import { describeRule, ruleTarget } from "./RuleText";
 import { auditLabels, type Word } from "./i18n";
 import { DEFAULT_CALENDAR } from "./CalendarSettings";
 export type IconName =
@@ -380,6 +381,7 @@ export function RecordForm({
         if (kind === "instructors") {
           body.department = f.get("department");
           body.day_off = f.get("day_off");
+          body.position = f.get("position");
           body.max_weekly_hours = record?.max_weekly_hours ?? null;
         }
         if (kind === "groups") {
@@ -437,6 +439,11 @@ export function RecordForm({
           <option value="" disabled>{t("chooseDayOff")}</option>
           {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map(day => <option key={day} value={day}>{t(day as Word)}</option>)}
         </select><small>{t("dayOffHelp")}</small></label>}
+        {kind === "instructors" && <label>{t("position")}<select name="position" required defaultValue={record?.position || ""}>
+          <option value="" disabled>{t("position")}</option>
+          <option value="doctor">{t("doctor")}</option>
+          <option value="ta">{t("ta")}</option>
+        </select><small>{t("positionHelp")}</small></label>}
         {kind === "instructors" && <div className="meaning-preview" style={{gridColumn:"1 / -1"}}><strong>{t("standardWeeklyHours")}: 12</strong><p>{t("overtimeHelp")}</p></div>}
         {kind === "groups" && (
           <>
@@ -537,26 +544,31 @@ export function RecordForm({
         )}
       </div>
       {kind === "rooms" && record?.source_info?.source_document && <p className="modal-description">{t("roomImportHelp")}</p>}
+      <datalist id="room-features">{[...new Set(ws.records.flatMap(r => r.equipment || []))].map(f => <option key={f} value={f} />)}</datalist>
       {kind === "rooms" && (
         <label>
-          {t("equipment")}
+          {t("roomFeatures")}
           <input
             name="equipment"
             maxLength={500}
+            list="room-features"
             defaultValue={record?.equipment?.join(" | ") || ""}
-            placeholder={t("equipmentHelp")}
+            placeholder={t("roomFeaturesHelp")}
           />
+          <small>{t("roomFeaturesHelp")}</small>
         </label>
       )}
       {kind === "courses" && (
         <label>
-          {t("requiredEquipment")}
+          {t("requiredFeatures")}
           <input
             name="required_equipment"
             maxLength={500}
+            list="room-features"
             defaultValue={record?.required_equipment?.join(" | ") || ""}
-            placeholder={t("equipmentHelp")}
+            placeholder={t("requiredFeaturesHelp")}
           />
+          <small>{t("requiredFeaturesHelp")}</small>
         </label>
       )}
       {kind === "courses" && (
@@ -639,17 +651,26 @@ export function RuleForm({
   submit: (body: unknown) => void;
 }) {
   const calendar = ws.calendar || DEFAULT_CALENDAR;
-  const instructors = ws.records.filter((r) => r.kind === "instructors");
-  const [type, setType] = useState("unavailable"),
-    [instructor, setInstructor] = useState(instructors[0]?.id || ""),
-    [day, setDay] = useState(calendar.days[0]),
+  const [type, setType] = useState<RuleType>("unavailable"),
+    [target, setTarget] = useState(""),
+    [day, setDay] = useState<string>(calendar.days[0]),
     [start, setStart] = useState(calendar.start_hour),
-    [end, setEnd] = useState(
-      Math.min(calendar.start_hour + 3, calendar.end_hour),
-    );
-  const targetKind = type === "room_unavailable" ? "rooms" : ["group_unavailable","group_allowed"].includes(type) ? "groups" : type === "activity_allowed" ? "courses" : "instructors";
-  const targets = ws.records.filter(r => r.kind === targetKind);
-  const targetId = targets.some(r => r.id === instructor) ? instructor : targets[0]?.id || "";
+    [end, setEnd] = useState(Math.min(calendar.start_hour + 3, calendar.end_hour)),
+    [picked, setPicked] = useState<string[]>([]),
+    [amount, setAmount] = useState(4);
+  const limit = LIMIT_RULES.includes(type);
+  const spec = ruleTarget(type);
+  const targets = spec ? ws.records.filter(r => r.kind === spec[1]) : [];
+  const targetId = targets.some(r => r.id === target) ? target : targets[0]?.id || "";
+  const choices = type === "activity_room" ? ws.records.filter(r => r.kind === "rooms") : type === "activities_not_same_day" ? ws.records.filter(r => r.kind === "courses") : [];
+  // Half-hour steps across the teaching day.
+  const halfHours = Array.from({ length: (calendar.end_hour - calendar.start_hour) * 2 + 1 }, (_, i) => calendar.start_hour + i / 2);
+  const params = { room_ids: type === "activity_room" ? picked : null, activity_ids: type === "activities_not_same_day" ? picked : null,
+    hours: type.endsWith("daily_hours") ? amount : null, days: type === "instructor_max_days" ? amount : null };
+  const body = { type, ...(spec ? { [spec[0]]: targetId } : {}), day: limit ? null : day === "every" ? null : day,
+    start_hour: limit ? null : start, end_hour: limit ? null : end, strength: type === "preferred_period" ? "preferred" : "mandatory", params };
+  const meaning = describeRule(body as unknown as Rule, ws.records, t);
+  const valid = (!spec || targetId) && (limit ? (type === "activity_room" ? picked.length > 0 : type === "activities_not_same_day" ? picked.length >= 2 : amount > 0) : end > start);
   if (!ws.records.some(r => ["instructors", "rooms", "groups"].includes(r.kind)))
     return (
       <>
@@ -665,16 +686,7 @@ export function RuleForm({
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        const f = new FormData(e.currentTarget);
-        submit({
-          title: f.get("title"),
-          [type === "room_unavailable" ? "room_id" : ["group_unavailable","group_allowed"].includes(type) ? "group_id" : type === "activity_allowed" ? "activity_id" : "instructor_id"]: targetId,
-          type,
-          day,
-          start_hour: start,
-          end_hour: end,
-          strength: type === "preferred_period" ? "preferred" : "mandatory",
-        });
+        submit({ title: new FormData(e.currentTarget).get("title"), ...body });
       }}
     >
       <p className="modal-description">{t("ruleHelp")}</p>
@@ -685,86 +697,63 @@ export function RuleForm({
       </label>
       <div className="form-grid">
         <label>
-          {t(targetKind === "instructors" ? "instructor" : targetKind === "rooms" ? "rooms" : targetKind === "courses" ? "courses" : "groups")}
-          <select
-            required
-            value={targetId}
-            onChange={(e) => setInstructor(e.target.value)}
-          >
-            {targets.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
+          {t("type")}
+          <select value={type} onChange={(e) => { setType(e.target.value as RuleType); setPicked([]); setAmount(e.target.value === "instructor_max_days" ? 3 : 4); }}>
+            {(["unavailable", "room_unavailable", "group_unavailable", "activity_allowed", "group_allowed", "preferred_period", ...LIMIT_RULES] as RuleType[]).map(v => (
+              <option key={v} value={v}>{t(v as Word)}</option>
             ))}
           </select>
         </label>
-        <label>
-          {t("type")}
-          <select value={type} onChange={(e) => setType(e.target.value)}>
-            <option value="unavailable">{t("unavailable")}</option>
-            <option value="room_unavailable">{t("room_unavailable")}</option>
-            <option value="group_unavailable">{t("group_unavailable")}</option>
-            <option value="activity_allowed">{t("activity_allowed")}</option>
-            <option value="group_allowed">{t("group_allowed")}</option>
-            <option value="preferred_period">{t("preferred_period")}</option>
+        {spec && <label>
+          {t(spec[1] === "instructors" ? "instructor" : spec[1])}
+          <select required value={targetId} onChange={(e) => setTarget(e.target.value)}>
+            {targets.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name}{r.kind === "courses" && r.activity_type ? ` (${t(r.activity_type as Word)})` : ""}
+              </option>
+            ))}
           </select>
-        </label>
-        <label>
+        </label>}
+        {!limit && <label>
           {t("day")}
           <select value={day} onChange={(e) => setDay(e.target.value)}>
+            <option value="every">{t("everyDay")}</option>
             {calendar.days.map((d) => (
               <option key={d} value={d}>
                 {t(d as Word)}
               </option>
             ))}
           </select>
-        </label>
-        <div className="time-fields">
+        </label>}
+        {!limit && <div className="time-fields">
           <label>
             {t("start")}
-            <select
-              value={start}
-              onChange={(e) => setStart(Number(e.target.value))}
-            >
-              {Array.from(
-                { length: calendar.end_hour - calendar.start_hour },
-                (_, i) => i + calendar.start_hour,
-              ).map((h) => (
-                <option key={h} value={h}>
-                  {h}:00
-                </option>
-              ))}
+            <select value={start} onChange={(e) => setStart(Number(e.target.value))}>
+              {halfHours.slice(0, -1).map((h) => <option key={h} value={h}>{clockHour(h)}</option>)}
             </select>
           </label>
           <label>
             {t("end")}
-            <select
-              value={end}
-              onChange={(e) => setEnd(Number(e.target.value))}
-            >
-              {Array.from(
-                { length: calendar.end_hour - calendar.start_hour },
-                (_, i) => i + calendar.start_hour + 1,
-              ).map((h) => (
-                <option key={h} value={h}>
-                  {h}:00
-                </option>
-              ))}
+            <select value={end} onChange={(e) => setEnd(Number(e.target.value))}>
+              {halfHours.slice(1).map((h) => <option key={h} value={h}>{clockHour(h)}</option>)}
             </select>
           </label>
-        </div>
+        </div>}
+        {(type.endsWith("daily_hours") || type === "instructor_max_days") && <label>
+          {t(type === "instructor_max_days" ? "daysPerWeek" : "hoursPerDay")}
+          <input type="number" min={type === "instructor_max_days" ? 1 : 0.5} max={type === "instructor_max_days" ? 7 : 24} step={type === "instructor_max_days" ? 1 : 0.5} value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
+        </label>}
       </div>
+      {choices.length > 0 && <fieldset className="choice-list">
+        <legend>{t(type === "activity_room" ? "allowedRooms" : "activitiesSeparate")}</legend>
+        {choices.map(r => <label key={r.id} className="check-row"><input type="checkbox" checked={picked.includes(r.id)} onChange={(e) => setPicked(e.target.checked ? [...picked, r.id] : picked.filter(x => x !== r.id))} />{r.name}{r.kind === "courses" && r.activity_type ? ` (${t(r.activity_type as Word)})` : ""}</label>)}
+      </fieldset>}
       <div className="meaning-preview">
         <span className="eyebrow">{t("meaning")}</span>
         <p>
-          {targets.find((r) => r.id === targetId)?.name} ·{" "}
-          {t(type as Word)}
+          {meaning.subject} · {meaning.type}
           <br />
-          {t(day as Word)} ·{" "}
-          <bdi>
-            {start}:00–{end}:00
-          </bdi>{" "}
-          · {t(type === "preferred_period" ? "preferred" : "mandatory")}
+          <bdi>{meaning.detail}</bdi> · {t(type === "preferred_period" ? "preferred" : "mandatory")}
         </p>
         <span className="pill amber">{t("draft")}</span>
       </div>
@@ -777,7 +766,7 @@ export function RuleForm({
         >
           {t("cancel")}
         </button>
-        <button className="btn primary" disabled={busy || !targetId || end <= start}>
+        <button className="btn primary" disabled={busy || !valid}>
           {t(busy ? "working" : "save")}
         </button>
       </div>

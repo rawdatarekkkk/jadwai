@@ -12,6 +12,8 @@ import {
 import { words, errors, type Word } from "./i18n";
 import { BRAND } from "./brand";
 import { StudentPortal } from "./StudentPortal";
+import { describeRule } from "./RuleText";
+import { TypedConstraint } from "./TypedConstraint";
 import { AssignmentLocks } from "./AssignmentLocks";
 import { GroupHierarchy } from "./GroupHierarchy";
 import { Timetable } from "./Timetable";
@@ -304,7 +306,7 @@ export default function App() {
         </section>
       </div>
     );
-  if (user.role === "student") return <StudentPortal user={user} lang={lang} setLang={setLang} onSignedOut={clearSession} />;
+  if (user.role === "student" || user.role === "instructor") return <StudentPortal user={user} lang={lang} setLang={setLang} onSignedOut={clearSession} />;
   const counts = (k: RecordKind) =>
     ws?.records.filter((r) => r.kind === k).length || 0;
   const pending = ws?.rules.filter((r) => r.status === "draft").length || 0;
@@ -845,6 +847,7 @@ export default function App() {
                     <strong>{t("manual")}</strong>
                     <span>{t("ai")}</span>
                   </div>
+                  {user.role === "administrator" && <TypedConstraint ws={ws} lang={lang} t={t} refresh={refresh}/>}
                   <AssignmentLocks ws={ws} lang={lang} administrator={user.role === "administrator"} refresh={refresh}/>
                   <div className="rules-grid">
                     {ws.rules
@@ -876,16 +879,9 @@ export default function App() {
                           </div>
                           <h3>{r.title}</h3>
                           <p className="rule-meaning">
-                            {
-                              ws.records.find((x) => x.id === (r.instructor_id || r.room_id || r.group_id || r.activity_id))
-                                ?.name
-                            }{" "}
-                            <span>·</span> {t(r.type)}
+                            {describeRule(r, ws.records, t).subject} <span>·</span> {t(r.type)}
                             <br />
-                            {t(r.day as Word)} <span>·</span>{" "}
-                            <bdi>
-                              {r.start_hour}:00–{r.end_hour}:00
-                            </bdi>
+                            <bdi>{describeRule(r, ws.records, t).detail}</bdi>
                           </p>
                           <p className="rule-caption">{t("approvalHelp")}</p>
                           <div className="rule-actions">

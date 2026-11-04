@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
-import {api,ApiError,type Workspace} from './api';
+import {api,ApiError,LIMIT_RULES,type RuleType,type Workspace} from './api';
 import {AnnotationRuleEditor,annotationRule,type AnnotationContext,type RuleDraft} from './AnnotationRuleEditor';
 
 type Envelope={decision:string;proposals:{kind:string;data:Record<string,unknown>}[];clarifications:string[];unsupported:string[]};
@@ -21,7 +21,9 @@ export function Proposals({ws,lang,refresh}:{ws:Workspace;lang:'en'|'ar';refresh
  const row=rows.find(r=>r.id===selected),ctx=row?context(row):null;
  const stale=!!row&&(row.stale||row.input_version!==ws.version);
  const corrected=ctx?rules.map(r=>{const p=annotationRule(r,ctx);return p&&r.title.trim()&&r.title.trim().length<=100?{...p,data:{...p.data,title:r.title.trim()}}:null;}):[];
- const canCreate=!!row&&!row.review&&!stale&&rules.length>0&&corrected.every(Boolean)&&!!rationale.trim()&&(row.record.output.decision==='ready'||resolved);
+ // The structured editor covers time rules; limit rules are reviewed as interpreted.
+ const hasLimits=!!row&&row.record.output.proposals.some(p=>LIMIT_RULES.includes(p.data.type as RuleType));
+ const canCreate=!!row&&!row.review&&!stale&&rules.length>0&&(hasLimits||corrected.every(Boolean))&&!!rationale.trim()&&(row.record.output.decision==='ready'||resolved);
  async function load(){const data=await api<{proposals:Saved[]}>('/proposals');setRows(data.proposals);setLoaded(true);}
  useEffect(()=>{let active=true;api<{enabled:boolean}>('/model-calls/configuration').then(c=>{if(active)setModelEnabled(c.enabled===true);}).catch(()=>{});api<{proposals:Saved[]}>('/proposals').then(data=>{if(active){setRows(data.proposals);setLoaded(true);}}).catch(()=>{if(active)setError(say('Could not load proposals.','تعذر تحميل المقترحات.'));});return()=>{active=false;};},[]);
  function key(payload:unknown){const serialized=JSON.stringify(payload);if(request.current.payload!==serialized)request.current={payload:serialized,key:crypto.randomUUID()};return request.current.key;}
@@ -29,7 +31,7 @@ export function Proposals({ws,lang,refresh}:{ws:Workspace;lang:'en'|'ar';refresh
  function choose(r:Saved){setSelected(r.id);setRules(drafts(r.record.output));setRationale('');setResolved(false);setError('');setNotice('');}
  async function review(action:'dismiss'|'create_drafts'){
   if(!row)return;
-  const payload={action,rationale,corrected_output:action==='create_drafts'?{decision:'ready',proposals:corrected,clarifications:[],unsupported:[]}:null};
+  const payload={action,rationale,corrected_output:action==='create_drafts'&&!hasLimits?{decision:'ready',proposals:corrected,clarifications:[],unsupported:[]}:null};
   await api(`/proposals/${row.id}/review`,'POST',{...payload,request_key:key({id:row.id,...payload})},ws.version);
   setNotice(action==='dismiss'?say('Proposal dismissed.','تم استبعاد المقترح.'):say('Draft rules created. Review and approve them in Constraints.','تم إنشاء مسودات القيود. راجعها واعتمدها في صفحة القيود.'));
   await refresh();await load();

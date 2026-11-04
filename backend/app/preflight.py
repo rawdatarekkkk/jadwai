@@ -2,7 +2,9 @@
 from collections import defaultdict
 
 VERSION = 'manual-input-checks-v1'
-SUPPORTED = {'unavailable','preferred_period','room_unavailable','group_unavailable','activity_allowed','group_allowed'}
+from app import rule_semantics as rs
+from app.calendar_slots import day_placements
+SUPPORTED = set(rs.TYPES)
 
 
 def inspect_inputs(snapshot):
@@ -39,19 +41,20 @@ def inspect_inputs(snapshot):
         if wrong:issue('instructor_position','Lectures need doctors; tutorials and labs need TAs.',ident,resource_id=wrong[0])
         size=sum(records[g]['size'] for g in groups)
         suitable=[r for r in rooms if (r.get('capacity') or 0)>=size and bool(set(r.get('room_types') or [r.get('room_type')]) & {'flexible','lab' if activity['activity_type']=='lab' else 'lecture'}) and set(activity.get('required_equipment',[]))<=set(r.get('equipment',[]))]
-        if not suitable:issue('no_suitable_room','No room matches this activity’s capacity, type and equipment.',ident)
-        periods=cal.get('teaching_periods',[])
-        slots=[(d,p['start'],p['end']) for d in cal['days'] for p in periods if p['end']-p['start']==duration] if periods else [(d,s,s+duration) for d in cal['days'] for s in range(cal['start_hour']*60,cal['end_hour']*60-duration+1,cal['period_minutes'])]
+        for rule in approved:
+            if rule['type']=='activity_room' and rule['activity_id']==ident:suitable=[r for r in suitable if r['id'] in rs.param(rule,'room_ids')]
+        if not suitable:issue('no_suitable_room','No room matches this activity’s capacity, type, special-room features and room rules.',ident)
+        slots=[(d,s,e) for d in cal['days'] for s,e,_ in day_placements(cal,duration)]
         window_sets=[[r for r in approved if r['type']=='activity_allowed' and r.get('activity_id')==ident]]+[[r for r in approved if r['type']=='group_allowed' and r.get('group_id')==g] for g in groups]
-        def overlaps(rule,d,s,e):return rule['day']==d and s<rule['end_hour']*60 and rule['start_hour']*60<e
+        overlaps=rs.overlaps
         usable=[]
         for d,s,e in slots:
-            if any(w and not any(r['day']==d and r['start_hour']*60<=s and e<=r['end_hour']*60 for r in w) for w in window_sets):continue
+            if not all(rs.within_windows(w,d,s,e) for w in window_sets):continue
             if any(r['type']=='group_unavailable' and r.get('group_id') in groups and overlaps(r,d,s,e) for r in approved):continue
             teachers=[t for t in activity['eligible_instructors'] if records[t].get('day_off') != d and (cal.get('weekly_load_policy',{}).get('allow_overtime') or records[t].get('max_weekly_hours') is None or records[t]['max_weekly_hours']*60>=duration*activity['sessions']) and not any(r['type']=='unavailable' and r.get('instructor_id')==t and overlaps(r,d,s,e) for r in approved)]
             available=[r['id'] for r in suitable if not any(rule['type']=='room_unavailable' and rule.get('room_id')==r['id'] and overlaps(rule,d,s,e) for rule in approved)]
             if teachers and available:usable.append((d,s,e,teachers,available))
-        related=[r['id'] for r in approved if r.get('activity_id')==ident or r.get('group_id') in groups or r.get('instructor_id') in activity['eligible_instructors'] or r.get('room_id') in [room['id'] for room in suitable]]
+        related=[r['id'] for r in approved if r.get('activity_id')==ident or ident in (rs.param(r,'activity_ids') or []) or r.get('group_id') in groups or r.get('instructor_id') in activity['eligible_instructors'] or r.get('room_id') in [room['id'] for room in suitable]]
         domains.append(dict(activity_id=ident,available_slots=len(usable),required_sessions=activity['sessions']))
         if not usable:issue('no_available_placement','No teaching slot survives this activity’s approved windows, closures, instructor eligibility and workload limits.',ident,related)
         elif len(usable)<activity['sessions']:
@@ -70,6 +73,8 @@ def inspect_inputs(snapshot):
     for g,minutes in load.items():
         cap=policy.get('student_daily_hours');available=len(cal['days'])*min(day_minutes,day_minutes if cap is None else cap*60)
         if minutes>available:issue('group_weekly_capacity','Required group teaching minutes exceed the week’s teaching capacity.',resource_id=g)
+    from app.calendar_slots import end_for
+    lock_end=lambda lock,activity:end_for(cal,activity['duration'],lock['start_minute']) or lock['start_minute']+activity['duration']
     fixed=[]
     for lock in locks:
         activity=records.get(lock['activity_id'])
@@ -81,8 +86,8 @@ def inspect_inputs(snapshot):
             if len(teacher_ids)>1:issue('lock_teacher_conflict','Approved locks require different instructors for the same activity.',activity['id'],[lock['id']])
             resources|={('instructor',t) for t in teacher_ids}
             for other,other_end,other_resources in fixed:
-                if (other['activity_id'],other['occurrence'])!=(lock['activity_id'],lock['occurrence']) and other['day']==lock['day'] and lock['start_minute']<other_end and other['start_minute']<lock['start_minute']+activity['duration'] and resources&other_resources:
+                if (other['activity_id'],other['occurrence'])!=(lock['activity_id'],lock['occurrence']) and other['day']==lock['day'] and lock['start_minute']<other_end and other['start_minute']<lock_end(lock,activity) and resources&other_resources:
                     issue('locked_resource_collision','Two fixed sessions overlap for the same resource.',activity['id'],[other['id'],lock['id']])
-            fixed.append((lock,lock['start_minute']+activity['duration'],resources))
+            fixed.append((lock,lock_end(lock,activity),resources))
     return dict(version=VERSION,input_version=snapshot.get('input_version'),ready=not blockers,blockers=blockers,warnings=warnings,activity_domains=domains,
                 definition='Necessary local checks only; passing does not prove global feasibility. Missing optional limits are warnings. Named teaching breaks do not count as teaching capacity.')

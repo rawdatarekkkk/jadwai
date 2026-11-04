@@ -175,11 +175,12 @@ def delete_record(
 
 
 def validate_rule(body, db):
-    from app.rule_validation import TARGETS, rule_error
-    field, _ = TARGETS[body.type]
-    target = db.get(Record, getattr(body, field)) if getattr(body, field) else None
+    from app.rule_validation import rule_error
+    def kind_of(ident):
+        record = db.get(Record, ident) if isinstance(ident, str) else None
+        return record.kind if record else None
     calendar = db.get(Workspace, 1)
-    error = rule_error(body, target.kind if target else None, {
+    error = rule_error(body, kind_of, {
         "days": calendar.days, "start_hour": calendar.start_hour, "end_hour": calendar.end_hour,
     })
     if error:
@@ -256,13 +257,16 @@ def update_calendar(
     for rule in db.scalars(select(Rule)):
         data = rule.data
         if (
-            data["day"] not in body.days
-            or data["start_hour"] < body.start_hour
-            or data["end_hour"] > body.end_hour
+            data["start_hour"] is not None and (
+                (data["day"] is not None and data["day"] not in body.days)
+                or data["start_hour"] < body.start_hour
+                or data["end_hour"] > body.end_hour
+            )
         ):
             fail(409, "calendar_conflict")
     for record in db.scalars(select(Record).where(Record.kind == "courses")):
-        if (body.teaching_periods and record.data["duration"] not in [p.end-p.start for p in body.teaching_periods]) or (not body.teaching_periods and record.data["duration"] % body.period_minutes):
+        from app.calendar_slots import day_placements
+        if not day_placements(body.model_dump(), record.data["duration"]):
             fail(409, "calendar_conflict")
     for key, value in body.model_dump().items():
         setattr(ws, key, value)

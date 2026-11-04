@@ -39,8 +39,9 @@ def test_semantic_errors_block_review(field, value, code):
     assert result.errors == ('proposals.0.' + code,)
 
 
-@pytest.mark.parametrize('value', ['9', True, 9.0])
+@pytest.mark.parametrize('value', ['9', True, 9.25])
 def test_hours_are_not_coerced(value):
+    # Half-hour times such as 9.5 are valid; strings, booleans and other fractions are not.
     output = envelope(); output['proposals'][0]['data']['start_hour'] = value
     assert check(output).errors == ('proposal_syntax',)
 

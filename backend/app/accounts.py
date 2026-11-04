@@ -86,19 +86,23 @@ def live():
     return {"status": "alive"}
 
 
+# Latest migration revision; bump with every new migration.
+SCHEMA_HEAD = "0028"
+
+
 @router.get("/api/health")
 def readiness(response: Response, db: DB = Depends(db_session)):
     version = db.execute(text("SELECT version_num FROM alembic_version")).scalar()
     workspace = db.get(Workspace, 1)
     worker = db.get(WorkerHeartbeat, 1)
     fresh = bool(worker and utcnow() - worker.seen_at < timedelta(seconds=45))
-    ready = version == "0026" and workspace is not None and fresh
+    ready = version == SCHEMA_HEAD and workspace is not None and fresh
     response.status_code = 200 if ready else 503
     response.headers["Cache-Control"] = "no-store"
     return {
         "status": "ready" if ready else "not_ready",
         "database": True,
-        "schema_current": version == "0026",
+        "schema_current": version == SCHEMA_HEAD,
         "workspace": workspace is not None,
         "worker": fresh,
     }

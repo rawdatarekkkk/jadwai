@@ -96,7 +96,7 @@ def test_api_allowed_rule_and_settings_idempotency(environment):
 def test_invalid_settings_and_rule_target_rejected(environment):
     client,factory=environment
     login(client);setup_data(client,factory)
-    assert client.post('/api/schedules',headers=version(client),json={'request_key':str(uuid4()),'settings':{'time_limit_seconds':61}}).status_code==422
+    assert client.post('/api/schedules',headers=version(client),json={'request_key':str(uuid4()),'settings':{'time_limit_seconds':301}}).status_code==422
     assert client.post('/api/rules',headers=version(client),json=dict(title='Bad',type='activity_allowed',instructor_id='teacher',day='Monday',start_hour=8,end_hour=12,strength='mandatory')).status_code==422
 
 

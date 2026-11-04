@@ -3,6 +3,7 @@ from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from html import escape
 import json
+from app import rule_semantics as rs
 
 
 def percentage(numerator, denominator):
@@ -21,11 +22,11 @@ def build_statistics(snapshot, result):
     cal=snapshot['calendar']
     day_minutes=sum(p['end']-p['start'] for p in cal.get('teaching_periods',[])) if cal.get('teaching_periods') else (cal['end_hour']-cal['start_hour'])*60
     weekly_minutes=day_minutes*len(cal['days'])
-    duration=sum(a['end_minute']-a['start_minute'] for a in assignments)
+    duration=sum(activities[a['activity_id']]['duration'] for a in assignments)
     room_minutes=Counter(); teacher_minutes=Counter(); group_minutes=Counter(); daily=Counter()
     used_seat_minutes=0; available_seat_minutes=0
     for a in assignments:
-        activity=activities[a['activity_id']]; minutes=a['end_minute']-a['start_minute']
+        activity=activities[a['activity_id']]; minutes=activity['duration']
         room_minutes[a['room_id']]+=minutes;teacher_minutes[a['instructor_id']]+=minutes;daily[a['day']]+=1
         for g in activity['group_ids']:group_minutes[g]+=minutes
         used_seat_minutes+=sum(groups[g]['size'] for g in activity['group_ids'])*minutes
@@ -41,14 +42,14 @@ def build_statistics(snapshot, result):
     per_rule=[]
     for rule in preferences:
         relevant=[a for a in assignments if a['instructor_id']==rule['instructor_id']]
-        satisfied=sum(a['day']==rule['day'] and a['start_minute']>=rule['start_hour']*60 and a['end_minute']<=rule['end_hour']*60 for a in relevant)
+        satisfied=sum(rs.covers(rule,a['day'],a['start_minute'],a['end_minute']) for a in relevant)
         per_rule.append({'id':rule['id'],'title':rule['title'],'instructor':records[rule['instructor_id']]['name'],'applicable_sessions':len(relevant),'satisfied_sessions':satisfied,'unsatisfied_sessions':len(relevant)-satisfied,'satisfaction_percent':percentage(satisfied,len(relevant)),'status':'not_applicable' if not relevant else 'fully_satisfied' if satisfied==len(relevant) else 'partially_satisfied' if satisfied else 'unsatisfied'})
     applicable=0; preferred_satisfied=0
     for a in assignments:
         windows=[r for r in preferences if r['instructor_id']==a['instructor_id']]
         if not windows:continue
         applicable+=1
-        preferred_satisfied+=int(any(a['day']==r['day'] and a['start_minute']>=r['start_hour']*60 and a['end_minute']<=r['end_hour']*60 for r in windows))
+        preferred_satisfied+=int(rs.within_windows(windows,a['day'],a['start_minute'],a['end_minute']))
     return {'provenance':result.get('provenance'), 'solver_diagnostics':result.get('solver_diagnostics'), 'report_version':1,'generated_at':datetime.now(timezone.utc).isoformat(),'status':result.get('status'),'input_version':snapshot['input_version'],
         'input_summary':{'activities':len(activities),'instructors':len(instructors),'rooms':len(rooms),'student_groups':len(groups),'approved_rules':len(snapshot['rules']),'approved_unavailability_rules':sum(r['type'] in ('unavailable','room_unavailable','group_unavailable') for r in snapshot['rules']),'approved_preference_rules':len(preferences)},
         'coverage':{'expected_sessions':expected,'scheduled_sessions':len(assignments),'unscheduled_sessions':expected-len(assignments),'assignment_percent':percentage(len(assignments),expected)},

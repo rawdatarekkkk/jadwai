@@ -9,6 +9,7 @@ from sqlalchemy import (
     CheckConstraint,
     Date,
     DateTime,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -289,12 +290,9 @@ class Rule(Base):
     __tablename__ = "rule"
     __table_args__ = (
         CheckConstraint("status IN ('draft','approved')", name="valid_rule_status"),
-        CheckConstraint("((type IN ('unavailable','preferred_period') AND instructor_id IS NOT NULL AND room_id IS NULL AND group_id IS NULL AND activity_id IS NULL) OR (type='room_unavailable' AND room_id IS NOT NULL AND instructor_id IS NULL AND group_id IS NULL AND activity_id IS NULL) OR (type IN ('group_unavailable','group_allowed') AND group_id IS NOT NULL AND instructor_id IS NULL AND room_id IS NULL AND activity_id IS NULL) OR (type='activity_allowed' AND activity_id IS NOT NULL AND instructor_id IS NULL AND room_id IS NULL AND group_id IS NULL))", name="rule_target"),
-        CheckConstraint("type IN ('unavailable','preferred_period','room_unavailable','group_unavailable','group_allowed','activity_allowed') AND ((type!='preferred_period' AND strength='mandatory') OR (type='preferred_period' AND strength='preferred'))", name="rule_strength"),
-        CheckConstraint(
-            "start_hour >= 0 AND end_hour <= 24 AND start_hour < end_hour",
-            name="rule_hours",
-        ),
+        CheckConstraint("((type IN ('unavailable','preferred_period') AND instructor_id IS NOT NULL AND room_id IS NULL AND group_id IS NULL AND activity_id IS NULL) OR (type='room_unavailable' AND room_id IS NOT NULL AND instructor_id IS NULL AND group_id IS NULL AND activity_id IS NULL) OR (type IN ('group_unavailable','group_allowed') AND group_id IS NOT NULL AND instructor_id IS NULL AND room_id IS NULL AND activity_id IS NULL) OR (type='activity_allowed' AND activity_id IS NOT NULL AND instructor_id IS NULL AND room_id IS NULL AND group_id IS NULL) OR (type='activity_room' AND activity_id IS NOT NULL AND instructor_id IS NULL AND room_id IS NULL AND group_id IS NULL) OR (type='activities_not_same_day' AND instructor_id IS NULL AND room_id IS NULL AND group_id IS NULL AND activity_id IS NULL) OR (type IN ('instructor_max_daily_hours','instructor_max_days') AND instructor_id IS NOT NULL AND room_id IS NULL AND group_id IS NULL AND activity_id IS NULL) OR (type='group_max_daily_hours' AND group_id IS NOT NULL AND instructor_id IS NULL AND room_id IS NULL AND activity_id IS NULL))", name="rule_target"),
+        CheckConstraint("type IN ('unavailable','preferred_period','room_unavailable','group_unavailable','group_allowed','activity_allowed','activity_room','activities_not_same_day','instructor_max_daily_hours','group_max_daily_hours','instructor_max_days') AND ((type!='preferred_period' AND strength='mandatory') OR (type='preferred_period' AND strength='preferred'))", name="rule_strength"),
+        CheckConstraint("(type IN ('activity_room','activities_not_same_day','instructor_max_daily_hours','group_max_daily_hours','instructor_max_days') AND start_hour IS NULL AND end_hour IS NULL AND day IS NULL) OR (type IN ('unavailable','preferred_period','room_unavailable','group_unavailable','group_allowed','activity_allowed') AND start_hour IS NOT NULL AND end_hour IS NOT NULL AND start_hour >= 0 AND end_hour <= 24 AND start_hour < end_hour AND start_hour * 2 = floor(start_hour * 2) AND end_hour * 2 = floor(end_hour * 2))", name="rule_hours"),
     )
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     title: Mapped[str] = mapped_column(String(100))
@@ -303,9 +301,10 @@ class Rule(Base):
     group_id: Mapped[str | None] = mapped_column(ForeignKey("student_group.id"), nullable=True)
     activity_id: Mapped[str | None] = mapped_column(ForeignKey("teaching_activity.id"), nullable=True)
     type: Mapped[str] = mapped_column(String(30))
-    day: Mapped[str] = mapped_column(String(12))
-    start_hour: Mapped[int] = mapped_column(Integer)
-    end_hour: Mapped[int] = mapped_column(Integer)
+    day: Mapped[str | None] = mapped_column(String(12), nullable=True)
+    start_hour: Mapped[float | None] = mapped_column(Float, nullable=True)
+    end_hour: Mapped[float | None] = mapped_column(Float, nullable=True)
+    params: Mapped[dict] = mapped_column(JSON, default=dict)
     strength: Mapped[str] = mapped_column(String(20))
     status: Mapped[str] = mapped_column(String(20), default="draft")
     approved_by: Mapped[str | None] = mapped_column(
@@ -327,6 +326,7 @@ class Rule(Base):
                 "start_hour",
                 "end_hour",
                 "strength",
+                "params",
             ]
         }
 

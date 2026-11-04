@@ -1,11 +1,13 @@
 """Independent timetable checks: no dependency on the solver/model builder."""
-from collections import Counter
+from collections import Counter, defaultdict
+from app import rule_semantics as rs
+from app.calendar_slots import placement_for
 
-CHECKS = ["complete_assignment", "calendar", "instructor_eligibility", "instructor_position", "instructor_day_off", "instructor_continuity", "room_suitability", "resource_conflicts", "approved_unavailability", "approved_room_unavailability", "approved_group_unavailability", "configured_weekly_workload", "approved_assignment_locks", "approved_allowed_windows"]
+CHECKS = ["complete_assignment", "calendar", "instructor_eligibility", "instructor_position", "instructor_day_off", "instructor_continuity", "room_suitability", "resource_conflicts", "approved_unavailability", "approved_room_unavailability", "approved_group_unavailability", "configured_weekly_workload", "approved_assignment_locks", "approved_allowed_windows", "approved_room_rules", "approved_daily_limits", "approved_teaching_days", "approved_separate_days"]
 
 
 def validate_schedule(snapshot, assignments):
-    if any(r["status"] == "approved" and r["type"] not in ("unavailable", "preferred_period", "room_unavailable", "group_unavailable", "group_allowed", "activity_allowed") for r in snapshot["rules"]):
+    if any(r["status"] == "approved" and r["type"] not in rs.TYPES for r in snapshot["rules"]):
         return report({"unsupported_rule"})
     from app.schemas import RealismPolicy
     try:
@@ -48,9 +50,7 @@ def validate_schedule(snapshot, assignments):
         start, end, day = row.get("start_minute"), row.get("end_minute"), row.get("day")
         if records.get(teacher, {}).get("day_off") == day:
             errors.add("instructor_day_off")
-        periods = calendar.get("teaching_periods", [])
-        valid_slot = any(p["start"] == start and p["end"] == end for p in periods) if periods else (start - calendar["start_hour"] * 60) % calendar["period_minutes"] == 0
-        if (day not in calendar["days"] or start < calendar["start_hour"] * 60 or end > calendar["end_hour"] * 60 or end - start != activity["duration"] or not valid_slot):
+        if day not in calendar["days"] or placement_for(calendar, activity["duration"], start, end) is None:
             errors.add("calendar")
             continue
         room = records.get(row.get("room_id"), {})
@@ -60,28 +60,32 @@ def validate_schedule(snapshot, assignments):
             errors.add("room_suitability")
         targets = [('activity_allowed', 'activity_id', activity['id'])] + [('group_allowed', 'group_id', g) for g in activity['group_ids']]
         for typ, field, ident in targets:
-            windows = [r for r in snapshot['rules'] if r['status']=='approved' and r['type']==typ and r.get(field)==ident]
-            if windows and not any(r['day']==day and r['start_hour']*60<=start and end<=r['end_hour']*60 for r in windows):
+            windows = [r for r in rs.approved(snapshot, typ) if r.get(field)==ident]
+            if not rs.within_windows(windows, day, start, end):
                 errors.add('approved_allowed_windows')
+        if any(row.get("room_id") not in rs.param(r, "room_ids") for r in rs.approved(snapshot, "activity_room") if r["activity_id"] == activity["id"]):
+            errors.add("approved_room_rules")
         resources = {("teacher", teacher), ("room", row.get("room_id")), *(("group", g) for g in activity["group_ids"])}
         for other_day, other_start, other_end, other_resources in occupied:
             if day == other_day and start < other_end and other_start < end and resources & other_resources:
                 errors.add("resource_conflicts")
         occupied.append((day, start, end, resources))
-        for rule in snapshot["rules"]:
-            if rule["status"] == "approved" and rule["day"] == day and start < rule["end_hour"] * 60 and rule["start_hour"] * 60 < end:
-                if rule["type"] == "room_unavailable" and rule.get("room_id") == row.get("room_id"):
-                    errors.add("approved_room_unavailability")
-                if rule["type"] == "group_unavailable" and rule.get("group_id") in activity["group_ids"]:
-                    errors.add("approved_group_unavailability")
-            if rule["status"] == "approved" and rule["type"] == "unavailable" and rule["instructor_id"] == teacher and rule["day"] == day and start < rule["end_hour"] * 60 and rule["start_hour"] * 60 < end:
+        for rule in rs.approved(snapshot, "room_unavailable", "group_unavailable", "unavailable"):
+            if not rs.overlaps(rule, day, start, end):
+                continue
+            if rule["type"] == "room_unavailable" and rule.get("room_id") == row.get("room_id"):
+                errors.add("approved_room_unavailability")
+            if rule["type"] == "group_unavailable" and rule.get("group_id") in activity["group_ids"]:
+                errors.add("approved_group_unavailability")
+            if rule["type"] == "unavailable" and rule["instructor_id"] == teacher:
                 errors.add("approved_unavailability")
-    # Independently sum assigned elapsed minutes; do not reuse solver arithmetic.
+    errors |= limit_rule_errors(snapshot, activities, assignments)
+    # Independently sum assigned teaching minutes (breaks inside a session excluded).
     workload = []
     for teacher in records.values():
         if teacher["kind"] != "instructors":
             continue
-        minutes = sum(a["end_minute"] - a["start_minute"] for a in assignments if a["instructor_id"] == teacher["id"])
+        minutes = sum(activities[a["activity_id"]]["duration"] for a in assignments if a["instructor_id"] == teacher["id"] and a["activity_id"] in activities)
         overtime_policy = calendar.get("weekly_load_policy", {}).get("allow_overtime", False)
         limit = None if overtime_policy else teacher.get("max_weekly_hours")
         if limit is not None and (type(limit) not in (int, float) or not 0 <= limit <= 168 or limit * 2 != int(limit * 2)):
@@ -114,6 +118,35 @@ def validate_schedule(snapshot, assignments):
     from app.validation_details import details
     result.update(details(snapshot, assignments, result))
     return result
+
+
+def limit_rule_errors(snapshot, activities, assignments):
+    """Daily-hour, teaching-day and same-day limits, recomputed from the assignments."""
+    errors = set()
+    minutes = defaultdict(int)
+    days_taught = defaultdict(set)
+    activity_days = defaultdict(set)
+    for a in assignments:
+        activity = activities.get(a["activity_id"])
+        if not activity:
+            continue
+        minutes[("instructor", a["instructor_id"], a["day"])] += activity["duration"]
+        for g in activity["group_ids"]:
+            minutes[("group", g, a["day"])] += activity["duration"]
+        days_taught[a["instructor_id"]].add(a["day"])
+        activity_days[a["activity_id"]].add(a["day"])
+    for rule in rs.approved(snapshot, "instructor_max_daily_hours", "group_max_daily_hours"):
+        kind, ident = ("instructor", rule["instructor_id"]) if rule["type"] == "instructor_max_daily_hours" else ("group", rule["group_id"])
+        if any(m > round(rs.param(rule, "hours") * 60) for (k, i, _), m in minutes.items() if (k, i) == (kind, ident)):
+            errors.add("approved_daily_limits")
+    for rule in rs.approved(snapshot, "instructor_max_days"):
+        if len(days_taught[rule["instructor_id"]]) > rs.param(rule, "days"):
+            errors.add("approved_teaching_days")
+    for rule in rs.approved(snapshot, "activities_not_same_day"):
+        ids = rs.param(rule, "activity_ids")
+        if any(activity_days[x] & activity_days[y] for i, x in enumerate(ids) for y in ids[i + 1:]):
+            errors.add("approved_separate_days")
+    return errors
 
 
 def report(errors, workload=None, realism=None, checked_locks=None):

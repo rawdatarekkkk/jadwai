@@ -37,11 +37,10 @@ def validate_record(kind, data, db, record_id=None):
     if kind == "courses":
         from app.models import Workspace
 
+        from app.calendar_slots import day_placements
         calendar = db.get(Workspace, 1)
-        if calendar.teaching_periods:
-            if body["duration"] not in [p["end"]-p["start"] for p in calendar.teaching_periods]:
-                fail(422, "outside_calendar")
-        elif body["duration"] % calendar.period_minutes:
+        cal = {"teaching_periods": calendar.teaching_periods, "start_hour": calendar.start_hour, "end_hour": calendar.end_hour, "period_minutes": calendar.period_minutes}
+        if not day_placements(cal, body["duration"]):
             fail(422, "outside_calendar")
     if kind == "courses":
         from app.positions import position_conflict

@@ -1,13 +1,14 @@
 """Validate untrusted extraction output without writing or approving rules.
 
-This first production slice accepts the six manual time-rule types only. Other
+Accepts every manual rule type, time rules and limit rules alike. Other
 proposal kinds are rejected explicitly until their own review flows exist.
 """
 from dataclasses import dataclass
 from typing import Literal
 from pydantic import Field, ValidationError
 from app.schemas import Strict, RuleInput
-from app.rule_validation import TARGETS, rule_error
+import json
+from app.rule_validation import rule_error
 
 
 class RuleProposal(Strict):
@@ -59,11 +60,10 @@ def validate_proposal(output, *, records, calendar):
     signatures = set()
     for index, proposal in enumerate(envelope.proposals):
         body = proposal.data
-        field, _ = TARGETS[body.type]
-        error = rule_error(body, records.get(getattr(body, field)), calendar)
+        error = rule_error(body, records.get, calendar)
         if error:
             errors.append(f'proposals.{index}.{error}')
-        signature = tuple((k, v) for k, v in body.model_dump().items() if k != 'title')
+        signature = json.dumps({k: v for k, v in body.model_dump().items() if k != 'title'}, sort_keys=True)
         if signature in signatures:
             errors.append(f'proposals.{index}.duplicate_rule')
         signatures.add(signature)

@@ -40,12 +40,10 @@ def validate_lock(row,db):
         if not room or room.kind!='rooms' or (room.data.get('capacity') or 0)<size or not set(room.data.get('room_types') or [room.data.get('room_type')]) & {typ,'flexible'} or not set(data.get('required_equipment',[]))<=set(room.data.get('equipment',[])):
             fail(422,'invalid_lock')
     if row.day is not None:
-        start=row.start_minute;end=start+data['duration']
-        if row.day not in calendar.days or start<calendar.start_hour*60 or end>calendar.end_hour*60:
+        from app.calendar_slots import end_for
+        cal={'teaching_periods':calendar.teaching_periods,'start_hour':calendar.start_hour,'end_hour':calendar.end_hour,'period_minutes':calendar.period_minutes}
+        if row.day not in calendar.days or end_for(cal,data['duration'],row.start_minute) is None:
             fail(422,'invalid_lock')
-        if calendar.teaching_periods:
-            if {'start':start,'end':end} not in calendar.teaching_periods:fail(422,'invalid_lock')
-        elif (start-calendar.start_hour*60)%calendar.period_minutes:fail(422,'invalid_lock')
 
 
 def conflicts(row,db):

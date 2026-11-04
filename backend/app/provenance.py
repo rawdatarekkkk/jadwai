@@ -6,17 +6,17 @@ from app.schemas import Strict
 
 class SolverSettings(Strict):
     profile: str = Field(default="cp-sat-baseline-v1", pattern="^cp-sat-baseline-v1$")
-    time_limit_seconds: int = Field(default=10, ge=1, le=60, strict=True)
+    time_limit_seconds: int = Field(default=30, ge=1, le=300, strict=True)
     random_seed: int = Field(default=42, ge=0, le=2147483647, strict=True)
-    search_workers: int = Field(default=2, ge=1, le=4, strict=True)
-    objective_profile: str = Field(default="preferences-first-v1", pattern="^(preferences-first-v1|weighted-v1)$")
+    search_workers: int = Field(default=4, ge=1, le=8, strict=True)
+    objective_profile: str = Field(default="convenience-v1", pattern="^(convenience-v1|preferences-first-v1|weighted-v1)$")
     preference_weight: int = Field(default=10, ge=1, le=100, strict=True)
     idle_weight: int = Field(default=1, ge=1, le=100, strict=True)
 
 
-CONFIG = {"profile": "cp-sat-baseline-v1", "time_limit_seconds": 10,
+CONFIG = {"profile": "cp-sat-baseline-v1", "time_limit_seconds": 20,
           "random_seed": 42, "search_workers": 2}
-VALIDATOR_VERSION = "independent-checks-v5-day-off-overtime"
+VALIDATOR_VERSION = "independent-checks-v6-positions-limits-convenience"
 
 
 def fingerprint(value):

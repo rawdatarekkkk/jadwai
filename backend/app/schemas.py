@@ -100,19 +100,29 @@ class Group(Strict):
     major: Name | None = None
 
 
+class RuleParams(Strict):
+    room_ids: list[str] | None = Field(default=None, min_length=1, max_length=20)
+    activity_ids: list[str] | None = Field(default=None, min_length=2, max_length=10)
+    hours: float | None = Field(default=None, gt=0, le=24, multiple_of=0.5, allow_inf_nan=False)
+    days: int | None = Field(default=None, ge=1, le=7)
+
+
 class RuleInput(Strict):
     activity_id: str | None = None
     title: Name
     instructor_id: str | None = None
     room_id: str | None = None
     group_id: str | None = None
-    type: Literal["unavailable", "preferred_period", "room_unavailable", "group_unavailable", "group_allowed", "activity_allowed"]
+    type: Literal["unavailable", "preferred_period", "room_unavailable", "group_unavailable", "group_allowed", "activity_allowed",
+                  "activity_room", "activities_not_same_day", "instructor_max_daily_hours", "group_max_daily_hours", "instructor_max_days"]
+    # None means every teaching day; limit rules have no day or hours.
     day: Literal[
         "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
-    ]
-    start_hour: int = Field(ge=0, le=23)
-    end_hour: int = Field(ge=1, le=24)
+    ] | None = None
+    start_hour: float | None = Field(default=None, ge=0, le=23.5, multiple_of=0.5, allow_inf_nan=False)
+    end_hour: float | None = Field(default=None, ge=0.5, le=24, multiple_of=0.5, allow_inf_nan=False)
     strength: Literal["mandatory", "preferred"]
+    params: RuleParams = Field(default_factory=RuleParams)
 
 
 SCHEMAS = {"instructors": Instructor, "courses": Course, "rooms": Room, "groups": Group}

@@ -22,7 +22,8 @@ def rows(positions):
 
 
 def test_realistic_policy_spreads_sessions_and_does_not_mutate_snapshot():
-    snap=sample();before=deepcopy(snap)
+    from app.provenance import CONFIG
+    snap=sample();snap['provenance']={'solver_config':{**CONFIG,'objective_profile':'preferences-first-v1'}};before=deepcopy(snap)
     result=generate(snap)
     assert result['status']=='completed' and snap==before
     report=validate_schedule(snap,result['assignments']);assert report['passed']

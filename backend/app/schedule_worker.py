@@ -99,20 +99,19 @@ def process_one(factory=SessionLocal, shutdown=None):
                 report["passed"] = False
                 report["errors"].append("preference_penalty_mismatch")
                 report.setdefault("violations", []).append({"code":"preference_penalty_mismatch","message":"Solver penalty does not match independent evaluation.","sessions":[],"resource_ids":[],"rule_ids":[]})
-            config = snapshot.get('provenance',{}).get('solver_config',{})
-            policy = snapshot['calendar'].get('realism_policy',{})
-            if config.get('objective_profile') == 'weighted-v1':
-                weights = {'preferences':config['preference_weight'],'idle_periods':config['idle_weight']}
-            else:
-                activities = [r for r in snapshot['records'] if r['kind']=='courses']
-                teacher_ids = {t for a in activities for t in a['eligible_instructors']}
-                group_ids = {g for a in activities for g in a['group_ids']}
-                possible_gaps = (len(teacher_ids)+len(group_ids))*len(snapshot['calendar']['days'])*max(0,len(snapshot['calendar'].get('teaching_periods',[]))-2) if policy.get('compact_days') else 0
-                weights = {'preferences':possible_gaps+1,'idle_periods':1}
-            expected_score = objective['total']*weights['preferences'] + (((report.get('realism') or {}).get('idle_periods',0)) if policy.get('compact_days') else 0)*weights['idle_periods']
+            from app.objective import weights as profile_weights, effective
+            from app.provenance import CONFIG
+            from app.realism_validation import convenience_components
+            config = snapshot.get('provenance',{}).get('solver_config',CONFIG)
+            weights, scored = profile_weights(snapshot, config), effective(snapshot, config)
+            observed = {'preferences': objective['total'], **convenience_components(snapshot, result['assignments'])}
+            observed['idle_periods'] = observed['student_gaps'] + observed['instructor_gaps']
+            expected_score = sum(weight * observed[name] for name, weight in scored.items())
             diagnostic = result.get('solver_diagnostics') or {}
-            score_correct = diagnostic.get('objective_weights') == weights and diagnostic.get('objective_value') == expected_score
-            report['objective_evaluation'] = {'weights':weights,'expected_score':expected_score,'passed':score_correct}
+            reported = result.get('objective_components') or {}
+            components_correct = all(reported.get(name) == observed[name] for name, weight in scored.items() if weight)
+            score_correct = components_correct and diagnostic.get('objective_weights') == weights and diagnostic.get('objective_value') == expected_score
+            report['objective_evaluation'] = {'weights':weights,'observed_components':observed,'expected_score':expected_score,'passed':score_correct}
             report['checks'].append('independent_objective_score')
             report.setdefault('coverage',[]).append({'check':'independent_objective_score','required':True,'applicable':1,'basis':'selected objective profile and independently observed components','status':'passed' if score_correct else 'failed'})
             if not score_correct:

@@ -23,7 +23,9 @@ def test_solver_records_actual_parameters_and_raw_outcome():
     d=result['solver_diagnostics']
     assert d['raw_status'] in ('OPTIMAL','FEASIBLE')
     assert d['ortools_version'] and d['solver_seconds']>=0
-    assert 'max_time_in_seconds: 1' in d['parameters_text']
+    # The convenience search spends part of the limit on a plain warm start.
+    assert d['requested_time_limit_seconds']==1 and d['warm_start']['raw_status'] in ('OPTIMAL','FEASIBLE')
+    assert 'max_time_in_seconds:' in d['parameters_text']
     assert 'random_seed: 42' in d['parameters_text']
     result=generate(example(),time_limit=0)
     assert result['solver_diagnostics']['raw_status']=='UNKNOWN'

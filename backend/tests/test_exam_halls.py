@@ -82,3 +82,9 @@ def test_exam_api_assigns_halls_and_tas(environment):
     assert 'EHA' in exported and ('TA One' in exported or 'TA Two' in exported)
     rules = client.put('/api/exam-schedules/cohort-rules', headers=version(client), json={'broad_programs': ['Computer Science Core'], 'tracks': {}, 'aliases': {}})
     assert rules.status_code == 200 and rules.json()['broad_programs'] == ['computersciencecore']
+    assert client.put(f"/api/exam-schedules/{run['id']}/name", json={'name': 'Midterms v1'}).json()['name'] == 'Midterms v1'
+    # Changing the cohort lists above changed the inputs, so this draft is stale now.
+    assert client.post(f"/api/exam-schedules/{run['id']}/publish", headers=version(client)).json()['detail'] == 'stale_schedule'
+    fresh = client.post('/api/exam-schedules', headers=version(client), json={'start_date': '2026-10-20', 'end_date': '2026-10-22', 'time_limit_seconds': 5}).json()
+    assert client.post(f"/api/exam-schedules/{fresh['id']}/publish", headers=version(client)).status_code == 200
+    assert next(r for r in client.get('/api/exam-schedules').json() if r['id'] == fresh['id'])['published_at']

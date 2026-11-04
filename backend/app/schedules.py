@@ -32,13 +32,18 @@ def snapshot_of(db, ws):
 def representation(row, current_version):
     return {"id": row.id, "input_version": row.input_version, "stale": row.input_version != current_version,
             "status": row.status, "cancel_requested": row.cancel_requested, "created_at": row.created_at,
-            "snapshot": row.snapshot, "result": row.result}
+            "snapshot": row.snapshot, "result": row.result,
+            "name": row.name, "parent_run_id": row.parent_run_id, "published_at": row.published_at}
 
 
 @router.get("")
 def list_runs(user=Depends(administrator), db: DB = Depends(db_session)):
     ws = db.get(Workspace, 1)
-    return [representation(r, ws.version) for r in db.scalars(select(ScheduleRun).order_by(ScheduleRun.created_at.desc()).limit(10))]
+    rows = list(db.scalars(select(ScheduleRun).order_by(ScheduleRun.created_at.desc()).limit(20)))
+    published = db.scalar(select(ScheduleRun).where(ScheduleRun.published_at.isnot(None)))
+    if published and published not in rows:
+        rows.append(published)
+    return [representation(r, ws.version) for r in rows]
 
 
 @router.get("/preflight/current")

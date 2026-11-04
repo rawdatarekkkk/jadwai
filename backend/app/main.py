@@ -318,3 +318,6 @@ app.include_router(evaluation_router)
 
 from app.model_calls import router as model_calls_router
 app.include_router(model_calls_router)
+
+from app.scenarios import router as scenarios_router
+app.include_router(scenarios_router)

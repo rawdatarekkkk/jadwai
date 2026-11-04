@@ -22,7 +22,7 @@ class ExamInput(Strict):
         if not 0<=(self.end_date-self.start_date).days<=60:raise ValueError('Exam period must be between 1 and 61 days')
         return self
 
-def representation(row):return dict(id=row.id,input_version=row.input_version,created_at=row.created_at,snapshot=row.snapshot,result=row.result)
+def representation(row):return dict(id=row.id,input_version=row.input_version,created_at=row.created_at,snapshot=row.snapshot,result=row.result,name=row.name,published_at=row.published_at)
 @router.get('')
 def list_exams(user=Depends(administrator),db=Depends(db_session)):
     return [representation(r) for r in db.scalars(select(ExamRun).order_by(ExamRun.created_at.desc()).limit(20))]

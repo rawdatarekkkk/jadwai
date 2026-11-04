@@ -1,0 +1,77 @@
+// @vitest-environment jsdom
+import React from 'react';
+import {test,expect,vi,afterEach} from 'vitest';
+import {render,screen,fireEvent,cleanup} from '@testing-library/react';
+import {BrowserAnnotationReview,browserAnnotation} from './BrowserAnnotationReview';
+import {annotationRule,type AnnotationContext} from './AnnotationRuleEditor';
+afterEach(()=>{cleanup();vi.unstubAllGlobals();});
+const context:AnnotationContext={id:'c',calendar:{days:['Saturday','Monday'],start_hour:8,end_hour:18},rooms:[{id:'r',name:'Studio 2'}],instructors:[{id:'i',name:'Salma Farid'}],groups:[],activities:[]};
+const pack={format:'gold-free-review-v1',manifest_sha256:'manifest',guide_version:'v2',contexts:[context],items:[{id:'one',text:'Studio 2 is closed on Saturday from 10:00 to 12:00.',context_id:'c',language:'en',annotation:null,rationale:''},{id:'two',text:'Hana cannot teach on Monday.',context_id:'c',language:'en',annotation:null,rationale:''}]};
+test('review opens with no answer preselection and no automatic submission',async()=>{
+ const fetch=vi.fn(async()=>({ok:true,status:200,json:async()=>pack}));vi.stubGlobal('fetch',fetch);
+ render(<BrowserAnnotationReview lang='en' onSaved={()=>{}}/>);
+ fireEvent.click(screen.getByRole('button',{name:'Start in-browser review'}));
+ expect(await screen.findByText('0/2 statements complete')).toBeTruthy();
+ expect((screen.getByLabelText('Interpretation decision') as HTMLSelectElement).value).toBe('');
+ expect((screen.getByRole('button',{name:'Save completed browser review'}) as HTMLButtonElement).disabled).toBe(true);
+ expect(fetch).toHaveBeenCalledTimes(1);
+});
+test('structured annotations survive navigation and save the original pack using the existing review API',async()=>{
+ const submissions:{path:string;body:unknown}[]=[];const onSaved=vi.fn();
+ vi.stubGlobal('fetch',vi.fn(async(path:string,options?:{method?:string;body:string})=>{if(options?.method==='POST')submissions.push({path,body:JSON.parse(options.body)});return {ok:true,status:options?.method==='POST'?201:200,json:async()=>options?.method==='POST'?{id:'review',reviewer_id:'independent-a',items:2,created_at:'2026-11-01T12:00:00Z',adjudicated:false}:pack};}));
+ render(<BrowserAnnotationReview lang='en' onSaved={onSaved}/>);
+ fireEvent.click(screen.getByRole('button',{name:'Start in-browser review'}));await screen.findByText('0/2 statements complete');
+ fireEvent.change(screen.getByLabelText('Reviewer ID for browser review'),{target:{value:'independent-a'}});
+ fireEvent.change(screen.getByLabelText('Interpretation decision'),{target:{value:'ready'}});
+ fireEvent.click(screen.getByRole('button',{name:'Add supported rule'}));
+ fireEvent.change(screen.getByLabelText('Rule type 1'),{target:{value:'room_unavailable'}});
+ fireEvent.change(screen.getByLabelText('Rule target 1'),{target:{value:'r'}});
+ fireEvent.change(screen.getByLabelText('Rule day 1'),{target:{value:'Saturday'}});
+ fireEvent.change(screen.getByLabelText('Rule start 1'),{target:{value:'10'}});
+ fireEvent.change(screen.getByLabelText('Rule end 1'),{target:{value:'12'}});
+ fireEvent.change(screen.getByLabelText('Interpretation rationale'),{target:{value:'Room and interval are explicit.'}});
+ expect(screen.getByText('1/2 statements complete')).toBeTruthy();
+ fireEvent.click(screen.getByRole('button',{name:'Next statement'}));
+ fireEvent.change(screen.getByLabelText('Interpretation decision'),{target:{value:'clarify'}});
+ fireEvent.change(screen.getByLabelText('Clarification codes (comma-separated)'),{target:{value:'unknown_instructor'}});
+ fireEvent.change(screen.getByLabelText('Interpretation rationale'),{target:{value:'Hana is absent from context.'}});
+ expect(screen.getByText('2/2 statements complete')).toBeTruthy();
+ fireEvent.click(screen.getByRole('button',{name:'Previous statement'}));
+ expect((screen.getByLabelText('Rule target 1') as HTMLSelectElement).value).toBe('r');
+ expect((screen.getByLabelText('Interpretation rationale') as HTMLTextAreaElement).value).toBe('Room and interval are explicit.');
+ fireEvent.click(screen.getByRole('button',{name:'Save completed browser review'}));
+ await screen.findByText('Your review is saved as a separate record. Draft answers and scheduling inputs are unchanged.');
+ expect(onSaved).toHaveBeenCalledOnce();expect(submissions).toHaveLength(1);
+ const submitted=submissions[0] as {path:string;body:{reviewer_id:string;annotated:typeof pack}};
+ expect(submitted.path).toBe('/api/evaluation/reviews');
+ expect(submitted.body.annotated.items[0].text).toBe(pack.items[0].text);
+ expect(submitted.body.annotated.items[0].annotation).toEqual({decision:'ready',proposals:[{kind:'rule',data:{type:'room_unavailable',room_id:'r',day:'Saturday',start_hour:10,end_hour:12,strength:'mandatory'}}],clarifications:[],unsupported:[]});
+ expect((screen.getByRole('button',{name:'Save completed browser review'}) as HTMLButtonElement).disabled).toBe(true);
+});
+test('invalid intervals, missing targets and out-of-context days cannot become proposals',()=>{
+ const draft={type:'room_unavailable',target:'r',day:'Saturday',start:'10',end:'12'};
+ expect(annotationRule(draft,context)).toBeTruthy();
+ for(const change of [{target:'invented'},{day:'Friday'},{start:''},{start:'12',end:'10'},{start:'10.5'},{end:'19'}])expect(annotationRule({...draft,...change},context)).toBeNull();
+});
+test('decision semantics reject missing clarification and unsupported requests with a rule',()=>{
+ const draft={decision:'clarify',rules:[],clarifications:'',unsupported:'',rationale:'reason'};
+ expect(browserAnnotation(draft,context)).toBeNull();
+ expect(browserAnnotation({...draft,clarifications:'unknown_instructor'},context)?.decision).toBe('clarify');
+ expect(browserAnnotation({...draft,decision:'unsupported',unsupported:'unsupported_operation',rules:[{type:'room_unavailable',target:'r',day:'Saturday',start:'10',end:'12'}]},context)).toBeNull();
+});
+test('unsaved work survives section remount only for the same account',async()=>{
+ vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,status:200,json:async()=>pack})));
+ const store:{current:import('./BrowserAnnotationReview').BrowserReviewSnapshot|null}={current:null};
+ const initial=render(<BrowserAnnotationReview lang='en' ownerId='account-a' draftStore={store} onSaved={()=>{}}/>);
+ fireEvent.click(screen.getByRole('button',{name:'Start in-browser review'}));await screen.findByText('0/2 statements complete');
+ fireEvent.change(screen.getByLabelText('Reviewer ID for browser review'),{target:{value:'draft-reviewer'}});
+ fireEvent.change(screen.getByLabelText('Interpretation rationale'),{target:{value:'Unfinished local work.'}});
+ initial.unmount();
+ const restored=render(<BrowserAnnotationReview lang='en' ownerId='account-a' draftStore={store} onSaved={()=>{}}/>);
+ expect((screen.getByLabelText('Reviewer ID for browser review') as HTMLInputElement).value).toBe('draft-reviewer');
+ expect((screen.getByLabelText('Interpretation rationale') as HTMLTextAreaElement).value).toBe('Unfinished local work.');
+ restored.unmount();
+ render(<BrowserAnnotationReview lang='en' ownerId='account-b' draftStore={store} onSaved={()=>{}}/>);
+ expect(screen.getByRole('button',{name:'Start in-browser review'})).toBeTruthy();
+ expect(screen.queryByLabelText('Interpretation rationale')).toBeNull();
+});

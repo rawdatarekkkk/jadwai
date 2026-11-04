@@ -1,0 +1,127 @@
+[
+  {
+    "id": "synthetic-dept-v1",
+    "provenance": "Original synthetic fixtures; no real institutional or personal data.",
+    "calendar": {
+      "days": [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday"
+      ],
+      "start_hour": 8,
+      "end_hour": 18,
+      "timezone": "Africa/Cairo",
+      "teaching_periods": [
+        {
+          "start": 510,
+          "end": 600
+        },
+        {
+          "start": 615,
+          "end": 705
+        },
+        {
+          "start": 720,
+          "end": 810
+        },
+        {
+          "start": 825,
+          "end": 915
+        },
+        {
+          "start": 945,
+          "end": 1035
+        }
+      ]
+    },
+    "instructors": [
+      {
+        "id": "i-nour-hassan",
+        "name": "Nour Hassan",
+        "aliases": [
+          "نور حسن"
+        ]
+      },
+      {
+        "id": "i-nour-ali",
+        "name": "Nour Ali",
+        "aliases": [
+          "نور علي"
+        ]
+      }
+    ],
+    "rooms": [
+      {
+        "id": "r-lab1",
+        "name": "Lab 1",
+        "aliases": [
+          "معمل 1"
+        ],
+        "capacity": 30,
+        "room_type": "flexible"
+      }
+    ],
+    "groups": [
+      {
+        "id": "g-cs2a",
+        "name": "Year 2 Computer Science Group A",
+        "aliases": [
+          "Year 2 CS Group A",
+          "المجموعة أ سنة ثانية علوم حاسب"
+        ],
+        "size": 20
+      },
+      {
+        "id": "g-is2a",
+        "name": "Year 2 Information Systems Group A",
+        "aliases": [
+          "Year 2 IS Group A",
+          "المجموعة أ سنة ثانية نظم معلومات"
+        ],
+        "size": 20
+      }
+    ],
+    "activities": [
+      {
+        "id": "a-ds",
+        "name": "Data Structures",
+        "aliases": [
+          "هياكل البيانات",
+          "هياكل بيانات"
+        ],
+        "group_ids": [
+          "g-cs2a"
+        ],
+        "eligible_instructors": [
+          "i-nour-hassan"
+        ],
+        "sessions": 1,
+        "duration": 90
+      }
+    ],
+    "source_draft": {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "validated": true,
+      "assignments": [
+        {
+          "activity_id": "a-ds",
+          "occurrence": 0,
+          "instructor_id": "i-nour-hassan",
+          "room_id": "r-lab1",
+          "day": "Sunday",
+          "start_minute": 510,
+          "end_minute": 600
+        }
+      ]
+    },
+    "definitions": {
+      "early": null,
+      "groups_are_disjoint": true,
+      "rule_hours_are_integers": true,
+      "occurrence_display_is_one_based": true,
+      "occurrence_payload_is_zero_based": true
+    }
+  }
+]

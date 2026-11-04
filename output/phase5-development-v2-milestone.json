@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-01",
+  "active_phase": 5,
+  "status": "in_progress_pending_independent_review",
+  "development_bundle_version": "0.2.0-draft",
+  "counts": {
+    "cases": 144,
+    "families": 36,
+    "contexts": 2
+  },
+  "review_pack_items": 24,
+  "review_pack_sha256": "02b7f814f1432c9b111069d880d078aefef99e0ff433be40a2039ac23c6356dd",
+  "manifest_sha256": "1ccef78e55d13dbf7557b0d9a5bfe3b4544fd8c7a8d23adec0ad818d4ab2ef39",
+  "provider_calls": 0,
+  "website_data_modified": false,
+  "human_reviews_recorded": 0,
+  "reserved_labels_loaded_by_release_builder": false,
+  "capabilities_added": [
+    "second synthetic context",
+    "versioned guide and data lineage",
+    "gold-free family-level review export",
+    "complete source-bound annotation import",
+    "review agreement and disagreement IDs",
+    "immutable adjudication records with correction hashes",
+    "lexical fingerprint screening without reference disclosure",
+    "development-bundle scoring and reserved-path refusal"
+  ],
+  "not_claimed": [
+    "independent annotation",
+    "blind held-out dataset",
+    "representative institutional sampling",
+    "model-performance results",
+    "Phase 5 completion"
+  ]
+}

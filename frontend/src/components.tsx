@@ -1,0 +1,786 @@
+import React, { useEffect, useRef, useState, useId } from "react";
+import type { Workspace, DataRecord, RecordKind } from "./api";
+import { auditLabels, type Word } from "./i18n";
+import { DEFAULT_CALENDAR } from "./CalendarSettings";
+export type IconName =
+  | "grid"
+  | "book"
+  | "people"
+  | "room"
+  | "sliders"
+  | "calendar"
+  | "clock"
+  | "arrow"
+  | "plus"
+  | "check"
+  | "search"
+  | "chevron"
+  | "logout"
+  | "globe"
+  | "x"
+  | "edit"
+  | "trash"
+  | "lock"
+  | "spark"
+  | "leaf";
+export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
+  const paths: Record<IconName, React.ReactNode> = {
+    grid: (
+      <>
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      </>
+    ),
+    book: (
+      <>
+        <path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Z" />
+        <path d="M12 5v15" />
+      </>
+    ),
+    people: (
+      <>
+        <circle cx="9" cy="7" r="3" />
+        <path d="M3 21v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 5v3" />
+      </>
+    ),
+    room: (
+      <>
+        <path d="M4 21V3h16v18M2 21h20M9 21v-7h6v7M8 7h1m6 0h1M8 10h1m6 0h1" />
+      </>
+    ),
+    sliders: (
+      <>
+        <path d="M4 7h6m6 0h4M4 17h12m4 0h0" />
+        <circle cx="13" cy="7" r="3" />
+        <circle cx="17" cy="17" r="3" />
+      </>
+    ),
+    calendar: (
+      <>
+        <rect x="3" y="5" width="18" height="16" rx="3" />
+        <path d="M7 3v4m10-4v4M3 11h18m-13 4h2m4 0h2" />
+      </>
+    ),
+    clock: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      </>
+    ),
+    arrow: <path d="M4 12h15m-5-5 5 5-5 5" />,
+    plus: <path d="M12 5v14M5 12h14" />,
+    check: <path d="m5 12 4 4L19 6" />,
+    search: (
+      <>
+        <circle cx="10" cy="10" r="6" />
+        <path d="m15 15 5 5" />
+      </>
+    ),
+    chevron: <path d="m9 5 7 7-7 7" />,
+    logout: (
+      <>
+        <path d="M9 4H4v16h5m4-8h8m-4-4 4 4-4 4" />
+      </>
+    ),
+    globe: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <ellipse cx="12" cy="12" rx="4" ry="9" />
+        <path d="M3 12h18" />
+      </>
+    ),
+    x: <path d="m6 6 12 12M6 18 18 6" />,
+    edit: (
+      <>
+        <path d="m15 4 5 5M4 20l5-1L21 7l-5-5L4 14Z" />
+      </>
+    ),
+    trash: (
+      <>
+        <path d="M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7" />
+      </>
+    ),
+    lock: (
+      <>
+        <rect x="5" y="10" width="14" height="11" rx="2" />
+        <path d="M8 10V6a4 4 0 0 1 8 0v4m-4 5v2" />
+      </>
+    ),
+    spark: (
+      <path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z" />
+    ),
+    leaf: (
+      <>
+        <path d="M5 20C2 9 9 2 21 3c0 12-7 18-16 17Zm0 0L16 8" />
+      </>
+    ),
+  };
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {paths[name]}
+    </svg>
+  );
+}
+export function ScheduleArt({ t }: { t: (key: Word) => string }) {
+  return (
+    <div className="schedule-art" aria-label={t("illustrationNote")}>
+      <div className="art-orbit orbit-one" />
+      <div className="art-orbit orbit-two" />
+      <span className="art-spark spark-one">✳</span>
+      <span className="art-spark spark-two">✦</span>
+      <div className="paper-week">
+        <div className="paper-heading">
+          <span>THE WEEK, IN BALANCE</span>
+          <span>↗</span>
+        </div>
+        <div className="paper-days">
+          {["S", "M", "T", "W", "T"].map((d, i) => (
+            <span key={i}>{d}</span>
+          ))}
+        </div>
+        <div className="paper-grid">
+          {Array.from({ length: 20 }, (_, i) => (
+            <i key={i} />
+          ))}
+          <span className="block block-a" />
+          <span className="block block-b" />
+          <span className="block block-c" />
+          <span className="block block-d" />
+          <span className="block block-e" />
+        </div>
+        <div className="paper-foot">
+          <span />
+          <span />
+          <span />
+        </div>
+      </div>
+      <div className="balance-tag">
+        <span>
+          <Icon name="check" size={13} />
+        </span>
+        {t("illustration")}
+      </div>
+      <small className="art-disclaimer">{t("illustrationNote")}</small>
+    </div>
+  );
+}
+export function Empty({
+  icon,
+  title,
+  text,
+}: {
+  icon: IconName;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="empty">
+      <span>
+        <Icon name={icon} size={28} />
+      </span>
+      <h3>{title}</h3>
+      <p>{text}</p>
+    </div>
+  );
+}
+export function EventList({
+  ws,
+  t,
+  lang,
+  limit,
+}: {
+  ws: Workspace;
+  t: (key: Word) => string;
+  lang: string;
+  limit?: number;
+}) {
+  return (
+    <div className="events">
+      {ws.events.slice(0, limit).map((e) => (
+        <div className="event" key={e.id}>
+          <span className="event-dot">
+            <Icon name="check" size={12} />
+          </span>
+          <div>
+            <strong>
+              {e.action_code && auditLabels[e.action_code]
+                ? `${auditLabels[e.action_code][lang === "ar" ? 1 : 0]}${e.params?.target ? `: ${e.params.target}` : ""}`
+                : e.action}
+            </strong>
+            <small>
+              {t("actor")} {e.actor} <span>·</span>{" "}
+              {new Date(e.at).toLocaleString(lang, {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                timeZone: ws.calendar?.timezone || "Africa/Cairo",
+              })}
+            </small>
+          </div>
+          <span className="event-version">v{e.version}</span>
+        </div>
+      ))}
+      {!ws.events.length && <p>{t("noactivity")}</p>}
+    </div>
+  );
+}
+export function Modal({
+  title,
+  close,
+  t,
+  children,
+  dismissible = true,
+}: {
+  dismissible?: boolean;
+  title: string;
+  close: () => void;
+  t: (key: Word) => string;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  useEffect(() => {
+    const before = document.activeElement as HTMLElement;
+    const element = ref.current;
+    const selector =
+      "button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled)";
+    (element?.querySelector(selector) as HTMLElement)?.focus();
+    const key = (e: KeyboardEvent) => {
+      if (
+        Array.from(document.querySelectorAll('[role="dialog"]')).at(-1) !==
+        element
+      )
+        return;
+      if (e.key === "Escape" && dismissible) close();
+      if (e.key === "Tab" && element) {
+        const items = Array.from(
+          element.querySelectorAll<HTMLElement>(selector),
+        );
+        const first = items[0],
+          last = items.at(-1);
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", key);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", key);
+      document.body.style.overflow = "";
+      before?.focus();
+    };
+  }, []);
+  return (
+    <div className="modal-backdrop">
+      <div
+        ref={ref}
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
+        <div className="modal-heading">
+          <h2 id={titleId}>{title}</h2>
+          {dismissible && (
+            <button
+              className="icon-btn"
+              aria-label={t("close")}
+              onClick={close}
+            >
+              <Icon name="x" />
+            </button>
+          )}
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+export function RecordForm({
+  kind,
+  record,
+  ws,
+  t,
+  busy,
+  cancel,
+  submit,
+}: {
+  kind: RecordKind;
+  record?: DataRecord;
+  ws: Workspace;
+  t: (key: Word) => string;
+  busy: boolean;
+  cancel: () => void;
+  submit: (body: unknown) => void;
+}) {
+  const [instructors, setInstructors] = useState<string[]>(
+      record?.eligible_instructors || [],
+    ),
+    [groups, setGroups] = useState<string[]>(record?.group_ids || []);
+  const [courseId, setCourseId] = useState(record?.course_id || "");
+  const [activityType, setActivityType] = useState(record?.activity_type || "lecture");
+  const course = ws.course_catalog?.find(c => c.id === courseId);
+  const eligible = ws.records.filter((r) => r.kind === "instructors" && (kind !== "courses" || (!course && !!record && !record.course_id) || course?.eligibility[activityType]?.includes(r.id))),
+    groupOptions = ws.records.filter((r) => r.kind === "groups" && (kind !== "courses" || (!course && !!record && !record.course_id) || course?.group_ids.includes(r.id)));
+  const changeCourse = (id: string) => { setCourseId(id); setInstructors([]); setGroups([]); };
+  const changeType = (type: string) => { setActivityType(type); setInstructors([]); };
+  const input = (
+    name: string,
+    label: Word,
+    def: unknown,
+    type = "text",
+    min?: number,
+    max?: number,
+    step?: number,
+  ) => (
+    <label>
+      {t(label)}
+      <input
+        name={name}
+        type={type}
+        required
+        defaultValue={String(def ?? "")}
+        min={min}
+        max={max}
+        step={step}
+        maxLength={type === "text" ? (name === "code" ? 20 : 100) : undefined}
+        pattern={type === "text" ? ".*\\S.*" : undefined}
+      />
+    </label>
+  );
+  const toggle = (id: string, list: string[], setter: (s: string[]) => void) =>
+    setter(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        const f = new FormData(e.currentTarget);
+        const body: Record<string, unknown> = {
+          name: f.get("name"),
+          code: f.get("code"),
+        };
+        if (kind === "instructors") {
+          body.department = f.get("department");
+          body.day_off = f.get("day_off");
+          body.max_weekly_hours = record?.max_weekly_hours ?? null;
+        }
+        if (kind === "groups") {
+          body.size = Number(f.get("size"));
+          body.year = Number(f.get("year"));
+          body.major = f.get("major");
+        }
+        if (kind === "rooms") {
+          body.capacity = Number(f.get("capacity"));
+          body.room_types = f.getAll("room_types");
+          body.equipment = String(f.get("equipment") || "")
+            .split("|")
+            .map((x) => x.trim())
+            .filter(Boolean);
+        }
+        if (kind === "courses") {
+          Object.assign(body, {
+            course_id: courseId || null,
+            name: course?.name || record?.name || f.get("name"),
+            activity_type: activityType,
+            sessions: Number(f.get("sessions")),
+            duration: Number(f.get("duration")),
+            eligible_instructors: instructors,
+            group_ids: groups,
+            required_equipment: String(f.get("required_equipment") || "")
+              .split("|")
+              .map((x) => x.trim())
+              .filter(Boolean),
+          });
+        }
+        if (kind === "rooms" && f.getAll("room_types").length === 0) {
+          const checkbox = e.currentTarget.querySelector<HTMLInputElement>('input[name="room_types"]');
+          checkbox?.setCustomValidity(t("selectRoomType"));
+          checkbox?.reportValidity();
+          return;
+        }
+        submit(body);
+      }}
+    >
+      <div className="form-grid">
+        {kind === "courses" ? <label className="course-select-field">{t("courseName")}
+          <select name="name" value={courseId} required={!record || !!record.course_id} onChange={e => changeCourse(e.target.value)}>
+            <option value="" disabled>{record && !record.course_id ? record.name : t("chooseCourse")}</option>
+            {(ws.course_catalog || []).map(c => <option key={c.id} value={c.id}>{c.name} · {c.code}</option>)}
+          </select><small>{t("courseSelectionHelp")}</small>
+        </label> : input("name", "name", record?.name)}
+        {kind !== "courses" && input("code", "code", record?.code)}
+        {kind === "instructors" &&
+          input(
+            "department",
+            "department",
+            record?.department || "Computer Science",
+          )}
+        {kind === "instructors" && <label>{t("dayOff")}<select name="day_off" required defaultValue={record?.day_off || ""}>
+          <option value="" disabled>{t("chooseDayOff")}</option>
+          {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map(day => <option key={day} value={day}>{t(day as Word)}</option>)}
+        </select><small>{t("dayOffHelp")}</small></label>}
+        {kind === "instructors" && <div className="meaning-preview" style={{gridColumn:"1 / -1"}}><strong>{t("standardWeeklyHours")}: 12</strong><p>{t("overtimeHelp")}</p></div>}
+        {kind === "groups" && (
+          <>
+            {input("year", "studyYear", record?.year ?? "", "number", 1, 12)}
+            {input("major", "major", record?.major ?? "")}
+            {input("size", "size", record?.size || 30, "number", 1, 2000)}
+          </>
+        )}
+        {kind === "rooms" && (
+          <>
+            {input(
+              "capacity",
+              "capacity",
+              record ? (record.capacity ?? "") : 40,
+              "number",
+              1,
+              2000,
+            )}
+            <fieldset className="room-type-field">
+              <legend>{t("roomtype")}</legend>
+              <p className="room-type-help">{t("roomTypesHelp")}</p>
+              <div className="room-type-options">
+              {["lecture", "lab", "flexible", "exam_hall"].map((k) => (
+                <label key={k} className="room-type-choice">
+                  <span className="room-type-icon" aria-hidden="true"><Icon name={k === "lecture" ? "book" : k === "lab" ? "grid" : k === "exam_hall" ? "edit" : "room"} size={20} /></span>
+                  <span className="room-type-name">{t(k as Word)}</span>
+                  <input type="checkbox" name="room_types" value={k} onChange={(e) => { e.currentTarget.form?.querySelector<HTMLInputElement>('input[name="room_types"]')?.setCustomValidity(""); }}
+                    defaultChecked={(record?.room_types || [record?.room_type || "lecture"]).includes(k)} />
+                </label>
+              ))}
+              </div>
+            </fieldset>
+          </>
+        )}
+        {kind === "courses" && (
+          <>
+            <label>
+              {t("activitytype")}
+              <select
+                name="activity_type"
+                value={activityType}
+                onChange={e => changeType(e.target.value)}
+              >
+                {["lecture", "tutorial", "lab"].map((k) => (
+                  <option key={k} value={k}>
+                    {t(k as Word)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {input("code", "code", record?.code)}
+            {input(
+              "sessions",
+              "sessioncount",
+              record?.sessions || 2,
+              "number",
+              1,
+              10,
+            )}
+            {ws.calendar?.teaching_periods?.length ? (
+              <label>
+                {t("duration")}
+                <select
+                  name="duration"
+                  defaultValue={
+                    record?.duration ||
+                    ws.calendar.teaching_periods[0].end -
+                      ws.calendar.teaching_periods[0].start
+                  }
+                >
+                  {[
+                    ...new Set(
+                      ws.calendar.teaching_periods.map((p) => p.end - p.start),
+                    ),
+                  ].map((n) => (
+                    <option key={n} value={n}>
+                      {n} {t("minutes")}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              input(
+                "duration",
+                "duration",
+                record?.duration ||
+                  (ws.calendar?.teaching_periods?.[0]
+                    ? ws.calendar.teaching_periods[0].end -
+                      ws.calendar.teaching_periods[0].start
+                    : 60),
+                "number",
+                30,
+                240,
+                30,
+              )
+            )}
+          </>
+        )}
+      </div>
+      {kind === "rooms" && record?.source_info?.source_document && <p className="modal-description">{t("roomImportHelp")}</p>}
+      {kind === "rooms" && (
+        <label>
+          {t("equipment")}
+          <input
+            name="equipment"
+            maxLength={500}
+            defaultValue={record?.equipment?.join(" | ") || ""}
+            placeholder={t("equipmentHelp")}
+          />
+        </label>
+      )}
+      {kind === "courses" && (
+        <label>
+          {t("requiredEquipment")}
+          <input
+            name="required_equipment"
+            maxLength={500}
+            defaultValue={record?.required_equipment?.join(" | ") || ""}
+            placeholder={t("equipmentHelp")}
+          />
+        </label>
+      )}
+      {kind === "courses" && (
+        <>
+          {!course && !record && <div className="meaning-preview">{t("chooseCourseFirst")}</div>}
+          {course && !eligible.length && <div className="meaning-preview">{t("noCourseInstructors")}</div>}
+          {course && !groupOptions.length && <div className="meaning-preview">{t("noCourseGroups")}</div>}
+          <fieldset>
+            <legend>
+              {t("instructorEligibility")} <small>· {t("selection")}</small>
+            </legend>
+            <div className="check-options">
+              {eligible.map((r) => (
+                <label key={r.id}>
+                  <input
+                    type="checkbox"
+                    checked={instructors.includes(r.id)}
+                    onChange={() => toggle(r.id, instructors, setInstructors)}
+                  />
+                  {r.name}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>
+              {t("studentGroups")} <small>· {t("selection")}</small>
+            </legend>
+            <div className="check-options">
+              {groupOptions.map((r) => (
+                <label key={r.id}>
+                  <input
+                    type="checkbox"
+                    checked={groups.includes(r.id)}
+                    onChange={() => toggle(r.id, groups, setGroups)}
+                  />
+                  {r.year ? `${t("studyYear")} ${r.year} / ` : ""}
+                  {r.major ? `${r.major} / ` : ""}
+                  {r.name}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </>
+      )}
+      <div className="form-actions">
+        <button
+          className="btn white"
+          type="button"
+          disabled={busy}
+          onClick={cancel}
+        >
+          {t("cancel")}
+        </button>
+        <button
+          className="btn primary"
+          disabled={
+            busy ||
+            (kind === "courses" && ((!courseId && (!record || !!record.course_id)) || !instructors.length || !groups.length))
+          }
+        >
+          {t(busy ? "working" : "save")}
+          <Icon name="check" size={16} />
+        </button>
+      </div>
+    </form>
+  );
+}
+export function RuleForm({
+  ws,
+  t,
+  busy,
+  cancel,
+  submit,
+}: {
+  ws: Workspace;
+  t: (key: Word) => string;
+  busy: boolean;
+  cancel: () => void;
+  submit: (body: unknown) => void;
+}) {
+  const calendar = ws.calendar || DEFAULT_CALENDAR;
+  const instructors = ws.records.filter((r) => r.kind === "instructors");
+  const [type, setType] = useState("unavailable"),
+    [instructor, setInstructor] = useState(instructors[0]?.id || ""),
+    [day, setDay] = useState(calendar.days[0]),
+    [start, setStart] = useState(calendar.start_hour),
+    [end, setEnd] = useState(
+      Math.min(calendar.start_hour + 3, calendar.end_hour),
+    );
+  const targetKind = type === "room_unavailable" ? "rooms" : ["group_unavailable","group_allowed"].includes(type) ? "groups" : type === "activity_allowed" ? "courses" : "instructors";
+  const targets = ws.records.filter(r => r.kind === targetKind);
+  const targetId = targets.some(r => r.id === instructor) ? instructor : targets[0]?.id || "";
+  if (!ws.records.some(r => ["instructors", "rooms", "groups"].includes(r.kind)))
+    return (
+      <>
+        <div className="empty">
+          <p>{t("needInstructor")}</p>
+        </div>
+        <button className="btn white" onClick={cancel}>
+          {t("cancel")}
+        </button>
+      </>
+    );
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        const f = new FormData(e.currentTarget);
+        submit({
+          title: f.get("title"),
+          [type === "room_unavailable" ? "room_id" : ["group_unavailable","group_allowed"].includes(type) ? "group_id" : type === "activity_allowed" ? "activity_id" : "instructor_id"]: targetId,
+          type,
+          day,
+          start_hour: start,
+          end_hour: end,
+          strength: type === "preferred_period" ? "preferred" : "mandatory",
+        });
+      }}
+    >
+      <p className="modal-description">{t("ruleHelp")}</p>
+      {type.endsWith("_allowed") && <p>{t("activity_allowed") === "Activity permitted window" ? "Approved windows for the same target are alternatives across the whole week. Every session must fit one window. Different targets apply together; days without a window are excluded." : "النوافذ المعتمدة لنفس الهدف بدائل خلال الأسبوع. يجب أن تقع كل حصة بالكامل داخل نافذة؛ تُطبق قيود الأهداف المختلفة معًا، وتُستبعد الأيام بلا نافذة."}</p>}
+      <label>
+        {t("ruleTitle")}
+        <input name="title" required maxLength={100} pattern=".*\S.*" />
+      </label>
+      <div className="form-grid">
+        <label>
+          {t(targetKind === "instructors" ? "instructor" : targetKind === "rooms" ? "rooms" : targetKind === "courses" ? "courses" : "groups")}
+          <select
+            required
+            value={targetId}
+            onChange={(e) => setInstructor(e.target.value)}
+          >
+            {targets.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          {t("type")}
+          <select value={type} onChange={(e) => setType(e.target.value)}>
+            <option value="unavailable">{t("unavailable")}</option>
+            <option value="room_unavailable">{t("room_unavailable")}</option>
+            <option value="group_unavailable">{t("group_unavailable")}</option>
+            <option value="activity_allowed">{t("activity_allowed")}</option>
+            <option value="group_allowed">{t("group_allowed")}</option>
+            <option value="preferred_period">{t("preferred_period")}</option>
+          </select>
+        </label>
+        <label>
+          {t("day")}
+          <select value={day} onChange={(e) => setDay(e.target.value)}>
+            {calendar.days.map((d) => (
+              <option key={d} value={d}>
+                {t(d as Word)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="time-fields">
+          <label>
+            {t("start")}
+            <select
+              value={start}
+              onChange={(e) => setStart(Number(e.target.value))}
+            >
+              {Array.from(
+                { length: calendar.end_hour - calendar.start_hour },
+                (_, i) => i + calendar.start_hour,
+              ).map((h) => (
+                <option key={h} value={h}>
+                  {h}:00
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            {t("end")}
+            <select
+              value={end}
+              onChange={(e) => setEnd(Number(e.target.value))}
+            >
+              {Array.from(
+                { length: calendar.end_hour - calendar.start_hour },
+                (_, i) => i + calendar.start_hour + 1,
+              ).map((h) => (
+                <option key={h} value={h}>
+                  {h}:00
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </div>
+      <div className="meaning-preview">
+        <span className="eyebrow">{t("meaning")}</span>
+        <p>
+          {targets.find((r) => r.id === targetId)?.name} ·{" "}
+          {t(type as Word)}
+          <br />
+          {t(day as Word)} ·{" "}
+          <bdi>
+            {start}:00–{end}:00
+          </bdi>{" "}
+          · {t(type === "preferred_period" ? "preferred" : "mandatory")}
+        </p>
+        <span className="pill amber">{t("draft")}</span>
+      </div>
+      <div className="form-actions">
+        <button
+          type="button"
+          className="btn white"
+          disabled={busy}
+          onClick={cancel}
+        >
+          {t("cancel")}
+        </button>
+        <button className="btn primary" disabled={busy || !targetId || end <= start}>
+          {t(busy ? "working" : "save")}
+        </button>
+      </div>
+    </form>
+  );
+}

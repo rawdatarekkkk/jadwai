@@ -1,0 +1,11 @@
+# JadwAI thesis
+
+`main.tex` is the updated working copy dated 25 October 2026, based on the identical `thesis/main.tex` files in the latest reviewed project ZIP and Downloads project. The pre-update source is retained as `main-before-2026-10-15.tex`. Earlier Downloads/Overleaf copies have not been overwritten or automatically synchronised.
+
+Updated branding (JadwAI/JAI), confirmed multilingual and instructor-assignment scope, workload and publication rules, cancellation semantics, multilingual evaluation design, outstanding decisions, and current phased implementation status. Project evidence: `../docs/DECISIONS.md`, `../docs/ROADMAP.md`, and `../docs/VERIFICATION.md`.
+
+Chapters 1–3 remain a research draft. No research results were invented. Model budget, final research sampling, independent annotation/adjudication, participant study and university formatting remain open. Teaching load is confirmed as elapsed teaching hours; the initial 128-example corpus remains unreviewed. Existing bibliography entries and verification flags are preserved.
+
+18 October update: working CP-SAT baseline, independent checks, five-slot calendar, year/major/group hierarchy, student draft scope, PDF timetable export, optional chart PDF statistics, descriptive suggested filenames, current verification evidence and remaining phase limitations. Pre-update copy: `main-before-2026-10-18.tex`. Engineering checks are explicitly separated from research results.
+
+25 October update: completed Phase 4 manual baseline (workload/daily policies, locks, closures/permitted windows, preflight diagnostics, detailed independent validation, objective profiles/checks, historical reruns and recorded generation evidence); Phase 5 synthetic draft corpus and offline scorer; 194 backend, 30 frontend and 18 evaluator test evidence. The reserved corpus is explicitly not blind or adjudicated, and scorer oracle tests are not research findings. Methodology and outstanding decisions were reconciled with implementation. Backup: `main-before-2026-10-25.tex`. The existing source compiled successfully with the built-in editor.

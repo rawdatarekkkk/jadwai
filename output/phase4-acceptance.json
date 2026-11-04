@@ -1,0 +1,2055 @@
+{
+  "run_id": "0aeb884a-de45-4964-a48e-6e2d4db4cb13",
+  "status": "completed",
+  "input_version": 12,
+  "current_input_version": 12,
+  "snapshot_schema_version": 2,
+  "snapshot_verified": true,
+  "sessions": 97,
+  "preflight": {
+    "version": "manual-input-checks-v1",
+    "input_version": 12,
+    "ready": true,
+    "blockers": [],
+    "warnings": [
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "0ba45f06-9130-553f-8cf3-28d7add7d2aa",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "0df6d1e6-76d5-5dd4-b987-c658e8423862",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "12a48973-d9a3-5a7e-aade-2c7733566541",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "17ede57d-363b-5d00-a0d2-7c99de620ba9",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "1b07d6c9-bb88-52ac-989a-47499fec1316",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "31bc49d0-b097-535f-8331-54be72d81b8c",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "3e20fca1-9004-5984-bbb5-88191d3c9755",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "523cfe9c-ad19-4ea2-a4bc-6be6daa52d85",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "562492bf-db8c-4e7e-9b6a-f20c8fc766c1",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "57385a93-be41-5131-85ef-7c285775f579",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "6d4bb8a9-f9e8-48d1-87c7-8f4e6209d550",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "6db7abb9-d344-5dc1-b0ce-876e4d81d66a",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "740150dd-c40b-5e05-83c6-dcb99103c019",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "74585088-b403-5184-8fc8-a47681302e03",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "82a3030d-b2fc-5fba-a05d-127c658b7937",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "871aa992-88c6-5521-8fb9-bceade8f9cae",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "88ca32ec-9fea-5cd2-b060-0b1fe82a4ab1",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "9659393c-a09d-5486-890c-b628363ab97f",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "96b1ce71-6472-4576-af53-d462125fc8ca",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "99fd815f-187d-59bd-8881-eb1cb9c2302f",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "9f8f3f9c-0ac3-5770-8248-1c4b9431cbd5",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "aef489f6-a70f-5c13-8b49-0aa3716f48ee",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "b7c1600c-9a8d-5846-bcff-529b5c7f534c",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "d035b8e8-8d8e-531a-baae-e57fa897c44c",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "d63d1b0d-6a40-50bc-8a9c-3d07993ea7e0",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "d7deee72-b8fa-571f-bea6-e8aac84a8e18",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "de05ee6b-caf3-5cfe-bdd2-df1878dec752",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      },
+      {
+        "code": "weekly_limit_missing",
+        "resource_id": "e6e89c96-c361-5256-b222-1d2973a53fe5",
+        "message": "Weekly teaching maximum is not configured; it will not be checked."
+      }
+    ],
+    "activity_domains": [
+      {
+        "activity_id": "0505e737-86fa-5956-a19f-50d0f0a8b3cb",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "089a65eb-fac9-5ebf-84ab-6bbe3bde60be",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "09fa0622-b8ef-594b-8a09-dd9c19a4785d",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "0d555423-8d24-5e87-9f42-9536fcd1e15c",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "0dc1ec4c-9e59-5aa5-9d51-2e125be22f2b",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "10dae785-13df-4d82-86f5-f563e6fb02aa",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "11ccc75f-6992-50db-b6fd-5f36260c3a24",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "1607ae18-29ae-5c61-ae76-1e63f81db5f0",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "1b708185-d67f-57c0-bd86-a45599423f82",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "2059975e-335f-5b4a-8606-d64363e63f7a",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "20a27208-940b-586f-a440-7f7f0126c997",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "248d4ff3-2855-5f49-a91f-6bf2e092bbbd",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "27ec3c49-f16c-51b6-a0ef-632e839a1368",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "2d186f88-4e49-5f5c-ba2e-4027e9fe10d3",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "2d783295-661a-5c76-b4ac-909beab588e3",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "2f53fd25-2665-5804-a738-8d1c6554bea0",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "31f4e307-6e94-57e6-9ee6-cdec42f48454",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "32aea2a2-7d58-5ac4-988a-70b31275dcf0",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "32bf5aab-e590-5660-8757-6b279af03148",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "3499a107-91a8-5427-9db6-d72e129e4712",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "3666ebde-42d9-5019-9c82-bfb90556ba39",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "4326c161-4d3d-5937-9cb2-459282751e31",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "4dd36d2f-7806-5aa8-b5f2-dd3593639353",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "53f9eec7-4009-5ba9-ab9a-5cc70a717adf",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "56773900-1c8e-5422-9de9-ca0773578937",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "57e580f3-93b7-5bd2-972a-32b717329a4b",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "586adddc-c27a-5a42-adba-80b44d94c34c",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "59667c98-dd30-5742-91ce-4d598ee2fc89",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "5f0474fe-0c09-59bd-9b95-31bcdb8cd1e2",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "5fa03221-faba-5441-9436-03f4bf69e6c5",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "678fc6bd-d7e1-5826-9252-be225231f554",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "6cc06bb0-6345-5eb6-9a22-89dc13481ac5",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "6ee3be6f-cb1b-59ce-8e72-fb7b1601375d",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "712fb29d-f375-4ade-bce3-df094c44713f",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "72ee15c4-dfd2-5ef6-bcec-20433fcdf023",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "74bd28dd-b67d-573d-873c-510e96a24eb6",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "7df330a4-5f5f-57fa-a1e2-3c491fc67340",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "820cd8f4-9391-582d-94e5-02a40d7a2f6c",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "8222eb5d-f1cf-5d16-a271-8b6221f20b41",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "8ab487c6-4b60-506d-b483-e0292c1e5578",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "8d33628f-8ed1-562c-bcd7-8c72884fcca4",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "8da5e945-29d0-5855-a2a8-5a3975d4500c",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "8e2e403c-3095-51e0-98e6-e6858a9b831f",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "8ec24761-1c53-57fd-8016-53254b94a548",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "91c128d0-bb4b-57ac-8f3f-f0cd311ac000",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "9b5dd52e-035a-5d6a-b68b-c570d5bb25ea",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "b68a77cc-3a4e-50e8-a581-239cbc34a71e",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "bb2881c0-00c6-41ef-8a4b-264e439a6791",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "c0f3b2e9-0b8d-580c-b703-fcdf782c9a15",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "c1d9a512-da55-5521-a1df-54965f2cd102",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "c28f9b27-2f46-59ec-9dc2-62f126c12df9",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "c7c8eba2-c36d-5cb0-b683-1d3c68edbccc",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "c8960b73-aefc-5e55-b857-77b9bbb71293",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "cbfe9148-ff34-5875-aeb3-b169b81ab70f",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "d030ac17-49c9-5a6b-9ad2-02e3ac652f10",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "d4237c71-1b5b-5f36-bb65-65bf52863784",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "de6de50c-95f0-5287-8eb0-e36190134f8f",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "de8f9487-9662-504e-b2b0-aec258c0fdfa",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "e6260a7a-4436-4410-89c8-a68846ef1a17",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "edf389f7-68ab-503e-9638-1f5101632b47",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "f296592e-520d-55bc-ada5-69e91385341b",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "f6379c53-5bf6-5980-a9e3-84aabdd088c5",
+        "available_slots": 25,
+        "required_sessions": 1
+      },
+      {
+        "activity_id": "f81bccc9-3e65-5dd7-a1c5-f1e57b000c36",
+        "available_slots": 25,
+        "required_sessions": 2
+      },
+      {
+        "activity_id": "ff5f2fc8-c6af-5783-91cc-128d81429ea3",
+        "available_slots": 25,
+        "required_sessions": 2
+      }
+    ],
+    "definition": "Necessary local checks only; passing does not prove global feasibility. Missing optional limits are warnings. Named teaching breaks do not count as teaching capacity."
+  },
+  "validation": {
+    "passed": true,
+    "checks": [
+      "complete_assignment",
+      "calendar",
+      "instructor_eligibility",
+      "instructor_continuity",
+      "room_suitability",
+      "resource_conflicts",
+      "approved_unavailability",
+      "approved_room_unavailability",
+      "approved_group_unavailability",
+      "configured_weekly_workload",
+      "approved_assignment_locks",
+      "approved_allowed_windows",
+      "configured_daily_load",
+      "activity_day_distribution",
+      "configured_consecutive_periods",
+      "configured_idle_periods",
+      "independent_preference_penalty",
+      "independent_idle_penalty",
+      "independent_objective_score"
+    ],
+    "errors": [],
+    "publication_ready": false,
+    "workload": [
+      {
+        "instructor_id": "0ba45f06-9130-553f-8cf3-28d7add7d2aa",
+        "assigned_minutes": 0,
+        "assigned_hours": 0.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "0df6d1e6-76d5-5dd4-b987-c658e8423862",
+        "assigned_minutes": 900,
+        "assigned_hours": 15.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "12a48973-d9a3-5a7e-aade-2c7733566541",
+        "assigned_minutes": 90,
+        "assigned_hours": 1.5,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "17ede57d-363b-5d00-a0d2-7c99de620ba9",
+        "assigned_minutes": 0,
+        "assigned_hours": 0.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "1b07d6c9-bb88-52ac-989a-47499fec1316",
+        "assigned_minutes": 90,
+        "assigned_hours": 1.5,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "31bc49d0-b097-535f-8331-54be72d81b8c",
+        "assigned_minutes": 360,
+        "assigned_hours": 6.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "3e20fca1-9004-5984-bbb5-88191d3c9755",
+        "assigned_minutes": 0,
+        "assigned_hours": 0.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "523cfe9c-ad19-4ea2-a4bc-6be6daa52d85",
+        "assigned_minutes": 90,
+        "assigned_hours": 1.5,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "562492bf-db8c-4e7e-9b6a-f20c8fc766c1",
+        "assigned_minutes": 180,
+        "assigned_hours": 3.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "57385a93-be41-5131-85ef-7c285775f579",
+        "assigned_minutes": 900,
+        "assigned_hours": 15.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "6d4bb8a9-f9e8-48d1-87c7-8f4e6209d550",
+        "assigned_minutes": 180,
+        "assigned_hours": 3.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "6db7abb9-d344-5dc1-b0ce-876e4d81d66a",
+        "assigned_minutes": 900,
+        "assigned_hours": 15.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "740150dd-c40b-5e05-83c6-dcb99103c019",
+        "assigned_minutes": 0,
+        "assigned_hours": 0.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "74585088-b403-5184-8fc8-a47681302e03",
+        "assigned_minutes": 900,
+        "assigned_hours": 15.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "82a3030d-b2fc-5fba-a05d-127c658b7937",
+        "assigned_minutes": 90,
+        "assigned_hours": 1.5,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "871aa992-88c6-5521-8fb9-bceade8f9cae",
+        "assigned_minutes": 90,
+        "assigned_hours": 1.5,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "88ca32ec-9fea-5cd2-b060-0b1fe82a4ab1",
+        "assigned_minutes": 360,
+        "assigned_hours": 6.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "9659393c-a09d-5486-890c-b628363ab97f",
+        "assigned_minutes": 900,
+        "assigned_hours": 15.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "96b1ce71-6472-4576-af53-d462125fc8ca",
+        "assigned_minutes": 180,
+        "assigned_hours": 3.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "99fd815f-187d-59bd-8881-eb1cb9c2302f",
+        "assigned_minutes": 0,
+        "assigned_hours": 0.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "9f8f3f9c-0ac3-5770-8248-1c4b9431cbd5",
+        "assigned_minutes": 0,
+        "assigned_hours": 0.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "aef489f6-a70f-5c13-8b49-0aa3716f48ee",
+        "assigned_minutes": 450,
+        "assigned_hours": 7.5,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "b7c1600c-9a8d-5846-bcff-529b5c7f534c",
+        "assigned_minutes": 0,
+        "assigned_hours": 0.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "d035b8e8-8d8e-531a-baae-e57fa897c44c",
+        "assigned_minutes": 0,
+        "assigned_hours": 0.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "d63d1b0d-6a40-50bc-8a9c-3d07993ea7e0",
+        "assigned_minutes": 360,
+        "assigned_hours": 6.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "d7deee72-b8fa-571f-bea6-e8aac84a8e18",
+        "assigned_minutes": 360,
+        "assigned_hours": 6.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "de05ee6b-caf3-5cfe-bdd2-df1878dec752",
+        "assigned_minutes": 900,
+        "assigned_hours": 15.0,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      },
+      {
+        "instructor_id": "e6e89c96-c361-5256-b222-1d2973a53fe5",
+        "assigned_minutes": 450,
+        "assigned_hours": 7.5,
+        "max_weekly_hours": null,
+        "configured": false,
+        "exceeded": false
+      }
+    ],
+    "realism": {
+      "policy": {
+        "student_daily_hours": 6.0,
+        "instructor_daily_hours": 6.0,
+        "spread_activity_days": true,
+        "max_consecutive_periods": 3,
+        "max_idle_periods": 1,
+        "compact_days": true
+      },
+      "daily_resources": [
+        {
+          "kind": "group",
+          "id": "0773e764-bdf3-5c88-8a85-7d01c6fce498",
+          "day": "Thursday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "0773e764-bdf3-5c88-8a85-7d01c6fce498",
+          "day": "Wednesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "0cd6dc30-f57b-539d-8f4d-7f3a71a68242",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "0cd6dc30-f57b-539d-8f4d-7f3a71a68242",
+          "day": "Thursday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "0cd6dc30-f57b-539d-8f4d-7f3a71a68242",
+          "day": "Wednesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "106c51ca-3b7f-5d26-84d0-4f216fb934ac",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "106c51ca-3b7f-5d26-84d0-4f216fb934ac",
+          "day": "Thursday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "106c51ca-3b7f-5d26-84d0-4f216fb934ac",
+          "day": "Tuesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "106c51ca-3b7f-5d26-84d0-4f216fb934ac",
+          "day": "Wednesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "10b1f173-1a59-5b37-8488-242c99ae6343",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "10b1f173-1a59-5b37-8488-242c99ae6343",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "10b1f173-1a59-5b37-8488-242c99ae6343",
+          "day": "Tuesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "10b1f173-1a59-5b37-8488-242c99ae6343",
+          "day": "Wednesday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "27a088f6-fdb8-55e8-a33c-55151a33d2aa",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "27a088f6-fdb8-55e8-a33c-55151a33d2aa",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "27a088f6-fdb8-55e8-a33c-55151a33d2aa",
+          "day": "Thursday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "27a088f6-fdb8-55e8-a33c-55151a33d2aa",
+          "day": "Tuesday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "28d8ebb4-4857-576d-a0b9-ded8bf2a7a13",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "28d8ebb4-4857-576d-a0b9-ded8bf2a7a13",
+          "day": "Tuesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "28d8ebb4-4857-576d-a0b9-ded8bf2a7a13",
+          "day": "Wednesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "32928bd7-4f7a-58bd-8ff1-0fef06768b99",
+          "day": "Monday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "32928bd7-4f7a-58bd-8ff1-0fef06768b99",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "32928bd7-4f7a-58bd-8ff1-0fef06768b99",
+          "day": "Thursday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "32928bd7-4f7a-58bd-8ff1-0fef06768b99",
+          "day": "Wednesday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "523bd9cd-0cbc-5c88-b92d-793e8727c2d3",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "523bd9cd-0cbc-5c88-b92d-793e8727c2d3",
+          "day": "Sunday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "523bd9cd-0cbc-5c88-b92d-793e8727c2d3",
+          "day": "Tuesday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "523bd9cd-0cbc-5c88-b92d-793e8727c2d3",
+          "day": "Wednesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "616007e0-784d-4fcd-a805-9ccfdb99efcd",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "616007e0-784d-4fcd-a805-9ccfdb99efcd",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "616007e0-784d-4fcd-a805-9ccfdb99efcd",
+          "day": "Thursday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "69afabdf-d76b-5d6a-843b-23300e090b1a",
+          "day": "Thursday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "69afabdf-d76b-5d6a-843b-23300e090b1a",
+          "day": "Tuesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "69afabdf-d76b-5d6a-843b-23300e090b1a",
+          "day": "Wednesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "6ea011bc-0724-463b-b713-9e0e59d7bf7f",
+          "day": "Sunday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "6ea011bc-0724-463b-b713-9e0e59d7bf7f",
+          "day": "Thursday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "804b054c-7623-59f7-b5ef-f084c13ded21",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "804b054c-7623-59f7-b5ef-f084c13ded21",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "804b054c-7623-59f7-b5ef-f084c13ded21",
+          "day": "Thursday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "804b054c-7623-59f7-b5ef-f084c13ded21",
+          "day": "Tuesday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "804b054c-7623-59f7-b5ef-f084c13ded21",
+          "day": "Wednesday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "92822c7f-d989-49d9-bc43-656e4636155d",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "92822c7f-d989-49d9-bc43-656e4636155d",
+          "day": "Thursday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "92c07fba-2904-5715-a625-069f4e387b09",
+          "day": "Monday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "92c07fba-2904-5715-a625-069f4e387b09",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "92c07fba-2904-5715-a625-069f4e387b09",
+          "day": "Thursday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "92c07fba-2904-5715-a625-069f4e387b09",
+          "day": "Wednesday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "9303ba2d-29e3-55c5-89d0-9c7e8fdfd872",
+          "day": "Sunday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "9303ba2d-29e3-55c5-89d0-9c7e8fdfd872",
+          "day": "Thursday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "9303ba2d-29e3-55c5-89d0-9c7e8fdfd872",
+          "day": "Wednesday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "a3cd950b-e1e5-55d0-bb11-8ea810fde88d",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "a3cd950b-e1e5-55d0-bb11-8ea810fde88d",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "a3cd950b-e1e5-55d0-bb11-8ea810fde88d",
+          "day": "Thursday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "a3cd950b-e1e5-55d0-bb11-8ea810fde88d",
+          "day": "Tuesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "a3cd950b-e1e5-55d0-bb11-8ea810fde88d",
+          "day": "Wednesday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "b51204be-6621-5c16-9d17-47fc9db5e902",
+          "day": "Thursday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "b51204be-6621-5c16-9d17-47fc9db5e902",
+          "day": "Wednesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "d0862453-5dce-526c-acee-5653a56c4eac",
+          "day": "Thursday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "f26a7762-2f8b-5bf7-befd-702515b44c0d",
+          "day": "Sunday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "f26a7762-2f8b-5bf7-befd-702515b44c0d",
+          "day": "Tuesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "f49bce9a-a1ab-53cc-96ef-8bc5e2f963e1",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "f49bce9a-a1ab-53cc-96ef-8bc5e2f963e1",
+          "day": "Sunday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "f49bce9a-a1ab-53cc-96ef-8bc5e2f963e1",
+          "day": "Thursday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "group",
+          "id": "f49f1728-2de5-5c6f-80a4-5c53e0ab5d7f",
+          "day": "Thursday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "0df6d1e6-76d5-5dd4-b987-c658e8423862",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "0df6d1e6-76d5-5dd4-b987-c658e8423862",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "0df6d1e6-76d5-5dd4-b987-c658e8423862",
+          "day": "Thursday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "0df6d1e6-76d5-5dd4-b987-c658e8423862",
+          "day": "Tuesday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "0df6d1e6-76d5-5dd4-b987-c658e8423862",
+          "day": "Wednesday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "12a48973-d9a3-5a7e-aade-2c7733566541",
+          "day": "Thursday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "1b07d6c9-bb88-52ac-989a-47499fec1316",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "31bc49d0-b097-535f-8331-54be72d81b8c",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "31bc49d0-b097-535f-8331-54be72d81b8c",
+          "day": "Wednesday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "523cfe9c-ad19-4ea2-a4bc-6be6daa52d85",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "562492bf-db8c-4e7e-9b6a-f20c8fc766c1",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "562492bf-db8c-4e7e-9b6a-f20c8fc766c1",
+          "day": "Thursday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "57385a93-be41-5131-85ef-7c285775f579",
+          "day": "Monday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "57385a93-be41-5131-85ef-7c285775f579",
+          "day": "Sunday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "57385a93-be41-5131-85ef-7c285775f579",
+          "day": "Thursday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "57385a93-be41-5131-85ef-7c285775f579",
+          "day": "Tuesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "57385a93-be41-5131-85ef-7c285775f579",
+          "day": "Wednesday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "6d4bb8a9-f9e8-48d1-87c7-8f4e6209d550",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "6d4bb8a9-f9e8-48d1-87c7-8f4e6209d550",
+          "day": "Thursday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "6db7abb9-d344-5dc1-b0ce-876e4d81d66a",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "6db7abb9-d344-5dc1-b0ce-876e4d81d66a",
+          "day": "Sunday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "6db7abb9-d344-5dc1-b0ce-876e4d81d66a",
+          "day": "Thursday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "6db7abb9-d344-5dc1-b0ce-876e4d81d66a",
+          "day": "Tuesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "6db7abb9-d344-5dc1-b0ce-876e4d81d66a",
+          "day": "Wednesday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "74585088-b403-5184-8fc8-a47681302e03",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "74585088-b403-5184-8fc8-a47681302e03",
+          "day": "Sunday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "74585088-b403-5184-8fc8-a47681302e03",
+          "day": "Thursday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "74585088-b403-5184-8fc8-a47681302e03",
+          "day": "Tuesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "74585088-b403-5184-8fc8-a47681302e03",
+          "day": "Wednesday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "82a3030d-b2fc-5fba-a05d-127c658b7937",
+          "day": "Tuesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "871aa992-88c6-5521-8fb9-bceade8f9cae",
+          "day": "Monday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "88ca32ec-9fea-5cd2-b060-0b1fe82a4ab1",
+          "day": "Thursday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "88ca32ec-9fea-5cd2-b060-0b1fe82a4ab1",
+          "day": "Wednesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "9659393c-a09d-5486-890c-b628363ab97f",
+          "day": "Monday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "9659393c-a09d-5486-890c-b628363ab97f",
+          "day": "Sunday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "9659393c-a09d-5486-890c-b628363ab97f",
+          "day": "Thursday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "9659393c-a09d-5486-890c-b628363ab97f",
+          "day": "Tuesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "9659393c-a09d-5486-890c-b628363ab97f",
+          "day": "Wednesday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "96b1ce71-6472-4576-af53-d462125fc8ca",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "96b1ce71-6472-4576-af53-d462125fc8ca",
+          "day": "Thursday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "aef489f6-a70f-5c13-8b49-0aa3716f48ee",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "aef489f6-a70f-5c13-8b49-0aa3716f48ee",
+          "day": "Thursday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "aef489f6-a70f-5c13-8b49-0aa3716f48ee",
+          "day": "Wednesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "d63d1b0d-6a40-50bc-8a9c-3d07993ea7e0",
+          "day": "Thursday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "d63d1b0d-6a40-50bc-8a9c-3d07993ea7e0",
+          "day": "Tuesday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "d7deee72-b8fa-571f-bea6-e8aac84a8e18",
+          "day": "Sunday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "d7deee72-b8fa-571f-bea6-e8aac84a8e18",
+          "day": "Thursday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "de05ee6b-caf3-5cfe-bdd2-df1878dec752",
+          "day": "Monday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "de05ee6b-caf3-5cfe-bdd2-df1878dec752",
+          "day": "Sunday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "de05ee6b-caf3-5cfe-bdd2-df1878dec752",
+          "day": "Thursday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "de05ee6b-caf3-5cfe-bdd2-df1878dec752",
+          "day": "Tuesday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "de05ee6b-caf3-5cfe-bdd2-df1878dec752",
+          "day": "Wednesday",
+          "teaching_hours": 3.0,
+          "idle_periods": 0,
+          "max_consecutive_periods": 2,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "e6e89c96-c361-5256-b222-1d2973a53fe5",
+          "day": "Thursday",
+          "teaching_hours": 4.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 3,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "e6e89c96-c361-5256-b222-1d2973a53fe5",
+          "day": "Tuesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        },
+        {
+          "kind": "instructor",
+          "id": "e6e89c96-c361-5256-b222-1d2973a53fe5",
+          "day": "Wednesday",
+          "teaching_hours": 1.5,
+          "idle_periods": 0,
+          "max_consecutive_periods": 1,
+          "daily_limit_hours": 6.0
+        }
+      ],
+      "idle_periods": 0,
+      "definition": "Idle periods are unoccupied teaching periods between the first and last session; fixed breaks are excluded. Consecutive periods are adjacent teaching periods."
+    },
+    "assignment_locks": [],
+    "coverage": [
+      {
+        "check": "complete_assignment",
+        "required": true,
+        "applicable": 97,
+        "basis": "required occurrences",
+        "status": "passed"
+      },
+      {
+        "check": "calendar",
+        "required": true,
+        "applicable": 97,
+        "basis": "assigned sessions",
+        "status": "passed"
+      },
+      {
+        "check": "instructor_eligibility",
+        "required": true,
+        "applicable": 97,
+        "basis": "assigned sessions",
+        "status": "passed"
+      },
+      {
+        "check": "instructor_continuity",
+        "required": true,
+        "applicable": 97,
+        "basis": "assigned sessions",
+        "status": "passed"
+      },
+      {
+        "check": "room_suitability",
+        "required": true,
+        "applicable": 97,
+        "basis": "assigned sessions",
+        "status": "passed"
+      },
+      {
+        "check": "resource_conflicts",
+        "required": true,
+        "applicable": 4656,
+        "basis": "assignment pairs; exact room/instructor/group IDs, half-open time intervals",
+        "status": "passed"
+      },
+      {
+        "check": "approved_unavailability",
+        "required": true,
+        "applicable": 14,
+        "basis": "approved rules",
+        "status": "passed"
+      },
+      {
+        "check": "approved_room_unavailability",
+        "required": true,
+        "applicable": 0,
+        "basis": "approved rules",
+        "status": "not_applicable"
+      },
+      {
+        "check": "approved_group_unavailability",
+        "required": true,
+        "applicable": 0,
+        "basis": "approved rules",
+        "status": "not_applicable"
+      },
+      {
+        "check": "configured_weekly_workload",
+        "required": true,
+        "applicable": 0,
+        "basis": "instructors with configured weekly maxima",
+        "status": "not_applicable"
+      },
+      {
+        "check": "approved_assignment_locks",
+        "required": true,
+        "applicable": 0,
+        "basis": "approved locks",
+        "status": "not_applicable"
+      },
+      {
+        "check": "approved_allowed_windows",
+        "required": true,
+        "applicable": 0,
+        "basis": "approved rules",
+        "status": "not_applicable"
+      },
+      {
+        "check": "configured_daily_load",
+        "required": true,
+        "applicable": 119,
+        "basis": "observed resource-days",
+        "status": "passed"
+      },
+      {
+        "check": "activity_day_distribution",
+        "required": true,
+        "applicable": 64,
+        "basis": "activities",
+        "status": "passed"
+      },
+      {
+        "check": "configured_consecutive_periods",
+        "required": true,
+        "applicable": 119,
+        "basis": "observed resource-days",
+        "status": "passed"
+      },
+      {
+        "check": "configured_idle_periods",
+        "required": true,
+        "applicable": 119,
+        "basis": "observed resource-days",
+        "status": "passed"
+      },
+      {
+        "check": "weekly_workload_limits_missing",
+        "required": false,
+        "applicable": null,
+        "basis": "unconfigured policy",
+        "status": "not_configured"
+      },
+      {
+        "check": "independent_idle_penalty",
+        "required": true,
+        "applicable": 119,
+        "basis": "observed resource-days",
+        "status": "passed"
+      },
+      {
+        "check": "independent_preference_penalty",
+        "required": true,
+        "applicable": 4,
+        "basis": "sessions with preferred instructor windows",
+        "status": "passed"
+      },
+      {
+        "check": "independent_objective_score",
+        "required": true,
+        "applicable": 1,
+        "basis": "selected objective profile and independently observed components",
+        "status": "passed"
+      }
+    ],
+    "violations": [],
+    "limitations": [
+      "weekly_workload_limits_missing",
+      "draft_only"
+    ],
+    "conflict_basis": "Exact group IDs represent disjoint cohorts. Any shared instructor, room or group is a conflict when half-open intervals overlap; adjacency and fixed breaks are allowed.",
+    "preference_evaluation": {
+      "definition": "one-per-session-outside-instructor-window-union-v1",
+      "total": 0,
+      "sessions": [
+        {
+          "activity_id": "0d555423-8d24-5e87-9f42-9536fcd1e15c",
+          "occurrence": 0,
+          "rule_ids": [
+            "4baa629d-44db-5690-b431-5d4b10f325a1"
+          ],
+          "penalty": 0
+        },
+        {
+          "activity_id": "56773900-1c8e-5422-9de9-ca0773578937",
+          "occurrence": 0,
+          "rule_ids": [
+            "c94a5548-b7f2-5206-953c-4ee5a14e912e"
+          ],
+          "penalty": 0
+        },
+        {
+          "activity_id": "7df330a4-5f5f-57fa-a1e2-3c491fc67340",
+          "occurrence": 0,
+          "rule_ids": [
+            "afc89523-c562-5979-82d1-499848d3bf12"
+          ],
+          "penalty": 0
+        },
+        {
+          "activity_id": "c7c8eba2-c36d-5cb0-b683-1d3c68edbccc",
+          "occurrence": 0,
+          "rule_ids": [
+            "3121dda4-f616-583a-9cbe-372080f1862f"
+          ],
+          "penalty": 0
+        }
+      ]
+    },
+    "objective_evaluation": {
+      "weights": {
+        "preferences": 736,
+        "idle_periods": 1
+      },
+      "expected_score": 0,
+      "passed": true
+    }
+  },
+  "provenance": {
+    "snapshot": {
+      "format_version": 1,
+      "snapshot_sha256": "80344a747ab9727e8dc27132165fb2deb121627b13f6add1da0ce4f43244a518",
+      "solver_config": {
+        "profile": "cp-sat-baseline-v1",
+        "time_limit_seconds": 10,
+        "random_seed": 42,
+        "search_workers": 2,
+        "objective_profile": "preferences-first-v1",
+        "preference_weight": 10,
+        "idle_weight": 1
+      },
+      "config_sha256": "b30c9f29000783ac3019663e44ae64a2131bd93ea37c4ec49f0c123c4464e733"
+    },
+    "validator_version": "independent-checks-v4-windows-coverage",
+    "application_sources_sha256": "5d0d646f1fd82480e381f3fe1185520b2b112d3427e555dd06f1856a814a99ea",
+    "python_version": "3.14.5",
+    "platform": "Darwin x86_64",
+    "automatic_retry_limit": 0,
+    "worker_elapsed_seconds": 6.086741,
+    "lifecycle": {
+      "queued_at": "2026-10-25T16:47:04.947765+00:00",
+      "started_at": "2026-10-25T16:47:05.390353+00:00",
+      "finished_at": "2026-10-25T16:47:11.492106+00:00"
+    },
+    "reproducibility_note": "Parallel search can produce different feasible schedules with identical inputs and seed."
+  },
+  "solver_diagnostics": {
+    "raw_status": "OPTIMAL",
+    "ortools_version": "9.15.6755",
+    "parameters_text": "random_seed: 42\nmax_time_in_seconds: 10\nnum_search_workers: 2",
+    "solver_seconds": 5.409285000000001,
+    "objective_definition": "preferences-then-idle-periods-v1",
+    "objective_weights": {
+      "preferences": 736,
+      "idle_periods": 1
+    },
+    "model_sha256": "700dbd6b6449fba18046a6c7901b0046bfd918a33738443679ff67b2d4f862ac",
+    "model_validation_error": "",
+    "objective_value": 0.0,
+    "best_objective_bound": 0.0
+  }
+}

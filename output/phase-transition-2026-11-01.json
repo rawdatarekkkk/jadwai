@@ -1,0 +1,36 @@
+{
+  "date": "2026-11-01",
+  "timezone": "Africa/Cairo",
+  "phase4": "agreed_bounded_weekly_baseline_complete_revalidated",
+  "active_phase": 5,
+  "phase5": "in_progress_technical_harness_extended",
+  "checks": {
+    "command": "bash scripts/check.sh",
+    "backend_tests_passed": 221,
+    "evaluation_tests_passed": 28,
+    "frontend_tests_passed": 35,
+    "production_build": "passed"
+  },
+  "scale_record": "output/phase4-scale-2026-11-01-detailed.csv",
+  "scale_limit": "80/160-activity probe shapes blocked by instance_too_large; not evidence of infeasibility",
+  "live_data_modified": false,
+  "provider_calls": 0,
+  "independent_annotations_claimed": false,
+  "blind_reserved_set_claimed": false,
+  "remaining_phase5_requirements": [
+    "independent multilingual annotation/adjudication",
+    "second institutional context",
+    "new confirmatory family set and leakage screening",
+    "reconciled guide version for current policies",
+    "pilot and frozen research thresholds"
+  ],
+  "source_sha256": {
+    "backend/app/solver.py": "00b4deceb36732fa3f0c49019c508f40d393518e1e481475c2670fe441119809",
+    "backend/tests/test_differential_baseline.py": "121c7afe2dcfc4cd106eeb3f78915a74492b855942be34998d729ccba1bc3992",
+    "backend/tools/phase4_probe.py": "0c028df9abebf45021b3884405f207f8c9a6173da160ccf1ea811151153b16d1",
+    "evaluation/harness.py": "28850ac566408158da65c0e118fff7b58236adc3af60ac3d9cd064392059773c",
+    "evaluation/tests/test_harness.py": "c4fefe1173101580915fcf95522576b6982c070df02761aaf06affcedada5dfb",
+    "docs/PHASE4_REVALIDATION_2026-11-01.md": "d91bb15656699a3de3f5a8f1a29be9a77ca4c3b2ec53a9338fb81bedf3227fae",
+    "evaluation/PHASE5_STATUS.md": "6f6a68849c49bd1ce5ba1df72de8328aaf1cfd6870de994fb3f7dc7fc5bb83a3"
+  }
+}

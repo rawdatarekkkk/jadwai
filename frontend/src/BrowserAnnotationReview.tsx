@@ -1,0 +1,52 @@
+import {useEffect,useRef,useState} from 'react';
+import {api,ApiError} from './api';
+import {AnnotationRuleEditor,annotationRule,type AnnotationContext,type RuleDraft} from './AnnotationRuleEditor';
+type Item={id:string;text:string;context_id:string;language:string;annotation:unknown;rationale:string};
+type Pack={format:string;manifest_sha256:string;guide_version:string;contexts:AnnotationContext[];items:Item[];[key:string]:unknown};
+type Draft={decision:string;rules:RuleDraft[];clarifications:string;unsupported:string;rationale:string};
+const emptyDraft=():Draft=>({decision:'',rules:[],clarifications:'',unsupported:'',rationale:''});
+const codes=(value:string)=>[...new Set(value.split(/[,\n]/).map(v=>v.trim()).filter(Boolean))];
+export function browserAnnotation(draft:Draft,context:AnnotationContext){
+ const proposals=draft.rules.map(r=>annotationRule(r,context));if(proposals.some(p=>!p))return null;
+ const clarifications=codes(draft.clarifications),unsupported=codes(draft.unsupported),n=proposals.length;
+ const valid=draft.decision==='ready'?n>0&&!clarifications.length&&!unsupported.length:draft.decision==='clarify'?clarifications.length>0:draft.decision==='unsupported'?unsupported.length>0&&n===0:draft.decision==='conflict'?n>0&&clarifications.length>0:draft.decision==='mixed'?n>0&&(clarifications.length>0||unsupported.length>0):false;
+ return valid?{decision:draft.decision,proposals,clarifications,unsupported}:null;
+}
+export type BrowserReviewRecord={id:string;reviewer_id:string;created_at:string;items:number;adjudicated:boolean};
+export type BrowserReviewSnapshot={ownerId:string;pack:Pack;drafts:Record<string,Draft>;reviewer:string;index:number;saved:boolean;requestKey:string};
+export type BrowserReviewStore={current:BrowserReviewSnapshot|null};
+export function BrowserAnnotationReview({lang,onSaved,ownerId,draftStore}:{lang:'en'|'ar';onSaved:(r:BrowserReviewRecord)=>void;ownerId?:string;draftStore?:BrowserReviewStore}){
+ const snapshot=ownerId&&draftStore?.current?.ownerId===ownerId?draftStore.current:null;
+ const ar=lang==='ar';const [pack,setPack]=useState<Pack|null>(snapshot?.pack||null),[drafts,setDrafts]=useState<Record<string,Draft>>(snapshot?.drafts||{}),[reviewer,setReviewer]=useState(snapshot?.reviewer||''),[index,setIndex]=useState(snapshot?.index||0),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[saved,setSaved]=useState(snapshot?.saved||false);
+ const key=useRef(snapshot?.requestKey||crypto.randomUUID()),active=useRef(true);
+ useEffect(()=>{if(draftStore&&ownerId)draftStore.current=pack?{ownerId,pack,drafts,reviewer,index,saved,requestKey:key.current}:null;},[draftStore,ownerId,pack,drafts,reviewer,index,saved]);
+ useEffect(()=>{active.current=true;return()=>{active.current=false;};},[]);
+ const completed=pack?.items.filter(item=>{const d=drafts[item.id],context=pack.contexts.find(c=>c.id===item.context_id);return d&&context&&d.rationale.trim()&&browserAnnotation(d,context);}).length||0;
+ const dirty=!!pack&&!saved&&Object.keys(drafts).length>0;
+ useEffect(()=>{const warn=(e:BeforeUnloadEvent)=>{if(dirty){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[dirty]);
+ const item=pack?.items[index],context=pack?.contexts.find(c=>c.id===item?.context_id),draft=item?(drafts[item.id]||emptyDraft()):emptyDraft();
+ const change=(next:Draft)=>{if(!item)return;setDrafts(current=>({...current,[item.id]:next}));key.current=crypto.randomUUID();setSaved(false);setError('');};
+ return <section className="panel browser-annotation-review"><h3>{ar?'راجع العبارات في المتصفح':'Review statements in the browser'}</h3><p>{ar?'فسّر كل عبارة بنفسك من السياق المعروض. لا تُعرض الإجابات المتوقعة، ولا تُختار قرارات تلقائيًا.':'Interpret each statement yourself using its supplied context. Expected answers are hidden and no decisions are preselected.'}</p>
+ {!pack&&<button type="button" className="btn primary" disabled={loading} onClick={async()=>{setLoading(true);setError('');try{const value=await api<Pack>('/evaluation/review-pack');if(active.current){setPack(value);setIndex(0);}}catch{if(active.current)setError(ar?'تعذر فتح الحزمة.':'Could not open the review pack.');}finally{if(active.current)setLoading(false);}}}>{loading?(ar?'جارٍ التحميل…':'Loading…'):(ar?'ابدأ المراجعة في المتصفح':'Start in-browser review')}</button>}
+ {error&&<p role="alert" className="error">{error}</p>}
+ {pack&&item&&context&&<>
+ <div className="browser-review-progress"><strong>{completed}/{pack.items.length} {ar?'عبارة مكتملة':'statements complete'}</strong><progress value={completed} max={pack.items.length} aria-label={ar?'تقدم المراجعة':'Review progress'}/><span>{pack.guide_version}</span></div>
+ <p className="room-type-help">{ar?'يُحتفظ بالمسودة في الذاكرة أثناء التنقل داخل مساحة العمل. تحديث المتصفح أو إغلاقه أو تسجيل الخروج يمحو المسودة غير المحفوظة.':'Your draft stays in memory while navigating this workspace. Refreshing, closing the browser, or signing out clears unsaved work.'}</p>
+ <label>{ar?'معرّف المراجع لهذه المراجعة':'Reviewer ID for browser review'}<input required maxLength={100} disabled={busy||saved} value={reviewer} onChange={e=>{setReviewer(e.target.value);key.current=crypto.randomUUID();}}/></label>
+ <div className="exam-result-toolbar"><button type="button" className="btn white" disabled={index===0||busy} onClick={()=>{setIndex(index-1);setError('');}}>{ar?'السابق':'Previous statement'}</button><label>{ar?'العبارة':'Statement'}<select aria-label="Review statement" value={index} disabled={busy} onChange={e=>{setIndex(Number(e.target.value));setError('');}}>{pack.items.map((r,i)=><option key={r.id} value={i}>{i+1} · {r.language} · {r.id}</option>)}</select></label><button type="button" className="btn white" disabled={index===pack.items.length-1||busy} onClick={()=>{setIndex(index+1);setError('');}}>{ar?'التالي':'Next statement'}</button></div>
+ <article className="browser-review-statement"><small>{item.id} · {item.language}</small><h4 dir="auto">{item.text}</h4><details><summary>{ar?'عرض سياق المؤسسة':'View institutional context'}</summary><pre dir="ltr">{JSON.stringify(context,null,2)}</pre></details></article>
+ <fieldset disabled={busy||saved} className="browser-review-fields"><label>{ar?'القرار':'Interpretation decision'}<select value={draft.decision} onChange={e=>change({...draft,decision:e.target.value})}><option value="">{ar?'اختر قرارًا':'Choose a decision'}</option><option value="ready">{ar?'جاهز: المعنى واضح ومدعوم':'Ready: resolved and supported'}</option><option value="clarify">{ar?'يحتاج توضيحًا':'Clarification needed'}</option><option value="unsupported">{ar?'غير مدعوم':'Unsupported request'}</option><option value="conflict">{ar?'قيود متعارضة':'Conflicting requirements'}</option><option value="mixed">{ar?'أجزاء مدعومة وأخرى غير محسومة':'Mixed supported and unresolved parts'}</option></select></label>
+ <p className="room-type-help">{ar?'أضف قيدًا لكل جزء مدعوم؛ استخدم كيانات السياق فقط. الساعات الصحيحة تعكس دقة تخزين القيود؛ لا تقرّب أوقاتًا تحتوي على دقائق.':'Add a rule for each supported fragment using context entities only. Integer hours reflect rule-storage precision; do not round minute-specific requests.'}</p>
+ {draft.rules.map((r,i)=><AnnotationRuleEditor key={i} draft={r} context={context} index={i} lang={lang} disabled={busy||saved} onChange={updated=>change({...draft,rules:draft.rules.map((old,j)=>j===i?updated:old)})} onRemove={()=>change({...draft,rules:draft.rules.filter((_,j)=>j!==i)})}/>)}
+ <button type="button" className="btn white" onClick={()=>change({...draft,rules:[...draft.rules,{type:'',target:'',day:'',start:'',end:''}]})}>{ar?'أضف قيدًا مدعومًا':'Add supported rule'}</button>
+ <div className="exam-settings"><label>{ar?'رموز طلب التوضيح (مفصولة بفواصل)':'Clarification codes (comma-separated)'}<input value={draft.clarifications} onChange={e=>change({...draft,clarifications:e.target.value})}/></label><label>{ar?'رموز الأجزاء غير المدعومة (مفصولة بفواصل)':'Unsupported codes (comma-separated)'}<input value={draft.unsupported} onChange={e=>change({...draft,unsupported:e.target.value})}/></label></div>
+ <label>{ar?'تعليل التفسير':'Interpretation rationale'}<textarea rows={3} maxLength={4000} value={draft.rationale} onChange={e=>change({...draft,rationale:e.target.value})}/></label>
+ </fieldset>
+ <p>{browserAnnotation(draft,context)&&draft.rationale.trim()?(ar?'هذه العبارة مكتملة محليًا؛ سيتحقق الخادم من المراجعة كاملة عند الحفظ.':'This statement is complete locally; the server validates the full review on save.'):(ar?'أكمل القرار والقيود أو الرموز المطلوبة والتعليل.':'Complete the decision, required rules or codes, and rationale.')}</p>
+ <p className="room-type-help">{ar?'واجهة المتصفح تدعم قيود الوقت لهذه الحزمة. لأنواع المقترحات الأخرى، استخدم استيراد JSON.':'The browser editor supports time-rule proposals for this pack. Use JSON import for other proposal kinds.'}</p>
+ <button type="button" className="btn primary" disabled={completed!==pack.items.length||!reviewer.trim()||busy||saved} onClick={async()=>{setBusy(true);setError('');try{const annotated={...pack,items:pack.items.map(r=>({...r,annotation:browserAnnotation(drafts[r.id],pack.contexts.find(c=>c.id===r.context_id)!),rationale:drafts[r.id].rationale.trim()}))};const record=await api<BrowserReviewRecord>('/evaluation/reviews','POST',{request_key:key.current,reviewer_id:reviewer.trim(),annotated});if(active.current){setSaved(true);onSaved(record);}}catch(err){if(active.current)setError(err instanceof ApiError&&err.code==='invalid_review'?(ar?'تعذر التحقق من المراجعة. راجع جميع التفسيرات والقيود.':'The review could not be validated. Check every interpretation and rule.'):(ar?'تعذر حفظ المراجعة؛ يمكنك إعادة المحاولة.':'Could not save the review; you can retry.'));}finally{if(active.current)setBusy(false);}}}>{busy?(ar?'جارٍ التحقق والحفظ…':'Validating and saving…'):(ar?'احفظ المراجعة المكتملة':'Save completed browser review')}</button>
+ {saved&&<button type="button" className="btn white" onClick={()=>{setPack(null);setDrafts({});setReviewer('');setIndex(0);setSaved(false);key.current=crypto.randomUUID();}}>{ar?'ابدأ مراجعة جديدة فارغة':'Start a new blank review'}</button>}
+ {saved&&<p role="status">{ar?'حُفظت مراجعتك في سجل مستقل. الإجابات الأصلية ومدخلات الجدولة لم تتغير.':'Your review is saved as a separate record. Draft answers and scheduling inputs are unchanged.'}</p>}
+ </>}
+ </section>;
+}

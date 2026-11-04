@@ -1,0 +1,446 @@
+{
+  "format": "gold-free-review-v1",
+  "manifest_sha256": "a2d6af29d0b7a0d765854fcf3ec86b08cf31d79747254474fd6ef3b83009696a",
+  "guide_version": "annotation-guide-v2-draft",
+  "sampling": {
+    "unit": "whole intent family",
+    "families": [
+      "design-family-002",
+      "design-family-005",
+      "design-family-008",
+      "family-003",
+      "family-004",
+      "family-007"
+    ],
+    "seed": 42
+  },
+  "contexts": [
+    {
+      "id": "synthetic-dept-v1",
+      "provenance": "Original synthetic fixtures; no real institutional or personal data.",
+      "calendar": {
+        "days": [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday"
+        ],
+        "start_hour": 8,
+        "end_hour": 18,
+        "timezone": "Africa/Cairo",
+        "teaching_periods": [
+          {
+            "start": 510,
+            "end": 600
+          },
+          {
+            "start": 615,
+            "end": 705
+          },
+          {
+            "start": 720,
+            "end": 810
+          },
+          {
+            "start": 825,
+            "end": 915
+          },
+          {
+            "start": 945,
+            "end": 1035
+          }
+        ]
+      },
+      "instructors": [
+        {
+          "id": "i-nour-hassan",
+          "name": "Nour Hassan",
+          "aliases": [
+            "نور حسن"
+          ]
+        },
+        {
+          "id": "i-nour-ali",
+          "name": "Nour Ali",
+          "aliases": [
+            "نور علي"
+          ]
+        }
+      ],
+      "rooms": [
+        {
+          "id": "r-lab1",
+          "name": "Lab 1",
+          "aliases": [
+            "معمل 1"
+          ],
+          "capacity": 30,
+          "room_type": "flexible"
+        }
+      ],
+      "groups": [
+        {
+          "id": "g-cs2a",
+          "name": "Year 2 Computer Science Group A",
+          "aliases": [
+            "Year 2 CS Group A",
+            "المجموعة أ سنة ثانية علوم حاسب"
+          ],
+          "size": 20
+        },
+        {
+          "id": "g-is2a",
+          "name": "Year 2 Information Systems Group A",
+          "aliases": [
+            "Year 2 IS Group A",
+            "المجموعة أ سنة ثانية نظم معلومات"
+          ],
+          "size": 20
+        }
+      ],
+      "activities": [
+        {
+          "id": "a-ds",
+          "name": "Data Structures",
+          "aliases": [
+            "هياكل البيانات",
+            "هياكل بيانات"
+          ],
+          "group_ids": [
+            "g-cs2a"
+          ],
+          "eligible_instructors": [
+            "i-nour-hassan"
+          ],
+          "sessions": 1,
+          "duration": 90
+        }
+      ],
+      "source_draft": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "validated": true,
+        "assignments": [
+          {
+            "activity_id": "a-ds",
+            "occurrence": 0,
+            "instructor_id": "i-nour-hassan",
+            "room_id": "r-lab1",
+            "day": "Sunday",
+            "start_minute": 510,
+            "end_minute": 600
+          }
+        ]
+      },
+      "definitions": {
+        "early": null,
+        "groups_are_disjoint": true,
+        "rule_hours_are_integers": true,
+        "occurrence_display_is_one_based": true,
+        "occurrence_payload_is_zero_based": true
+      }
+    },
+    {
+      "id": "synthetic-design-school-v2",
+      "provenance": "Original assistant-authored fictional design-school context; no actual GIU staff, students or policies. Draft pending independent review.",
+      "calendar": {
+        "days": [
+          "Saturday",
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday"
+        ],
+        "start_hour": 8,
+        "end_hour": 18,
+        "timezone": "Africa/Cairo",
+        "teaching_periods": [
+          {
+            "start": 510,
+            "end": 600
+          },
+          {
+            "start": 615,
+            "end": 705
+          },
+          {
+            "start": 720,
+            "end": 810
+          },
+          {
+            "start": 825,
+            "end": 915
+          },
+          {
+            "start": 945,
+            "end": 1035
+          }
+        ],
+        "weekly_load_policy": {
+          "standard_hours": 12,
+          "allow_overtime": true
+        }
+      },
+      "instructors": [
+        {
+          "id": "design-salma",
+          "name": "Salma Farid",
+          "aliases": [
+            "سلمى فريد"
+          ]
+        },
+        {
+          "id": "design-karim",
+          "name": "Karim Nabil",
+          "aliases": [
+            "كريم نبيل"
+          ]
+        }
+      ],
+      "rooms": [
+        {
+          "id": "design-studio",
+          "name": "Studio 2",
+          "aliases": [
+            "استوديو 2"
+          ],
+          "capacity": 24,
+          "room_type": "flexible"
+        }
+      ],
+      "groups": [
+        {
+          "id": "design-g3",
+          "name": "Design Year 3",
+          "aliases": [
+            "تصميم سنة ثالثة"
+          ],
+          "size": 18
+        }
+      ],
+      "activities": [
+        {
+          "id": "design-prototype",
+          "name": "Prototyping",
+          "aliases": [
+            "النمذجة الأولية"
+          ],
+          "group_ids": [
+            "design-g3"
+          ],
+          "eligible_instructors": [
+            "design-salma"
+          ],
+          "sessions": 1,
+          "duration": 90
+        }
+      ],
+      "source_draft": {
+        "id": "22222222-2222-4222-8222-222222222222",
+        "validated": false,
+        "assignments": []
+      },
+      "definitions": {
+        "early": null,
+        "groups_are_disjoint": true,
+        "rule_hours_are_integers": true,
+        "proposal_boundary": "Teaching-rule proposals only; exam generation is separate. Weekly overtime is permitted; a request to restore a hard weekly cap is not supported by this context."
+      }
+    }
+  ],
+  "items": [
+    {
+      "id": "jdw-003-en",
+      "text": "Lab 1 is unavailable Tuesday from 12:00 to 14:00.",
+      "context_id": "synthetic-dept-v1",
+      "language": "en",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "jdw-003-ar",
+      "text": "معمل 1 غير متاح يوم الثلاثاء من 12:00 إلى 14:00.",
+      "context_id": "synthetic-dept-v1",
+      "language": "ar",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "jdw-003-arz",
+      "text": "معمل 1 مقفول يوم التلات من 12 لـ2 الضهر.",
+      "context_id": "synthetic-dept-v1",
+      "language": "arz",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "jdw-003-mixed",
+      "text": "Lab 1 unavailable التلات 12:00–14:00.",
+      "context_id": "synthetic-dept-v1",
+      "language": "mixed",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "jdw-004-en",
+      "text": "Year 2 Computer Science Group A must have no classes Wednesday from 14:00 to 16:00.",
+      "context_id": "synthetic-dept-v1",
+      "language": "en",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "jdw-004-ar",
+      "text": "يجب ألا تكون للمجموعة أ بالسنة الثانية علوم حاسب حصص الأربعاء من 14:00 إلى 16:00.",
+      "context_id": "synthetic-dept-v1",
+      "language": "ar",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "jdw-004-arz",
+      "text": "مجموعة أ سنة تانية حاسبات مينفعش يبقى عندها حصص الأربع من 2 لـ4 العصر.",
+      "context_id": "synthetic-dept-v1",
+      "language": "arz",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "jdw-004-mixed",
+      "text": "Year 2 CS Group A مش متاحة Wednesday 14:00–16:00.",
+      "context_id": "synthetic-dept-v1",
+      "language": "mixed",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "jdw-007-en",
+      "text": "Nour Hassan is unavailable Monday and Tuesday from 08:00 to 10:00 on each day.",
+      "context_id": "synthetic-dept-v1",
+      "language": "en",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "jdw-007-ar",
+      "text": "نور حسن غير متاح الاثنين والثلاثاء من 08:00 إلى 10:00 في كل يوم.",
+      "context_id": "synthetic-dept-v1",
+      "language": "ar",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "jdw-007-arz",
+      "text": "نور حسن مش متاح الاتنين والتلات من 8 لـ10 في كل يوم.",
+      "context_id": "synthetic-dept-v1",
+      "language": "arz",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "jdw-007-mixed",
+      "text": "Nour Hassan unavailable الاتنين والتلات 08:00–10:00 each day.",
+      "context_id": "synthetic-dept-v1",
+      "language": "mixed",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "design-002-en",
+      "text": "Studio 2 is unavailable on Tuesday from 12:00 to 14:00.",
+      "context_id": "synthetic-design-school-v2",
+      "language": "en",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "design-002-ar",
+      "text": "استوديو 2 غير متاح يوم الثلاثاء من 12:00 إلى 14:00.",
+      "context_id": "synthetic-design-school-v2",
+      "language": "ar",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "design-002-arz",
+      "text": "استوديو 2 مقفول التلات من 12 لـ2 الضهر.",
+      "context_id": "synthetic-design-school-v2",
+      "language": "arz",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "design-002-mixed",
+      "text": "Studio 2 مقفول Tuesday من 12:00 لـ14:00.",
+      "context_id": "synthetic-design-school-v2",
+      "language": "mixed",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "design-005-en",
+      "text": "Salma Farid is unavailable on Sunday from 08:00 to 10:00, and Studio 2 is closed on Monday from 16:00 to 18:00.",
+      "context_id": "synthetic-design-school-v2",
+      "language": "en",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "design-005-ar",
+      "text": "سلمى فريد غير متاحة يوم الأحد من 08:00 إلى 10:00، واستوديو 2 مغلق يوم الاثنين من 16:00 إلى 18:00.",
+      "context_id": "synthetic-design-school-v2",
+      "language": "ar",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "design-005-arz",
+      "text": "سلمى فريد مش فاضية الحد من 8 لـ10 الصبح، واستوديو 2 مقفول الاتنين من 4 لـ6 المغرب.",
+      "context_id": "synthetic-design-school-v2",
+      "language": "arz",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "design-005-mixed",
+      "text": "Salma Farid unavailable Sunday 08:00–10:00، وStudio 2 closed Monday 16:00–18:00.",
+      "context_id": "synthetic-design-school-v2",
+      "language": "mixed",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "design-008-en",
+      "text": "Hana Mansour cannot teach on Monday from 08:00 to 10:00.",
+      "context_id": "synthetic-design-school-v2",
+      "language": "en",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "design-008-ar",
+      "text": "لا تستطيع هناء منصور التدريس يوم الاثنين من 08:00 إلى 10:00.",
+      "context_id": "synthetic-design-school-v2",
+      "language": "ar",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "design-008-arz",
+      "text": "هناء منصور مش هتدرّس الاتنين من 8 لـ10 الصبح.",
+      "context_id": "synthetic-design-school-v2",
+      "language": "arz",
+      "annotation": null,
+      "rationale": ""
+    },
+    {
+      "id": "design-008-mixed",
+      "text": "Hana Mansour unavailable Monday 08:00–10:00.",
+      "context_id": "synthetic-design-school-v2",
+      "language": "mixed",
+      "annotation": null,
+      "rationale": ""
+    }
+  ]
+}

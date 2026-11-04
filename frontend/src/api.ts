@@ -1,0 +1,194 @@
+export type RecordKind = "courses" | "instructors" | "rooms" | "groups";
+export type CatalogCourse = {source_info?: {program_semesters?: {faculty_section:string; program_or_cohort:string|null;semester:number|null}[];name_variants?:string[];source_pages?:number[];source_document?:string}; id: string; name: string; code: string; eligibility: Record<string, string[]>; group_ids: string[]};
+export type DataRecord = {
+  course_id?: string | null;
+  id: string;
+  kind: RecordKind;
+  name: string;
+  code: string;
+  department?: string;
+  max_weekly_hours?: number | null;
+  source_info?: {source_document?:string; references?:{sheet:string;cell:string}[]};
+  capacity?: number | null;
+  size?: number;
+  year?: number | null;
+  major?: string | null;
+  day_off?: string | null;
+  room_type?: string;
+  room_types?: string[];
+  equipment?: string[];
+  required_equipment?: string[];
+  activity_type?: string;
+  sessions?: number;
+  duration?: number;
+  eligible_instructors?: string[];
+  group_ids?: string[];
+};
+export type Rule = {
+  id: string;
+  title: string;
+  instructor_id?: string | null;
+  room_id?: string | null;
+  group_id?: string | null;
+  activity_id?: string | null;
+  type: "unavailable" | "preferred_period" | "room_unavailable" | "group_unavailable" | "activity_allowed" | "group_allowed";
+  day: string;
+  start_hour: number;
+  end_hour: number;
+  strength: "mandatory" | "preferred";
+  status: "draft" | "approved";
+};
+export type AssignmentLock = {id:string;source_run_id:string;activity_id:string;occurrence:number;instructor_id:string|null;room_id:string|null;day:string|null;start_minute:number|null;status:"draft"|"approved";approved_by?:string|null};
+export type Workspace = {
+  course_catalog?: CatalogCourse[];
+  assignment_locks?: AssignmentLock[];
+  name: string;
+  term: string;
+  version: number;
+  calendar?: {
+    timezone: string;
+    days: string[];
+    start_hour: number;
+    end_hour: number;
+    period_minutes: number;
+    teaching_periods?: { start: number; end: number }[];
+    realism_policy?: {student_daily_hours?: number | null; instructor_daily_hours?: number | null; spread_activity_days?: boolean; max_consecutive_periods?: number | null; max_idle_periods?: number | null; compact_days?: boolean};
+    start_date: string | null;
+    end_date: string | null;
+  };
+  records: DataRecord[];
+  rules: Rule[];
+  events: {
+    id: string;
+    action: string;
+    actor: string;
+    action_code?: string;
+    params?: { target?: string };
+    at: string;
+    version: number;
+  }[];
+};
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  group_id?: string | null;
+  active: boolean;
+  version: number;
+};
+export class ApiError extends Error {
+  constructor(
+    public code: string,
+    public status: number,
+  ) {
+    super(code);
+  }
+}
+export async function api<T>(
+  path: string,
+  method = "GET",
+  body?: unknown,
+  version?: number,
+): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(`/api${path}`, {
+      method,
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Jadwai-Request": "1",
+        ...(version !== undefined ? { "If-Match": `"${version}"` } : {}),
+      },
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+  } catch {
+    throw new ApiError("connection_failed", 0);
+  }
+  if (!response.ok) {
+    if (
+      response.status === 401 &&
+      !path.startsWith("/auth/login") &&
+      typeof window !== "undefined"
+    )
+      window.dispatchEvent(new Event("jadwai-session-expired"));
+    const error = await response.json().catch(() => ({}));
+    throw new ApiError(
+      typeof error.detail === "string" ? error.detail : "invalid_input",
+      response.status,
+    );
+  }
+  return response.status === 204 ? (undefined as T) : response.json();
+}
+
+export type ScheduleAssignment = {
+  activity_id: string;
+  occurrence: number;
+  instructor_id: string;
+  room_id: string;
+  day: string;
+  start_minute: number;
+  end_minute: number;
+};
+export type ScheduleRun = {
+  id: string;
+  input_version: number;
+  stale: boolean;
+  status:
+    | "queued"
+    | "running"
+    | "completed"
+    | "blocked"
+    | "infeasible"
+    | "unknown"
+    | "failed"
+    | "cancelled";
+  cancel_requested: boolean;
+  created_at: string;
+  snapshot: {
+    name: string;
+    term: string;
+    calendar: NonNullable<Workspace["calendar"]>;
+    records: DataRecord[];
+    rules: Rule[];
+  };
+  result: {
+    provenance?: { snapshot: {snapshot_sha256:string; config_sha256:string} | null; validator_version:string | null; worker_elapsed_seconds:number; reproducibility_note:string };
+    solver_diagnostics?: {raw_status:string; ortools_version:string; parameters_text:string; solver_seconds:number; objective_definition:string};
+    preflight?: import("./RunChecks").Preparation;
+    progress?: {best_objective:number;best_bound:number;solver_seconds:number} | null;
+    reason?: string;
+    activity_id?: string;
+    assignments: ScheduleAssignment[];
+    preference_penalty?: number;
+    optimal?: boolean;
+    validation?: { coverage?: {check:string;status:string;applicable:number|null;basis:string}[]; conflict_basis?:string; violations?: {code:string;message:string;sessions:ScheduleAssignment[];resource_ids:string[];rule_ids:string[]}[]; passed: boolean; checks: string[]; errors: string[]; realism?: {policy: NonNullable<Workspace["calendar"]>["realism_policy"]; daily_resources: {kind:string; id:string; day:string; teaching_hours:number; idle_periods:number; max_consecutive_periods:number}[]; idle_periods:number} | null; workload?: {instructor_id: string; assigned_hours: number; max_weekly_hours: number | null; configured: boolean; exceeded: boolean; standard_weekly_hours?: number | null; regular_hours?: number | null; extra_hours?: number | null}[] | null };
+  } | null;
+};
+
+export async function downloadScheduleStatistics(
+  id: string,
+  format: "pdf" | "html" | "json" = "pdf",
+) {
+  const response = await fetch(
+    `/api/schedules/${encodeURIComponent(id)}/statistics?format=${format}`,
+    { credentials: "same-origin" },
+  );
+  if (!response.ok) {
+    if (response.status === 401)
+      window.dispatchEvent(new Event("jadwai-session-expired"));
+    throw new ApiError("statistics_unavailable", response.status);
+  }
+  // Download the authenticated attachment directly; this also works in browsers
+  // that restrict downloads from generated blob URLs.
+  const url = `/api/schedules/${encodeURIComponent(id)}/statistics?format=${format}`;
+  const link = document.createElement("a");
+  link.href = url;
+  // The server supplies a descriptive filename in Content-Disposition.
+  link.download = "";
+  document.body.append(link);
+  link.click();
+  link.remove();
+
+}

@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-01",
+  "phase": 5,
+  "feature": "manual browser annotation of gold-free review pack",
+  "verification": {
+    "frontend_tests": 48,
+    "build": "passed",
+    "browser": "live 0/24 empty review verified; no answers selected or submitted"
+  },
+  "backend_api": "existing source-bound review validation; no changes",
+  "draft_storage": "account-scoped workspace memory; survives section navigation, not refresh/close/sign-out",
+  "gold_prefilled": false,
+  "live_reviews_created": 0,
+  "scheduling_inputs_changed": false,
+  "paid_or_model_calls": 0,
+  "research_sign_off": "pending independent reviews and confirmatory material",
+  "sha256": {
+    "frontend/src/AnnotationRuleEditor.tsx": "3a56c003aacc5ff04dad495b8989d388c48f141794c8cdfd60e74fe71bdf5fd9",
+    "frontend/src/BrowserAnnotationReview.tsx": "2c1ab5dfcb0556330e0e8f55a8101c5bff919c95f9d68b1aa39af91033271df2",
+    "frontend/src/BrowserAnnotationReview.test.tsx": "cc90046ba4cbdf4b49975c5791e30b04ba4632a686a4f6b4d4b40dfd48ab2509",
+    "frontend/src/App.tsx": "d9e7546eb28ecbda9d857bfda0c0d1e1a045a80d324e7d7842912ce2d2e4a51a",
+    "frontend/src/Evaluation.tsx": "869abb231a5b137982511d0b918c6cbbe12d2744773e2802cc1de5dca450495e"
+  }
+}

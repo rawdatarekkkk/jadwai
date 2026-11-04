@@ -1,0 +1,17 @@
+{
+  "provider": "not_selected",
+  "model": "not_selected",
+  "prompt_version": "not_frozen",
+  "schema_version": "proposal-contract-v1",
+  "retry_limit": null,
+  "timeout_seconds": null,
+  "stage_review_verification": "operator_declared_only",
+  "purpose": "development diagnostics against unreviewed synthetic labels",
+  "acceptance_thresholds": null,
+  "fewshot_version": "not_frozen",
+  "decoding": {
+    "temperature": null,
+    "seed": null
+  },
+  "repetitions": null
+}

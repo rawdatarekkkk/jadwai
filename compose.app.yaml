@@ -1,0 +1,32 @@
+# Build the local production bundle after running scripts/setup.sh.
+# Keeps the established database volume; credentials come from its restricted roles.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ops/Dockerfile.backend
+    environment:
+      DATABASE_URL: ${APP_CONTAINER_DATABASE_URL:?Run scripts/container-env.sh first}
+      JADWAI_COOKIE_SECURE: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+  worker:
+    build:
+      context: .
+      dockerfile: ops/Dockerfile.backend
+    command: ["python", "/app/worker/main.py"]
+    environment:
+      DATABASE_URL: ${WORKER_CONTAINER_DATABASE_URL:?Run scripts/container-env.sh first}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+  web:
+    build:
+      context: .
+      dockerfile: ops/Dockerfile.web
+    ports: ["127.0.0.1:8080:8080"]
+    depends_on: [api]
+    restart: unless-stopped

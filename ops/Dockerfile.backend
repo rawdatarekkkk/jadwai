@@ -1,0 +1,16 @@
+FROM python:3.14-slim
+WORKDIR /app/backend
+COPY backend/requirements.lock.txt ./
+RUN pip install --no-cache-dir -r requirements.lock.txt && useradd --uid 10001 --create-home jadwai
+COPY backend/app ./app
+COPY worker /app/worker
+# Evaluation portal needs development material only; omit reserved labels and logs.
+COPY evaluation/__init__.py evaluation/development.py evaluation/runner.py evaluation/harness.py evaluation/dataset_lifecycle.py /app/evaluation/
+COPY evaluation/proposal-contract.schema.json /app/evaluation/proposal-contract.schema.json
+COPY evaluation/guides/annotation-guide-v2.md /app/evaluation/guides/annotation-guide-v2.md
+COPY evaluation/development-v2 /app/evaluation/development-v2
+COPY evaluation/protocols/admin-review-v1.md /app/evaluation/protocols/admin-review-v1.md
+ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app/backend
+USER jadwai
+EXPOSE 8000
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,0 +1,23 @@
+{
+  "dataset_format": "development-bundle-v1",
+  "dataset_version": "0.2.0-draft",
+  "previous_manifest_sha256": "f00beeea8c515ebab6eb59e138a7d4ecbe2b1401ea78bf4c7da8fd5cba2bce7b",
+  "schema_version": "proposal-contract-v1",
+  "guide_version": "annotation-guide-v2-draft",
+  "split": "development",
+  "counts": {
+    "cases": 144,
+    "families": 36,
+    "contexts": 2
+  },
+  "independently_adjudicated": false,
+  "reserved_is_blind": false,
+  "reserved_included": false,
+  "files": {
+    "contexts.json": "d18fce8f0a6d0becb9c196116db9e829bdfb8ed0b697e527d0be82518b079ca1",
+    "cases.jsonl": "95ea2c7716b8a331ae8d4557d5161cfaab3ded39a3127a9d1f513b1629d2ceb7"
+  },
+  "contract_sha256": "8f813ae09a34f2e5e28410100f24c7e92e8bfa1356b368eaebc9f02b6f66dfc7",
+  "guide_sha256": "2d5f17d011a0746c895f2796ad12cb3d677f6e6e18bdd3dd650daa1b806adf13",
+  "change_note": "Retain original 96 development examples, add 48 four-language design-school examples with Saturday/overtime context. No reserved labels loaded or moved."
+}

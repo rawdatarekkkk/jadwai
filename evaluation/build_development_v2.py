@@ -1,0 +1,45 @@
+"""Author a separate development-only draft release; never read reserved labels."""
+import copy,hashlib,json
+from pathlib import Path
+import runner
+ROOT=Path(__file__).resolve().parent
+OUT=ROOT/'development-v2'
+LANGUAGES=['en','ar','arz','mixed']
+
+def rule(typ,target,day,start,end):
+ return {'kind':'rule','data':{'type':typ,**target,'day':day,'start_hour':start,'end_hour':end,'strength':'preferred' if typ=='preferred_period' else 'mandatory'}}
+def output(proposals=(),decision='ready',clarifications=(),unsupported=()):
+ return {'decision':decision,'proposals':list(proposals),'clarifications':list(clarifications),'unsupported':list(unsupported)}
+
+def build():
+ previous,contexts,old=runner.load()
+ context={'id':'synthetic-design-school-v2','provenance':'Original assistant-authored fictional design-school context; no actual GIU staff, students or policies. Draft pending independent review.','calendar':{'days':['Saturday','Sunday','Monday','Tuesday','Wednesday','Thursday'],'start_hour':8,'end_hour':18,'timezone':'Africa/Cairo','teaching_periods':[{'start':510,'end':600},{'start':615,'end':705},{'start':720,'end':810},{'start':825,'end':915},{'start':945,'end':1035}],'weekly_load_policy':{'standard_hours':12,'allow_overtime':True}},'instructors':[{'id':'design-salma','name':'Salma Farid','aliases':['سلمى فريد']},{'id':'design-karim','name':'Karim Nabil','aliases':['كريم نبيل']}],'rooms':[{'id':'design-studio','name':'Studio 2','aliases':['استوديو 2'],'capacity':24,'room_type':'flexible'}],'groups':[{'id':'design-g3','name':'Design Year 3','aliases':['تصميم سنة ثالثة'],'size':18}],'activities':[{'id':'design-prototype','name':'Prototyping','aliases':['النمذجة الأولية'],'group_ids':['design-g3'],'eligible_instructors':['design-salma'],'sessions':1,'duration':90}],'source_draft':{'id':'22222222-2222-4222-8222-222222222222','validated':False,'assignments':[]},'definitions':{'early':None,'groups_are_disjoint':True,'rule_hours_are_integers':True,'proposal_boundary':'Teaching-rule proposals only; exam generation is separate. Weekly overtime is permitted; a request to restore a hard weekly cap is not supported by this context.'}}
+ fixtures=[
+ ('saturday-closure',['Salma Farid cannot teach on Saturday from 10:00 to 12:00.','لا تستطيع سلمى فريد التدريس يوم السبت من 10:00 إلى 12:00.','سلمى فريد مش هتقدر تدرّس السبت من 10 لحد 12 الظهر.','Salma Farid مش متاحة Saturday من 10:00 لـ12:00.'],output([rule('unavailable',{'instructor_id':'design-salma'},'Saturday',10,12)]),['simple','saturday','mandatory']),
+ ('studio-closure',['Studio 2 is unavailable on Tuesday from 12:00 to 14:00.','استوديو 2 غير متاح يوم الثلاثاء من 12:00 إلى 14:00.','استوديو 2 مقفول التلات من 12 لـ2 الضهر.','Studio 2 مقفول Tuesday من 12:00 لـ14:00.'],output([rule('room_unavailable',{'room_id':'design-studio'},'Tuesday',12,14)]),['room','mandatory']),
+ ('group-window',['Design Year 3 may attend classes only on Wednesday between 08:00 and 12:00.','لا يجوز لمجموعة تصميم سنة ثالثة حضور المحاضرات إلا يوم الأربعاء بين 08:00 و12:00.','تصميم سنة ثالثة ينفع عندهم حصص بس يوم الأربع من 8 الصبح لـ12 الضهر.','Design Year 3 حصصهم only Wednesday من 08:00 لـ12:00.'],output([rule('group_allowed',{'group_id':'design-g3'},'Wednesday',8,12)]),['group','exclusive-window']),
+ ('soft-preference',['Karim Nabil prefers teaching on Thursday from 14:00 to 16:00.','يفضل كريم نبيل التدريس يوم الخميس من 14:00 إلى 16:00.','كريم نبيل يفضل يدرّس الخميس من 2 لـ4 العصر.','Karim Nabil يفضل Thursday 14:00–16:00 للتدريس.'],output([rule('preferred_period',{'instructor_id':'design-karim'},'Thursday',14,16)]),['soft','preference']),
+ ('compound',['Salma Farid is unavailable on Sunday from 08:00 to 10:00, and Studio 2 is closed on Monday from 16:00 to 18:00.','سلمى فريد غير متاحة يوم الأحد من 08:00 إلى 10:00، واستوديو 2 مغلق يوم الاثنين من 16:00 إلى 18:00.','سلمى فريد مش فاضية الحد من 8 لـ10 الصبح، واستوديو 2 مقفول الاتنين من 4 لـ6 المغرب.','Salma Farid unavailable Sunday 08:00–10:00، وStudio 2 closed Monday 16:00–18:00.'],output([rule('unavailable',{'instructor_id':'design-salma'},'Sunday',8,10),rule('room_unavailable',{'room_id':'design-studio'},'Monday',16,18)]),['compound','two-targets']),
+ ('missing-day',['Close Studio 2 from 10:00 to 12:00.','أغلق استوديو 2 من 10:00 إلى 12:00.','اقفل استوديو 2 من 10 لـ12 الضهر.','Close Studio 2 من 10:00 لـ12:00.'],output(decision='clarify',clarifications=['missing_day']),['ambiguous','missing-value']),
+ ('undefined-early',['Schedule Salma Farid early.','ضع حصص سلمى فريد في وقت مبكر.','خلّي حصص سلمى فريد بدري.','Schedule Salma Farid بدري.'],output(decision='clarify',clarifications=['undefined_early']),['undefined-term']),
+ ('unknown-instructor',['Hana Mansour cannot teach on Monday from 08:00 to 10:00.','لا تستطيع هناء منصور التدريس يوم الاثنين من 08:00 إلى 10:00.','هناء منصور مش هتدرّس الاتنين من 8 لـ10 الصبح.','Hana Mansour unavailable Monday 08:00–10:00.'],output(decision='clarify',clarifications=['unknown_instructor']),['unknown-entity']),
+ ('minute-precision',['Studio 2 is closed on Saturday from 10:15 to 11:45.','استوديو 2 مغلق يوم السبت من 10:15 إلى 11:45.','استوديو 2 مقفول السبت من عشرة وربع لحد حداشر وخمسة وأربعين.','Studio 2 closed Saturday 10:15–11:45.'],output(decision='unsupported',unsupported=['minute_rule_precision']),['unsupported','temporal-boundary']),
+ ('hard-weekly-cap',['Forbid Salma Farid from teaching more than 12 hours per week.','امنع سلمى فريد من التدريس لأكثر من 12 ساعة أسبوعيًا.','ممنوع سلمى فريد تدرّس أكتر من 12 ساعة في الأسبوع.','Salma Farid hard maximum 12 hours/week، ممنوع تتخطاه.'],output(decision='unsupported',unsupported=['hard_weekly_cap_under_overtime_policy']),['numeric','unsupported','overtime-policy']),
+ ('negation',['Do not schedule Design Year 3 on Saturday between 14:00 and 16:00.','لا تضع حصصًا لمجموعة تصميم سنة ثالثة يوم السبت بين 14:00 و16:00.','متعملش حصص لتصميم سنة ثالثة السبت من 2 لـ4 العصر.','Do not schedule Design Year 3 السبت 14:00–16:00.'],output([rule('group_unavailable',{'group_id':'design-g3'},'Saturday',14,16)]),['negated','group']),
+ ('conflict',['Prototyping must be on Monday between 08:00 and 10:00, but Design Year 3 cannot attend on Monday between 08:00 and 10:00.','يجب أن تكون النمذجة الأولية يوم الاثنين بين 08:00 و10:00، لكن مجموعة تصميم سنة ثالثة لا تستطيع الحضور يوم الاثنين بين 08:00 و10:00.','النمذجة الأولية لازم الاتنين من 8 لـ10 الصبح، بس تصميم سنة ثالثة مينفعش يحضروا الاتنين من 8 لـ10 الصبح.','Prototyping only Monday 08:00–10:00، بس Design Year 3 unavailable Monday 08:00–10:00.'],output([rule('activity_allowed',{'activity_id':'design-prototype'},'Monday',8,10),rule('group_unavailable',{'group_id':'design-g3'},'Monday',8,10)],decision='conflict',clarifications=['resolve_hard_conflict']),['contradictory','compound'])]
+ rows=[]
+ for original in old:
+  r=copy.deepcopy(original);r['provenance']={'origin':'retained from immutable 0.1.0-draft development split','author':'project assistant','reviewed_by':[]};r['tags']=[r['topic'],'legacy-context'];rows.append(r)
+ for index,(topic,texts,gold,tags) in enumerate(fixtures,1):
+  for lang,text in zip(LANGUAGES,texts):rows.append({'id':f'design-{index:03d}-{lang}','family_id':f'design-family-{index:03d}','topic':topic,'language':lang,'split':'development','context_id':context['id'],'text':text,'gold':copy.deepcopy(gold),'tags':tags,'provenance':{'origin':'Original fictional design-school requirement, assistant authored 2026-11-01; not independent annotation','author':'project assistant','reviewed_by':[]},'review_status':'draft_unreviewed'})
+ context_map={**contexts,context['id']:context}
+ for r in rows:
+  errors=runner.output_errors(r['gold'],context_map[r['context_id']])
+  if errors:raise ValueError((r['id'],errors))
+ OUT.mkdir(exist_ok=True)
+ for name,data in [('contexts.json',json.dumps(list(context_map.values()),ensure_ascii=False,indent=2)+'\n'),('cases.jsonl',''.join(json.dumps(r,ensure_ascii=False)+'\n' for r in rows))]:
+  with (OUT/name).open('x',encoding='utf-8') as stream:stream.write(data)
+ manifest={'dataset_format':'development-bundle-v1','dataset_version':'0.2.0-draft','previous_manifest_sha256':runner.digest(previous),'schema_version':previous['schema_version'],'guide_version':'annotation-guide-v2-draft','split':'development','counts':{'cases':len(rows),'families':len({r['family_id'] for r in rows}),'contexts':len(context_map)},'independently_adjudicated':False,'reserved_is_blind':False,'reserved_included':False,'files':{name:hashlib.sha256((OUT/name).read_bytes()).hexdigest() for name in ['contexts.json','cases.jsonl']},'contract_sha256':hashlib.sha256((ROOT/'proposal-contract.schema.json').read_bytes()).hexdigest(),'guide_sha256':hashlib.sha256((ROOT/'guides/annotation-guide-v2.md').read_bytes()).hexdigest(),'change_note':'Retain original 96 development examples, add 48 four-language design-school examples with Saturday/overtime context. No reserved labels loaded or moved.'}
+ with (OUT/'manifest.json').open('x') as stream:json.dump(manifest,stream,indent=2)
+ print(json.dumps(manifest['counts']))
+if __name__=='__main__':build()

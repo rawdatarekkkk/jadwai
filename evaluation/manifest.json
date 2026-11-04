@@ -1,0 +1,22 @@
+{
+  "dataset_version": "0.1.0-draft",
+  "schema_version": "proposal-contract-v1",
+  "annotation_version": "annotation-guide-v1",
+  "synthetic": true,
+  "independently_adjudicated": false,
+  "reserved_is_blind": false,
+  "split_unit": "intent-template family; all translations stay together",
+  "files": {
+    "data/contexts.json": "aadd3b49091bc1921139362a800a93411c16630890b241e80b01f1c36c26aa33",
+    "data/development/cases.jsonl": "b1d34c373c8ea982d749e9401edeb9ec1ad8d81772a77924d4e01529ae700d7f",
+    "data/reserved/cases.jsonl": "d0f114ee9f1726be4f4bb4bbad9500617d14bc82613458a4e1791e71e5036f36",
+    "annotation-guide.md": "b382bc9ffb353ab6da6f34586634aa8a86a7a778fa8d685a19cca3248e64d7a9",
+    "proposal-contract.schema.json": "8f813ae09a34f2e5e28410100f24c7e92e8bfa1356b368eaebc9f02b6f66dfc7",
+    "build_corpus.py": "c590b7303cc90d30ea70f1e2c58d465dc58d046ba512dbd8701fd53f8fea8cf1",
+    "runner.py": "987d162faf2897996a7aa85fcf3fb6316cc94bf285b3ea0f7c99cc56d02a07eb"
+  },
+  "counts": {
+    "development": 96,
+    "reserved": 32
+  }
+}

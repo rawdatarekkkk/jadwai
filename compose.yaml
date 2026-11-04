@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: mizan
+      POSTGRES_PASSWORD: mizan_local
+      POSTGRES_DB: mizan
+    ports: ["127.0.0.1:5440:5432"]
+    volumes: ["mizan_pg:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mizan"]
+      interval: 3s
+      retries: 15
+volumes:
+  mizan_pg:

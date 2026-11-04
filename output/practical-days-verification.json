@@ -1,0 +1,12 @@
+{
+  "run": "87a368fd-8e67-40a6-878a-04cc4761873a",
+  "version": 12,
+  "sessions": 97,
+  "maximum_student_daily_hours": 4.5,
+  "maximum_instructor_daily_hours": 6.0,
+  "max_consecutive_periods": 3,
+  "max_idle_periods": 1,
+  "total_idle_periods": 5,
+  "preference_penalty": 2,
+  "optimal": false
+}

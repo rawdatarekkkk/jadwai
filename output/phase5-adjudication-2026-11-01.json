@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-01",
+  "active_phase": 5,
+  "migration": "0024",
+  "capabilities": [
+    "source-linked immutable adjudication records",
+    "required decisions and rationales for each dispute",
+    "declared distinct adjudicator ID",
+    "idempotent retry and conflict rejection",
+    "decision history and JSON export"
+  ],
+  "validation": {
+    "backend": 234,
+    "offline_evaluation": 38,
+    "frontend": 43,
+    "build": "passed",
+    "browser": "synthetic preview with submission interception; live empty review state verified"
+  },
+  "live_synthetic_reviews_created": 0,
+  "live_synthetic_adjudications_created": 0,
+  "academic_input_version_changed": false,
+  "gold_promoted": false,
+  "provider_calls": 0,
+  "research_sign_off": "pending independent review and fresh confirmatory data",
+  "files_sha256": {
+    "backend/app/evaluation_portal.py": "92089bfee10b7b833c07382b95b79129bf429e0317f7af45b668f3bf667af0ba",
+    "backend/migrations/versions/0024_evaluation_adjudication.py": "d49bbb81ae3ad821516697f2762c19eb6719cac25ee3f3643e0b83972dbc7bfe",
+    "frontend/src/EvaluationAdjudication.tsx": "e5fc43c92b8c3dcc9c9a04916c9d34472df0a5984e390f7518db0363ba4000b4",
+    "backend/tests/test_evaluation_adjudication.py": "7a7fc0d816cd9626bce3be99a0cc2a2996ebd86f000630ec39a488363dba46df",
+    "frontend/src/EvaluationAdjudication.test.tsx": "fe3b2dc6789b80707d8248101f52f4bea2bdff88c403d5de1375b2e0ead5c8bd"
+  }
+}

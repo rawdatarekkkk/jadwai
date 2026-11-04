@@ -13,7 +13,9 @@ class CourseSetup(Strict):
     name: Name
     code: Code
     eligibility: dict[str, list[str]]
-    group_ids: list[str] = Field(min_length=1, max_length=200)
+    # Imported catalogue courses may have no groups yet; then expected_students sizes their exam.
+    group_ids: list[str] = Field(max_length=200)
+    expected_students: int | None = Field(default=None, ge=1, le=5000, strict=True)
 
     @field_validator('eligibility')
     @classmethod
@@ -50,6 +52,7 @@ def save_course(body: CourseSetup, request: Request, ident: str | None = None,
     if any(not set(r.data['eligible_instructors']) <= set(body.eligibility[r.data['activity_type']]) or not set(r.data['group_ids']) <= set(body.group_ids) for r in linked):
         fail(409, 'course_eligibility_in_use')
     row.name, row.code, row.eligibility, row.group_ids = body.name, body.code, body.eligibility, body.group_ids
+    row.expected_students = body.expected_students
     for activity in linked: activity.name = body.name
     db.add(row)
     audit(db, ws, user, f'Updated course {body.code}' if ident else f'Added course {body.code}')

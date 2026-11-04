@@ -43,7 +43,7 @@ def test_saved_exam_api_uses_dates_and_excludes_fridays(environment):
  client,factory=environment;login(client)
  with factory.begin() as db:
   db.add(CourseCatalog(id='exam-course',name='Algorithms',code='ALG',eligibility={'lecture':[],'tutorial':[],'lab':[]},group_ids=[],source_info={'program_semesters':[{'faculty_section':'INFORMATICS','program_or_cohort':'Computer Science','semester':3}]}))
- response=client.post('/api/exam-schedules',headers=version(client),json={'start_date':'2026-10-20','end_date':'2026-10-31','exclude_fridays':True})
+ response=client.post('/api/exam-schedules',headers=version(client),json={'start_date':'2026-10-20','end_date':'2026-10-31','exclude_fridays':True,'use_halls':False})
  assert response.status_code==201,response.text
  run=response.json()
  assert run['result']['status']=='completed' and len(run['result']['assignments'])==1

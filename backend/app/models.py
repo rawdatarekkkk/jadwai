@@ -50,6 +50,7 @@ class Workspace(Base):
     end_hour: Mapped[int] = mapped_column(Integer, default=18)
     period_minutes: Mapped[int] = mapped_column(Integer, default=30)
     teaching_periods: Mapped[list] = mapped_column(JSON, default=list)
+    exam_cohort_rules: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     realism_policy: Mapped[dict] = mapped_column(JSON, default=dict)
     start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
@@ -233,6 +234,7 @@ class CourseCatalog(Base):
     source_info: Mapped[dict] = mapped_column(JSON, default=dict)
     eligibility: Mapped[dict] = mapped_column(JSON)
     group_ids: Mapped[list] = mapped_column(JSON)
+    expected_students: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 
 class ActivityDetail(Base):
@@ -381,6 +383,9 @@ SessionLocal = sessionmaker(engine, expire_on_commit=False)
 class ExamRun(Base):
     __tablename__ = "exam_run"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    parent_run_id: Mapped[str | None] = mapped_column(ForeignKey("exam_run.id"), nullable=True)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     input_version: Mapped[int] = mapped_column(Integer)
     snapshot: Mapped[dict] = mapped_column(JSON)
     result: Mapped[dict] = mapped_column(JSON)
@@ -404,6 +409,9 @@ class ScheduleRun(Base):
     result: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    parent_run_id: Mapped[str | None] = mapped_column(ForeignKey("schedule_run.id"), nullable=True)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class AssignmentLock(Base):

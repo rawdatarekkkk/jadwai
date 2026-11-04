@@ -87,7 +87,7 @@ def live():
 
 
 # Latest migration revision; bump with every new migration.
-SCHEMA_HEAD = "0028"
+SCHEMA_HEAD = "0029"
 
 
 @router.get("/api/health")

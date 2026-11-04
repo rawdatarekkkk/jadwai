@@ -101,6 +101,9 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
         model.add_exactly_one(teachers.values())
         for ident, selected in teachers.items():
             workload_terms[ident].append(selected * activity["duration"] * activity["sessions"])
+        # Ordering occurrences by start breaks symmetry, but a time lock names an
+        # occurrence number, so ordering could reject valid locked timetables.
+        time_locked = any(lock['activity_id']==activity['id'] and lock.get('day') is not None for lock in locks)
         previous = None
         for occurrence in range(activity['sessions']):
             if cancel and cancel.is_set():
@@ -109,7 +112,7 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
             start = model.new_int_var_from_domain(cp_model.Domain.from_values(starts),'start_'+prefix)
             end = model.new_int_var(min(starts)+duration,max(starts)+duration,'end_'+prefix)
             interval = model.new_interval_var(start,duration,end,'session_'+prefix)
-            if previous is not None:
+            if previous is not None and not time_locked:
                 model.add(previous<start)
             previous = start
             for group in activity['group_ids']:

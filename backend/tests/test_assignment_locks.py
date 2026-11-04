@@ -25,6 +25,18 @@ def test_full_lock_and_independent_corruption():
     assert generate(snap)['reason'] == 'invalid_lock'
 
 
+def test_time_locks_out_of_occurrence_order_are_feasible():
+    # Locks copied from different runs can put a later occurrence on an earlier day.
+    snap = example()
+    snap['assignment_locks'] = [dict(id='late', status='approved', activity_id='a', occurrence=0, day='Monday', start_minute=480),
+                                dict(id='early', status='approved', activity_id='a', occurrence=1, day='Sunday', start_minute=480)]
+    result = generate(snap)
+    assert result['status'] == 'completed'
+    assert validate_schedule(snap, result['assignments'])['passed']
+    placed = {a['occurrence']: (a['day'], a['start_minute']) for a in result['assignments'] if a['activity_id']=='a'}
+    assert placed == {0: ('Monday', 480), 1: ('Sunday', 480)}
+
+
 def test_draft_ignored_and_contradictory_locks_infeasible():
     snap=example()
     snap['assignment_locks']=[dict(id='1',status='draft',activity_id='missing',occurrence=0,room_id='missing')]

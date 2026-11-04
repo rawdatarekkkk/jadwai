@@ -84,6 +84,8 @@ The owner selected teaching hours: each 90-minute session counts as 1.5 teaching
 
 Implemented a maximum weekly teaching-hour field per instructor. Hours are stored as exact integer minutes and accepted in half-hour increments to match the current activity grid. Each assigned session counts once per instructor regardless of attending-group count; breaks are excluded. A zero maximum forbids teaching, while blank/null means not configured, not an assumed institutional maximum. Configured maxima are hard solver constraints and independently checked against assigned elapsed minutes. Unconfigured instructors are explicitly listed as unchecked; publication is still unavailable. Existing instructors retain blank maxima until configured. Saved limits are versioned input changes; new generation is required, and existing snapshots remain unchanged. CSV accepts an optional max_weekly_hours column while retaining legacy imports. Daily limits, minimum load and weighted credits are not implemented.
 
+Superseded by the 12-hour regular-load/overtime policy: every generation snapshot sets `allow_overtime`, so configured maxima are no longer hard solver or validator constraints. Hours above 12 are reported as extra time. Stored maxima are retained but not enforced.
+
 
 ## 25 October 2026 — practical-day demo policy
 

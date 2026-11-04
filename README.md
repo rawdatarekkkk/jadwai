@@ -108,7 +108,7 @@ Metrics include assignment coverage; room/instructor/group overlap-pair counts; 
 
 ## Resource availability (25 October 2026)
 
-Manual constraints now include instructor, room and student-group unavailable intervals, plus preferred instructor periods. Room/group closures are mandatory, start as drafts, require approval, and are enforced by both the solver and independent validator. To apply a newly approved rule, generate a new draft; existing timetables remain unchanged. Weekly instructor maxima are configurable in teaching hours (a 90-minute session is 1.5 hours) and independently enforced. Configure them under Academic data → Instructors → Edit. Blank means not configured; zero means no teaching. CSV supports optional `max_weekly_hours`. Generate a new draft after changing a maximum. Configurable hard daily limits and practical-day policies are implemented.
+Manual constraints now include instructor, room and student-group unavailable intervals, plus preferred instructor periods. Room/group closures are mandatory, start as drafts, require approval, and are enforced by both the solver and independent validator. To apply a newly approved rule, generate a new draft; existing timetables remain unchanged. Instructor workload uses a 12-hour standard week: hours above 12 are reported as extra time and never block generation (a 90-minute session is 1.5 hours). Per-instructor `max_weekly_hours` values are kept for compatibility and still accepted in CSV, but generation and validation do not enforce them while this overtime policy is active. Configurable hard daily limits and practical-day policies are implemented.
 
 ## Practical daily timetables
 

@@ -84,7 +84,7 @@ def submit(body: ImportedProposal, request: Request, user=Depends(administrator)
     row = ExtractionProposal(id=str(uuid4()), request_key=str(body.request_key), submitted_by=user.id,
         input_version=ws.version, input_sha256=digest,
         record={**payload, 'origin': 'administrator_import', 'model_execution_verified': False,
-                'context': snapshot, 'context_sha256': fingerprint(snapshot), 'validator_version': 'time-rules-v1'})
+                'context': snapshot, 'context_sha256': fingerprint(snapshot), 'validator_version': 'rules-v2'})
     db.add(row); db.flush()
     event(db, ws, user, 'proposal.imported', row.id)
     db.commit()
@@ -129,3 +129,39 @@ def review(ident: UUID, body: ReviewProposal, request: Request, user=Depends(adm
     event(db, ws, user, 'proposal.' + body.action, row.id, changes_inputs=bool(rule_ids))
     db.commit()
     return {'id': result.id, **record, 'version': ws.version}
+
+
+class TypedConstraint(Strict):
+    request_key: UUID
+    text: str = Field(min_length=1, max_length=2000)
+
+
+@router.post('/interpret', status_code=201)
+def interpret(body: TypedConstraint, request: Request, user=Depends(administrator), db=Depends(db_session)):
+    """Run the built-in parser and keep its interpretation for review like any proposal."""
+    from app.rule_parser import parse
+    payload = body.model_dump(mode='json', exclude={'request_key'})
+    digest = submitted_fingerprint(payload)
+    ws = workspace_lock(db)
+    previous = db.scalar(select(ExtractionProposal).where(ExtractionProposal.request_key == str(body.request_key)))
+    if previous:
+        if previous.submitted_by != user.id or previous.input_sha256 != digest:
+            fail(409, 'request_conflict')
+        return data(previous, db, ws.version)
+    ws = lock_workspace(request, db)
+    if not body.text.strip():
+        fail(422, 'invalid_input')
+    snapshot = context(db, ws)
+    output = parse(body.text, snapshot)
+    check = validate_proposal(output, records={r['id']: r['kind'] for r in snapshot['records']}, calendar=snapshot['calendar'])
+    if not check.valid:
+        # Never store an invalid interpretation as if it were reviewable.
+        output = {'decision': 'clarify', 'proposals': [], 'clarifications': sorted({e.split('.')[-1] for e in check.errors}), 'unsupported': []}
+    row = ExtractionProposal(id=str(uuid4()), request_key=str(body.request_key), submitted_by=user.id,
+        input_version=ws.version, input_sha256=digest,
+        record={**payload, 'output': output, 'origin': 'builtin_parser', 'interpreter': 'builtin-parser-v1',
+                'model_execution_verified': True, 'context': snapshot, 'context_sha256': fingerprint(snapshot), 'validator_version': 'rules-v2'})
+    db.add(row); db.flush()
+    event(db, ws, user, 'proposal.interpreted', row.id)
+    db.commit()
+    return data(row, db, ws.version)

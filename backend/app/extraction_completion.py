@@ -57,7 +57,7 @@ def persist_completion(db, *, actor_id: str, request_key: UUID,
                 'execution_kind': 'test_double' if result.provider == 'deterministic-test-double' else 'provider_transport',
                 'context': snapshot, 'context_sha256': fingerprint(snapshot),
                 'request_sha256': request.input_sha256, 'execution': asdict(result),
-                'validator_version': 'time-rules-v1'})
+                'validator_version': 'rules-v2'})
     # JSON storage normalizes tuples to arrays. Normalize now for retry equality.
     row.record = json.loads(json.dumps(row.record, allow_nan=False))
     db.add(row); db.flush()

@@ -54,7 +54,7 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
         # The convenience model is much larger. Find a valid timetable with the plain
         # model first and start the convenience search from it.
         quick = {**snapshot, 'provenance': {**snapshot.get('provenance', {}), 'solver_config': {**config, 'objective_profile': 'preferences-first-v1'}}}
-        budget = time_limit * 0.3
+        budget = time_limit * 0.5
         started = __import__('time').monotonic()
         first = generate(quick, cancel, None, budget)
         if first['status'] != 'completed':

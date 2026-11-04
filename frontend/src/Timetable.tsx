@@ -3,6 +3,7 @@ import { timetableFilename } from "./exportNames";
 import { LockSessionButton } from "./AssignmentLocks";
 import { RunSettings, PreparationReport, defaultSettings } from "./RunChecks";
 import { SchedulePrint } from "./SchedulePrint";
+import { ScenarioActions } from "./ScenarioActions";
 import { useEffect, useRef, useState } from "react";
 import {
   api,
@@ -522,7 +523,7 @@ export function Timetable({
                   {new Date(r.created_at).toLocaleString(
                     lang === "ar" ? "ar-EG" : "en-GB",
                   )}{" "}
-                  · v{r.input_version} · {statusText(r)}
+                  · v{r.input_version} · {statusText(r)}{r.name ? ` · ${r.name}` : ""}{r.published_at ? " ✓" : ""}
                 </option>
               ))}
             </select>
@@ -648,6 +649,7 @@ export function Timetable({
               </small>
               {reportNotice && <small role="alert">{reportNotice}</small>}
             </div>
+            {administrator && <ScenarioActions key={run.id} ws={ws} run={run} runs={runs} lang={lang} reload={reload} select={setSelected}/>}
           </div>
           <div
             className="schedule-layout-switch"

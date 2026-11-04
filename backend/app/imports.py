@@ -13,7 +13,7 @@ from app.schemas import CSVInput
 
 router = APIRouter()
 HEADERS = {
-    "instructors": ["name", "code", "department", "max_weekly_hours", "day_off"],
+    "instructors": ["name", "code", "department", "max_weekly_hours", "day_off", "position"],
     "groups": ["name", "code", "size", "year", "major"],
     "rooms": ["name", "code", "capacity", "room_type", "equipment"],
     "courses": [
@@ -27,7 +27,7 @@ HEADERS = {
         "required_equipment",
     ],
 }
-OPTIONAL = {"day_off", "max_weekly_hours", "equipment", "required_equipment", "year", "major"}
+OPTIONAL = {"day_off", "position", "max_weekly_hours", "equipment", "required_equipment", "year", "major"}
 
 
 def preview(kind, content, db):
@@ -66,6 +66,8 @@ def preview(kind, content, db):
             seen.add(code)
             if "day_off" in data and not data["day_off"]:
                 data["day_off"] = None
+            if "position" in data:
+                data["position"] = {"": None, "doctor": "doctor", "dr": "doctor", "ta": "ta"}.get(data["position"].casefold(), data["position"])
             if "max_weekly_hours" in data:
                 try:
                     data["max_weekly_hours"] = float(data["max_weekly_hours"]) if data["max_weekly_hours"] else None

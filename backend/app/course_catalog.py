@@ -43,6 +43,9 @@ def save_course(body: CourseSetup, request: Request, ident: str | None = None,
         for ref in ids:
             record = db.get(Record, ref)
             if not record or record.kind != kind: fail(422, 'invalid_reference')
+    from app.positions import position_conflict
+    if any(position_conflict(kind, db.get(Record, ref).data) for kind, ids in body.eligibility.items() for ref in ids):
+        fail(422, 'instructor_position')
     linked = [r for r in db.scalars(select(Record).where(Record.kind == 'courses')) if r.activity.course_id == row.id]
     if any(not set(r.data['eligible_instructors']) <= set(body.eligibility[r.data['activity_type']]) or not set(r.data['group_ids']) <= set(body.group_ids) for r in linked):
         fail(409, 'course_eligibility_in_use')

@@ -57,7 +57,7 @@ class Workspace(Base):
 class User(Base):
     __tablename__ = "app_user"
     __table_args__ = (
-        CheckConstraint("role IN ('administrator', 'viewer', 'student')", name="valid_user_role"),
+        CheckConstraint("role IN ('administrator', 'viewer', 'student', 'instructor')", name="valid_user_role"),
     )
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     email: Mapped[str] = mapped_column(String(200), unique=True)
@@ -65,6 +65,7 @@ class User(Base):
     password: Mapped[str] = mapped_column(String(300))
     role: Mapped[str] = mapped_column(String(20), default="administrator")
     group_id: Mapped[str | None] = mapped_column(ForeignKey("record.id"), nullable=True)
+    instructor_id: Mapped[str | None] = mapped_column(ForeignKey("record.id"), nullable=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     version: Mapped[int] = mapped_column(Integer, default=1)
 
@@ -108,6 +109,7 @@ class Record(Base):
         if self.kind == "instructors":
             result["department"] = self.instructor.department
             result["day_off"] = self.instructor.day_off
+            result["position"] = self.instructor.position
             if self.instructor.max_weekly_minutes is not None:
                 result["max_weekly_hours"] = self.instructor.max_weekly_minutes / 60
         elif self.kind == "rooms":
@@ -141,6 +143,7 @@ class Record(Base):
                 self.instructor = InstructorDetail()
             self.instructor.department = body["department"]
             self.instructor.day_off = body.get("day_off")
+            self.instructor.position = body.get("position")
             hours = body.get("max_weekly_hours")
             self.instructor.max_weekly_minutes = None if hours is None else int(hours * 60)
         elif self.kind == "rooms":
@@ -183,13 +186,14 @@ class Record(Base):
 
 class InstructorDetail(Base):
     __tablename__ = "instructor"
-    __table_args__ = (CheckConstraint("day_off IS NULL OR day_off IN ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday')", name="instructor_day_off"), CheckConstraint("max_weekly_minutes IS NULL OR (max_weekly_minutes BETWEEN 0 AND 10080 AND max_weekly_minutes % 30 = 0)", name="weekly_limit_minutes"),)
+    __table_args__ = (CheckConstraint("day_off IS NULL OR day_off IN ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday')", name="instructor_day_off"), CheckConstraint("max_weekly_minutes IS NULL OR (max_weekly_minutes BETWEEN 0 AND 10080 AND max_weekly_minutes % 30 = 0)", name="weekly_limit_minutes"), CheckConstraint("position IS NULL OR position IN ('doctor','ta')", name="instructor_position"),)
     max_weekly_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     id: Mapped[str] = mapped_column(
         ForeignKey("record.id", ondelete="CASCADE"), primary_key=True
     )
     department: Mapped[str] = mapped_column(String(100))
     day_off: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    position: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
 
 class RoomDetail(Base):

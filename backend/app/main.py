@@ -17,6 +17,7 @@ from app.models import (
     Audit,
     Record,
     Rule,
+    User,
     Workspace,
 )
 from app.schemas import CalendarInput, RuleInput
@@ -165,6 +166,8 @@ def delete_record(
     if any(ident in (lock.activity_id,lock.instructor_id,lock.room_id) for lock in db.scalars(select(AssignmentLock))):
         fail(409, "record_in_use")
     if any(ident in c.group_ids or any(ident in ids for ids in c.eligibility.values()) for c in db.scalars(select(CourseCatalog))):
+        fail(409, "record_in_use")
+    if db.scalar(select(User.id).where((User.group_id == ident) | (User.instructor_id == ident))):
         fail(409, "record_in_use")
     db.delete(record)
     audit(db, ws, user, f"Removed {record.data['code']}")

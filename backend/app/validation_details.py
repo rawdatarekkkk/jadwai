@@ -63,6 +63,7 @@ def details(snapshot, rows, report):
         applicable=len(rows);basis='assigned sessions'
         if check=='complete_assignment':applicable=sum(a['sessions'] for a in activities);basis='required occurrences'
         elif check=='instructor_day_off':applicable=sum(bool(r.get('day_off')) for r in records.values() if r['kind']=='instructors');basis='instructors with a configured day off'
+        elif check=='instructor_position':applicable=sum(bool(records.get(a['instructor_id'],{}).get('position')) for a in rows);basis='sessions taught by an instructor classified as doctor or TA'
         elif check=='resource_conflicts':applicable=len(rows)*(len(rows)-1)//2;basis='assignment pairs; exact room/instructor/group IDs, half-open time intervals'
         elif check=='configured_weekly_workload':applicable=sum(w['configured'] for w in report.get('workload') or []);basis='instructors with 12-hour standard load and extra-time accounting' if cal.get('weekly_load_policy',{}).get('allow_overtime') else 'instructors with configured weekly maxima'
         elif check=='approved_assignment_locks':applicable=len(report.get('assignment_locks') or []);basis='approved locks'

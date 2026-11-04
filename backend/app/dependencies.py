@@ -36,9 +36,9 @@ def current_user(request: Request, db: DB = Depends(db_session)):
     user = db.get(User, session.user_id)
     if not user or not user.active:
         fail(401, "session_expired")
-    if user.role == "student" and request.url.path not in (
+    if user.role in ("student", "instructor") and request.url.path not in (
         "/api/auth/me", "/api/auth/logout", "/api/auth/password", "/api/student/schedule",
-    ):
+    ) and not request.url.path.startswith("/api/me/"):
         fail(403, "permission_denied")
     if request.method not in ("GET", "HEAD", "OPTIONS"):
         if request.headers.get("X-Jadwai-Request") != "1":
@@ -103,6 +103,7 @@ def info(user):
         "email": user.email,
         "role": user.role,
         "group_id": user.group_id,
+        "instructor_id": user.instructor_id,
         "active": user.active,
         "version": user.version,
     }

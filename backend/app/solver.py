@@ -62,6 +62,9 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
             hours = record["max_weekly_hours"]
             if type(hours) not in (int, float) or not 0 <= hours <= 168 or hours * 2 != int(hours * 2):
                 return {"status":"blocked", "reason":"invalid_workload_limit", "assignments":[]}
+    from app.positions import position_conflict
+    if any(position_conflict(a['activity_type'], by_id.get(t)) for a in activities for t in a['eligible_instructors']):
+        return {'status':'blocked','reason':'instructor_position','assignments':[]}
     choices, penalties = [], []
     count = 0
     for activity in activities:

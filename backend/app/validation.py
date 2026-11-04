@@ -1,7 +1,7 @@
 """Independent timetable checks: no dependency on the solver/model builder."""
 from collections import Counter
 
-CHECKS = ["complete_assignment", "calendar", "instructor_eligibility", "instructor_day_off", "instructor_continuity", "room_suitability", "resource_conflicts", "approved_unavailability", "approved_room_unavailability", "approved_group_unavailability", "configured_weekly_workload", "approved_assignment_locks", "approved_allowed_windows"]
+CHECKS = ["complete_assignment", "calendar", "instructor_eligibility", "instructor_position", "instructor_day_off", "instructor_continuity", "room_suitability", "resource_conflicts", "approved_unavailability", "approved_room_unavailability", "approved_group_unavailability", "configured_weekly_workload", "approved_assignment_locks", "approved_allowed_windows"]
 
 
 def validate_schedule(snapshot, assignments):
@@ -39,6 +39,9 @@ def validate_schedule(snapshot, assignments):
         teacher = row.get("instructor_id")
         if teacher not in activity["eligible_instructors"] or records.get(teacher, {}).get("kind") != "instructors":
             errors.add("instructor_eligibility")
+        from app.positions import position_conflict
+        if position_conflict(activity["activity_type"], records.get(teacher)):
+            errors.add("instructor_position")
         if activity["id"] in teachers and teachers[activity["id"]] != teacher:
             errors.add("instructor_continuity")
         teachers[activity["id"]] = teacher

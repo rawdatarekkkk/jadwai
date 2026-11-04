@@ -204,15 +204,24 @@ def list_users(user=Depends(administrator), db: DB = Depends(db_session)):
     return [info(row) for row in db.scalars(select(User).order_by(User.name, User.id))]
 
 
-def student_group(db, body):
-    if body.role != "student":
-        if body.group_id:
+def linked_record(db, body, role, field, kind):
+    ident = getattr(body, field)
+    if body.role != role:
+        if ident:
             fail(422, "invalid_input")
         return None
-    group = db.get(Record, body.group_id) if body.group_id else None
-    if not group or group.kind != "groups":
+    record = db.get(Record, ident) if ident else None
+    if not record or record.kind != kind:
         fail(422, "invalid_input")
-    return group.id
+    return record.id
+
+
+def student_group(db, body):
+    return linked_record(db, body, "student", "group_id", "groups")
+
+
+def account_instructor(db, body):
+    return linked_record(db, body, "instructor", "instructor_id", "instructors")
 
 
 @router.post("/api/users", status_code=201)
@@ -227,6 +236,7 @@ def create_user(
         name=body.name,
         role=body.role,
         group_id=student_group(db, body),
+        instructor_id=account_instructor(db, body),
         active=True,
         version=1,
         password=hash_password(secrets.token_urlsafe(40)),
@@ -270,8 +280,9 @@ def update_user(
         if count <= 1:
             fail(409, "last_administrator")
     group_id = student_group(db, body)
-    permissions_changed = row.role != body.role or row.active != body.active or row.group_id != group_id
-    row.group_id = group_id
+    instructor_id = account_instructor(db, body)
+    permissions_changed = row.role != body.role or row.active != body.active or row.group_id != group_id or row.instructor_id != instructor_id
+    row.group_id, row.instructor_id = group_id, instructor_id
     row.name, row.role, row.active = body.name, body.role, body.active
     row.version += 1
     if permissions_changed:

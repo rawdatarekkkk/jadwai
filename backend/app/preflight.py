@@ -21,6 +21,9 @@ def inspect_inputs(snapshot):
     for teacher in records.values():
         if not cal.get('weekly_load_policy',{}).get('allow_overtime') and teacher['kind']=='instructors' and teacher.get('max_weekly_hours') is None:
             warnings.append(dict(code='weekly_limit_missing',resource_id=teacher['id'],message='Weekly teaching maximum is not configured; it will not be checked.'))
+    for teacher in records.values():
+        if teacher['kind']=='instructors' and not teacher.get('position') and any(teacher['id'] in a['eligible_instructors'] for a in activities):
+            warnings.append(dict(code='instructor_position_missing',resource_id=teacher['id'],message='Set doctor or TA for this instructor; until then the lecture/tutorial split is not checked.'))
     for room in rooms:
         if not room.get('capacity') or not (room.get('room_types') or room.get('room_type')):
             warnings.append(dict(code='room_setup_missing',resource_id=room['id'],message='Room capacity/type is not configured; this room is excluded from generation.'))
@@ -31,6 +34,9 @@ def inspect_inputs(snapshot):
         ident=activity['id'];duration=activity['duration']; groups=activity['group_ids']
         if any(records.get(g,{}).get('kind')!='groups' for g in groups) or any(records.get(t,{}).get('kind')!='instructors' for t in activity['eligible_instructors']):
             issue('invalid_reference','An activity references a missing group or instructor.',ident);continue
+        from app.positions import position_conflict
+        wrong=[t for t in activity['eligible_instructors'] if position_conflict(activity['activity_type'],records[t])]
+        if wrong:issue('instructor_position','Lectures need doctors; tutorials and labs need TAs.',ident,resource_id=wrong[0])
         size=sum(records[g]['size'] for g in groups)
         suitable=[r for r in rooms if (r.get('capacity') or 0)>=size and bool(set(r.get('room_types') or [r.get('room_type')]) & {'flexible','lab' if activity['activity_type']=='lab' else 'lecture'}) and set(activity.get('required_equipment',[]))<=set(r.get('equipment',[]))]
         if not suitable:issue('no_suitable_room','No room matches this activity’s capacity, type and equipment.',ident)

@@ -33,6 +33,7 @@ class Login(Strict):
 
 class Instructor(Strict):
     day_off: Literal["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] | None = None
+    position: Literal["doctor", "ta"] | None = None
     max_weekly_hours: float | None = Field(default=None, ge=0, le=168, multiple_of=0.5, allow_inf_nan=False, strict=True)
     name: Name
     code: Code
@@ -119,6 +120,7 @@ SCHEMAS = {"instructors": Instructor, "courses": Course, "rooms": Room, "groups"
 
 class NewUser(Strict):
     group_id: str | None = None
+    instructor_id: str | None = None
     name: Name
     email: Annotated[
         str,
@@ -129,13 +131,14 @@ class NewUser(Strict):
             pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$",
         ),
     ]
-    role: Literal["administrator", "viewer", "student"] = "viewer"
+    role: Literal["administrator", "viewer", "student", "instructor"] = "viewer"
 
 
 class UserUpdate(Strict):
     group_id: str | None = None
+    instructor_id: str | None = None
     name: Name
-    role: Literal["administrator", "viewer", "student"]
+    role: Literal["administrator", "viewer", "student", "instructor"]
     active: bool
 
 

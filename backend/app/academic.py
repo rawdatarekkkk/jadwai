@@ -44,6 +44,7 @@ def validate_record(kind, data, db, record_id=None):
         elif body["duration"] % calendar.period_minutes:
             fail(422, "outside_calendar")
     if kind == "courses":
+        from app.positions import position_conflict
         for key, expected in [
             ("eligible_instructors", "instructors"),
             ("group_ids", "groups"),
@@ -52,4 +53,13 @@ def validate_record(kind, data, db, record_id=None):
                 ref = db.get(Record, ident)
                 if not ref or ref.kind != expected:
                     fail(422, "invalid_reference")
+                if expected == "instructors" and position_conflict(body["activity_type"], ref.data):
+                    fail(422, "instructor_position")
+    if kind == "instructors" and record_id and body.get("position"):
+        # A new position may not contradict teaching eligibility that is already saved.
+        from app.models import CourseCatalog
+        from app.positions import REQUIRED
+        wrong = {t for t, needed in REQUIRED.items() if needed != body["position"]}
+        if any(r.data["activity_type"] in wrong and record_id in r.data["eligible_instructors"] for r in db.scalars(select(Record).where(Record.kind == "courses"))) or any(record_id in c.eligibility.get(t, []) for c in db.scalars(select(CourseCatalog)) for t in wrong):
+            fail(409, "position_in_use")
     return body

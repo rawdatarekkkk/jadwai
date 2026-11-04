@@ -35,10 +35,16 @@ def convenience_components(snapshot, assignments):
     for row in assignments:
         covered = slots_in(snapshot['calendar'], row['start_minute'], row['end_minute'])
         edge += bool(covered) and (covered[0] == 0 or covered[-1] == count - 1)
+    from app.objective import LONG_DAY_MINUTES
+    slots = day_slots(snapshot['calendar'])
+    per_day = Counter((row['activity_id'], row['day']) for row in assignments)
     return {
+        'repeat_same_day': sum(n - 1 for n in per_day.values()),
+        'long_day_minutes': sum(max(0, sum(slots[i][1] - slots[i][0] for i in s) - LONG_DAY_MINUTES) for (k, _, _), s in used.items() if k == 'group'),
         'student_gaps': sum(gaps(s) for (k, _, _), s in used.items() if k == 'group'),
         'instructor_gaps': sum(gaps(s) for (k, _, _), s in used.items() if k == 'instructor'),
         'instructor_days': sum(1 for (k, _, _), s in used.items() if k == 'instructor' and s),
+        'student_days': sum(1 for (k, _, _), s in used.items() if k == 'group' and s),
         'group_peak': sum(peaks.values()),
         'edge_sessions': edge,
     }

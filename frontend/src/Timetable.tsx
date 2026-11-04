@@ -38,7 +38,7 @@ const copy = {
     current: "Matches your current inputs",
     checks: "Supported checks passed",
     limits:
-      "Draft only. Configured weekly instructor limits are checked. Approved assignment locks are enforced. Missing weekly limits are not covered. Daily policy coverage is shown for each saved draft. Publication remains unavailable.",
+      "Every saved draft passes independent checks of all approved rules, locks and doctor/TA assignments. Publish a draft to show it to instructors and students; publishing re-checks it against the current inputs.",
     preference: "Sessions outside preferred periods",
     preferenceHelp:
       "For instructors with approved preferred periods, a session counts once when it fits entirely within none of those periods. Lower is better.",
@@ -108,7 +108,7 @@ const copy = {
     current: "يطابق المدخلات الحالية",
     checks: "اجتاز الفحوص المدعومة",
     limits:
-      "مسودة فقط. تُفحص الحدود الأسبوعية المحددة للمدرسين. تُطبق التثبيتات المعتمدة. الحدود الأسبوعية غير المحددة غير مشمولة. تُعرض تغطية السياسة اليومية لكل مسودة. النشر غير متاح حالياً.",
+      "كل مسودة محفوظة تجتاز فحصاً مستقلاً لكل القواعد المعتمدة والتثبيتات وتوزيع الدكاترة والمعيدين. انشر المسودة ليراها المدرسون والطلاب؛ يعيد النشر فحصها مقابل المدخلات الحالية.",
     preference: "حصص خارج الفترات المفضلة",
     preferenceHelp:
       "للمدرسين الذين لديهم فترات مفضلة معتمدة، تُحسب الحصة مرة إذا لم تقع بالكامل داخل أي منها. الأقل أفضل.",

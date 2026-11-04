@@ -5,6 +5,7 @@ and convenience.py; it never reads these variables.
 """
 from collections import defaultdict
 from app.calendar_slots import day_slots, slots_in
+from app.objective import LONG_DAY_MINUTES
 
 
 def add_realism(model, calendar, choices, policy, convenience=False):
@@ -102,10 +103,26 @@ def add_realism(model, calendar, choices, policy, convenience=False):
                 load = model.new_int_var(0, len(slots), f'load_{ident}_{di}')
                 model.add(load == sum(used))
                 loads.append(load)
+                day_minutes = sum(e - s for s, e in slots)
+                excess = model.new_int_var(0, day_minutes, f'long_{ident}_{di}')
+                model.add_max_equality(excess, [sum(flag * (slots[si][1] - slots[si][0]) for si, flag in enumerate(used)) - LONG_DAY_MINUTES, 0])
+                components['long_day_minutes'].append(excess)
+                attends = model.new_bool_var(f'attends_{ident}_{di}')
+                model.add_max_equality(attends, used)
+                components['student_days'].append(attends)
         if loads:
             peak = model.new_int_var(0, len(slots), f'peak_{ident}')
             model.add_max_equality(peak, loads)
             components['group_peak'].append(peak)
     components['edge_sessions'] = edge
+    if convenience:
+        # Two sessions of one activity on the same day: count every extra one.
+        for flags_by_occurrence in activity_days.values():
+            if len(flags_by_occurrence) < 2:
+                continue
+            for di in days:
+                any_today = model.new_bool_var('')
+                model.add_max_equality(any_today, [flags[di] for flags in flags_by_occurrence])
+                components['repeat_same_day'].append(sum(flags[di] for flags in flags_by_occurrence) - any_today)
     components['idle_periods'] = components['student_gaps'] + components['instructor_gaps']
     return dict(components)

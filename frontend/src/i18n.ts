@@ -124,7 +124,7 @@ export const words = {
     jaiGreeting: "Hi, I’m JAI. Let’s plan a clearer week.",
     jaiIntro:
       "I’m your guide to JadwAI. Start with your teaching data, make your requirements clear, and keep every approval in your hands.",
-    jaiStatus: "Workspace guide now · AI extraction coming soon",
+    jaiStatus: "Workspace guide · type constraints in plain text",
     jaiData: "Set up my semester",
     jaiDataHelp: "Organize instructors, rooms, groups, and activities.",
     jaiRule: "Create a clear requirement",
@@ -235,7 +235,7 @@ export const words = {
     constraintsText:
       "Start with clear, structured requirements. Only rules you explicitly approve will be eligible for future scheduling.",
     manual: "Manual entry",
-    ai: "JAI-assisted entry · coming soon",
+    ai: "Or type a constraint in plain text below",
     approved: "Approved",
     draft: "Needs review",
     mandatory: "Mandatory",
@@ -471,7 +471,7 @@ export const words = {
     jaiIntro:
       "أنا دليلك في JadwAI. ابدأ ببيانات التدريس، ووضّح متطلباتك، واحتفظ دائماً بقرار الاعتماد.",
     jaiStatus:
-      "دليل مساحة العمل الآن · استخراج القواعد بالذكاء الاصطناعي قريباً",
+      "دليل مساحة العمل · اكتب القيود بلغة عادية",
     jaiData: "جهّز فصلي الدراسي",
     jaiDataHelp: "نظّم المدرسين والقاعات والمجموعات والأنشطة.",
     jaiRule: "أنشئ متطلباً واضحاً",
@@ -578,7 +578,7 @@ export const words = {
     constraintsText:
       "ابدأ بمتطلبات واضحة ومحددة. القواعد التي تعتمدها صراحةً فقط ستصبح مؤهلة للجدولة لاحقاً.",
     manual: "إدخال يدوي",
-    ai: "إدخال بمساعدة JAI · قريباً",
+    ai: "أو اكتب قيداً بلغة عادية بالأسفل",
     approved: "معتمد",
     draft: "بانتظار المراجعة",
     mandatory: "إلزامي",

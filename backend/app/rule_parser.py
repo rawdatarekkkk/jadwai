@@ -50,6 +50,11 @@ def mentions(text, phrase):
     return re.search(r'(?<![\w])' + re.escape(phrase) + r'(?![\w])', text) is not None
 
 
+# Words that appear in many record names and never identify one on their own.
+GENERIC = {'year', 'group', 'level', 'section', 'room', 'hall', 'lab', 'laboratory', 'lecture', 'tutorial', 'course', 'class',
+           'the', 'and', 'for', 'computer', 'science', 'engineering', 'السنة', 'سنة', 'مجموعة', 'قاعة', 'معمل', 'مدرج', 'محاضرة', 'سكشن'}
+
+
 def find_records(text, records, kind):
     """Records of `kind` named in the text by code, full name, or a distinctive part of the name."""
     found = {}
@@ -68,7 +73,7 @@ def find_records(text, records, kind):
         if r['kind'] != kind:
             continue
         for part in plain(r.get('data', r)['name']).split():
-            if len(part) >= 3 and mentions(text, part):
+            if len(part) >= 3 and part not in GENERIC and mentions(text, part):
                 partial.setdefault(part, []).append(r)
     ambiguous = [part for part, rows in partial.items() if len({x['id'] for x in rows}) > 1]
     unique = {rows[0]['id']: rows[0] for part, rows in partial.items() if len({x['id'] for x in rows}) == 1}

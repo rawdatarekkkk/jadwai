@@ -52,6 +52,11 @@ def test_year_targets_every_group_of_that_year():
     assert {(r['day'], r['start_hour'], r['end_hour']) for r in found} == {('Thursday', 14, 18)}
 
 
+def test_generic_words_in_group_names_are_not_ambiguous():
+    output, found = rules('No classes for year 2 on Monday after 3pm')
+    assert output['decision'] == 'ready' and [r['group_id'] for r in found] == ['g3']
+
+
 def test_ambiguous_first_name_asks_for_clarification():
     output = parse('Ahmed cannot teach on Sunday', CONTEXT)
     assert output['decision'] == 'clarify' and output['clarifications'] == ['ambiguous_name:ahmed']

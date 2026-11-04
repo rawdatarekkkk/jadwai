@@ -3714,3 +3714,8 @@ legend small {
 .proposal-page fieldset {border:1px solid #dce3d8;border-radius:12px;padding:16px;}
 .proposal-page input[type=checkbox] {width:auto;}
 .proposal-page label:has(input[type=checkbox]) {display:flex;align-items:flex-start;gap:10px;}
+
+.typed-constraint textarea { width: 100%; box-sizing: border-box; font: inherit; }
+.scenario-actions { grid-column: 1 / -1; display: grid; gap: 12px; margin-top: 12px; }
+.choice-list { display: grid; gap: 6px; max-height: 220px; overflow: auto; }
+.exam-halls { font-size: .85em; opacity: .85; }

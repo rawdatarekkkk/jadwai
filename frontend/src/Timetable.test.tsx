@@ -126,7 +126,7 @@ test("generates with the current version and presents the actual assignments", a
   expect((post?.[1]?.headers as Record<string, string>)["If-Match"]).toBe(
     '"4"',
   );
-  expect(screen.getByText(/Publication remains unavailable/)).toBeTruthy();
+  expect(screen.getByText(/publishing re-checks it against the current inputs/)).toBeTruthy();
 });
 
 test("shows frozen names and stale warning after data changes", async () => {

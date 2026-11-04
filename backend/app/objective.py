@@ -6,13 +6,18 @@ convenience-v1 components (all non-negative integers):
   student_gaps     empty slots between a group's first and last session of a day
   instructor_gaps  the same for each instructor
   instructor_days  instructor-days with any teaching (fewer trips to campus)
+  student_days     group-days with any class (fewer trips for students)
   edge_sessions    sessions in the first or last slot of the day
   group_peak       per group, the busiest day's occupied slots (balances the week)
+  repeat_same_day  extra sessions of one activity on the same day (spreads lectures)
+  long_day_minutes a group's teaching minutes beyond LONG_DAY_MINUTES in a day
 """
 from app.calendar_slots import day_slots
 
-CONVENIENCE_WEIGHTS = {'preferences': 20, 'student_gaps': 10, 'instructor_gaps': 5,
-                       'instructor_days': 3, 'group_peak': 2, 'edge_sessions': 1}
+CONVENIENCE_WEIGHTS = {'preferences': 20, 'repeat_same_day': 15, 'student_gaps': 10, 'instructor_gaps': 5,
+                       'instructor_days': 3, 'student_days': 4, 'group_peak': 2, 'edge_sessions': 1, 'long_day_minutes': 1}
+# A group's teaching beyond this many minutes in one day counts against convenience.
+LONG_DAY_MINUTES = 270
 PROFILES = ('convenience-v1', 'preferences-first-v1', 'weighted-v1')
 
 

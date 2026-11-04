@@ -14,6 +14,23 @@ A fresh implementation of the AI-assisted university timetabling project, starte
 
 The local Phase 2 foundation is implemented and verified, and the Phase 3 academic data foundation includes relational tables, configurable semester settings, and atomic CSV imports. This is not completion of the full specification. A bounded CP-SAT draft generator and separate validation of supported constraints are implemented. Complete mandatory-rule coverage, AI extraction, scenario comparison, publication and research evaluation remain unfinished. The overview calendar is a labelled illustration; all counts and records come from PostgreSQL.
 
+## Realistic timetables, typed constraints and publishing — 4 November 2026
+
+The owner's target: the administrator builds a teaching or exam timetable that satisfies every rule and is as convenient as possible; constraints can be typed in plain text; instructors and students see only their own published schedule.
+
+- **Doctors and TAs.** Each instructor is a Doctor (teaches lectures) or a TA (teaches tutorials and labs). Course setup, activities, input checks, the solver and the validator all enforce this strictly. Instructors saved before this change stay unclassified (a warning) until edited.
+- **Special rooms.** Room *features* (for example `Data Science Lab`, `Workshop`, `GPU`) are matched against an activity's *required features*; only rooms with every required feature are used. The rule *Activity must use these rooms* pins an activity to specific rooms.
+- **Realistic sessions.** A session may span consecutive named periods whose teaching minutes add up to its duration (a 3-hour lab over two 90-minute periods); breaks of up to 30 minutes stay inside the session. Rules accept half-hour times and *Every day*.
+- **New rule types:** activity must use these rooms; activities on different days; instructor or student-group daily hour limit; instructor teaching days per week.
+- **Most convenient timetable.** The default scoring profile `convenience-v1` minimises, in weighted order: missed instructor preferences, two sessions of one activity on the same day, student gaps, instructor gaps, student and instructor days on campus, the busiest day per group, teaching beyond 4.5 hours in a day, and sessions in the first or last period. Every term is recounted independently by the worker before a draft is kept. Search starts from a quick valid timetable (warm start); defaults are 30 seconds and 4 CPU workers (up to 300 s and 8). Fine 30-minute grids need more time than named periods.
+- **Type a constraint.** Constraints → *Type a constraint* accepts English, Arabic or mixed text, for example “Dr. Ahmed Hassan can’t teach on Sunday before 10:30” or “No classes for year 1 on Thursday after 2pm”. A built-in parser interprets it offline; ambiguous names or missing details become clarification questions. When `JADWAI_AI_ENABLED=true` and `OPENAI_API_KEY` are set, *Ask GPT* handles what the parser cannot. Every interpretation becomes draft rules that still need approval. Limitation: the parser cannot match an Arabic-script name to a record stored in Latin letters (use the name as stored, or GPT).
+- **Scenarios.** Drafts can be named, compared (moved sessions and convenience metrics side by side), and edited by moving one session; an edit is saved as a new draft only if the independent validator passes.
+- **Publishing.** *Publish* re-validates a draft against the current approved inputs and refuses stale drafts. Exactly one teaching timetable and one exam timetable can be published.
+- **Instructor and student portals.** Accounts with the *Instructor* role are linked to an instructor; students to a group. They see only the published timetable: their own sessions, their exams (students) or invigilation duties (TAs), and can download them as CSV.
+- **Exams.** Each exam gets one or more rooms marked *Exam hall* whose capacity covers its students (group sizes, or *Expected students* on the course), and a free TA invigilator per hall (day off and approved unavailability respected). The planner avoids exams for one cohort on consecutive days. The list of shared core programmes is editable (`/api/exam-schedules/cohort-rules`).
+
+After updating, apply migrations 0027–0029 with `bash scripts/setup.sh` (it also re-provisions database roles), then generate new drafts.
+
 ## Run
 
 Requirements: Python 3.14, Node.js 22+, Docker with Compose. The first setup downloads dependencies.
@@ -44,7 +61,7 @@ Integration tests use disposable schemas in JadwAI's PostgreSQL database; they n
 - `backend/app`: database models, API, validation schemas, local authentication, synthetic seed.
 - `backend/migrations`: frozen, versioned schema migrations.
 - `frontend/src`: UI, API client, translation catalog, and visual design.
-- `worker`: heartbeat skeleton, deliberately no scheduling behavior yet.
+- `worker`: background schedule generation and session maintenance.
 
 The new project is built independently. Claude's repository and the existing specifications have not been edited or imported as application code.
 

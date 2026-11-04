@@ -567,3 +567,15 @@ These steps are priorities, not new user approvals for paid services, deployment
 Phase 4 baseline close-out (25 October): see PHASE4_ACCEPTANCE.md for the supported scope and executable acceptance evidence. Partial FR headings above continue to disclose broader SRS extensions; closing this baseline does not mark them complete.
 
 25 October Phase 5 initial release: corpus `0.1.0-draft`, 96 development/32 reserved examples, 18 evaluator tests pass. No extraction model was selected or called; oracle fixture scores are software tests only. Research thresholds, human review and adjudication remain unfinished.
+
+4 November 2026 realistic-timetable milestone (branch `feature/realistic-timetables`):
+- [x] Doctor/TA positions enforced in course setup, activities, input checks, solver and validator
+- [x] Instructor accounts; instructor and student portals show only published schedules; personal CSV export
+- [x] Room features / special rooms; activity-room rule
+- [x] Multi-period sessions; half-hour and every-day rules; five limit rule types
+- [x] Convenience objective with independent recount; warm-started search; 600-session limit
+- [x] Built-in English/Arabic constraint parser feeding the proposal review flow; GPT instructions extended
+- [x] Exam halls with splitting, TA invigilators, back-to-back avoidance, configurable cohort lists
+- [x] Named scenarios, validated manual edits, comparison, publish/unpublish (teaching and exams)
+- [ ] Real institutional data (room capacities/types, doctor/TA positions, course groups) — owner
+- [ ] Paid GPT pilot and human annotations — owner

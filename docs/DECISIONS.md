@@ -103,3 +103,8 @@ The owner specified 12 teaching hours/week as the regular instructor load, with 
 
 ## 1 November 2026 — Phase 5 annotation reviewer
 The user specified: “the admin will review”. Use the single-administrator human-review protocol in `evaluation/protocols/admin-review-v1.md`. Additional reviewers and adjudication are optional. Report the single-annotator limitation and retain administrator review records; do not claim independent dual annotation, real judgments not yet submitted, or a blind confirmatory set. Current draft and reserved labels remain unchanged.
+
+## 4 November 2026 — realistic, convenient timetables
+The owner set the target: every timetable satisfies all constraints and is as convenient as possible; constraints can be typed as text; doctors teach lectures and TAs tutorials/labs (strict); courses use suitable and special rooms; exams use exam halls; instructors and students see only their own published schedule. Owner choices: typed constraints use a built-in parser plus GPT when configured; large exams may be split across several halls; TAs are assigned as invigilators; the doctor/TA split is strict.
+
+Implementation decisions: convenience is a weighted soft objective (`app/objective.py`), recounted independently by the worker; rule meaning lives in one module (`app/rule_semantics.py`); session placement in `app/calendar_slots.py`. Publication re-validates against current inputs under the exclusive workspace lock and a partial unique index allows one published run per kind. Saved runs remain immutable; manual edits create new validated runs.

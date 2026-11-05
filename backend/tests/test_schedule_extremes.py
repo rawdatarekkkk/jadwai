@@ -123,7 +123,7 @@ def test_real_candidate_limit_is_bounded():
     snap=example();snap['calendar'].update(days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],start_hour=0,end_hour=24)
     base=snap['records'][4];snap['records']=[r for r in snap['records'] if r['kind']!='courses']
     snap['records'] += [dict(base,id=f'a{i}',sessions=10,duration=30) for i in range(16)]
-    snap['records'] += [dict(snap['records'][3],id=f'r{i}') for i in range(4)]
+    snap['records'] += [dict(snap['records'][3],id=f'r{i}') for i in range(30)]
     result=generate(snap)
     assert result['status']=='blocked' and result['reason']=='instance_too_large'
 

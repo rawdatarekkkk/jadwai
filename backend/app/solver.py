@@ -13,7 +13,7 @@ from app.calendar_slots import day_placements
 from app import rule_semantics as rs
 
 MAX_SESSIONS = 600
-MAX_CANDIDATES = 500000
+MAX_CANDIDATES = 3000000
 
 
 def check_rules(snapshot, by_id, cal):
@@ -46,6 +46,33 @@ def check_locks(locks, by_id, cal):
     return True
 
 
+def room_pools(rooms, snapshot, locks, enabled=True):
+    """room id -> sorted ids of rooms it is interchangeable with (pools of 2+ only).
+
+    Rooms are interchangeable when capacity, types and features match and no rule or
+    lock names them; the solver then only counts how many of a pool are busy."""
+    if not enabled:
+        return {}
+    named = {lock.get('room_id') for lock in locks}
+    named |= {r['room_id'] for r in rs.approved(snapshot, 'room_unavailable')}
+    named |= {room for r in rs.approved(snapshot, 'activity_room') for room in rs.param(r, 'room_ids')}
+    classes = defaultdict(list)
+    for r in rooms:
+        if r['id'] not in named:
+            classes[(r.get('capacity'), tuple(sorted(r.get('room_types') or [r.get('room_type') or ''])), tuple(sorted(r.get('equipment') or [])))].append(r['id'])
+    return {ident: sorted(members) for members in classes.values() if len(members) > 1 for ident in members}
+
+
+def assign_pool_rooms(sessions, members):
+    """Give each pooled session a concrete room. Sessions are intervals and at most
+    len(members) overlap at any time, so earliest-start-first assignment always succeeds."""
+    free_at = {room: -1 for room in members}
+    for start, end, row in sorted(sessions, key=lambda x: (x[0], x[1])):
+        room = min((r for r in members if free_at[r] <= start), key=lambda r: (free_at[r], r))
+        free_at[room] = end
+        row['room_id'] = room
+
+
 def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_assignments=None, hints=None):
     config = snapshot.get("provenance", {}).get("solver_config", CONFIG)
     if time_limit is None: time_limit = config["time_limit_seconds"]
@@ -53,7 +80,10 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
     if profile == 'convenience-v1' and fixed_assignments is None and hints is None:
         # The convenience model is much larger. Find a valid timetable with the plain
         # model first and start the convenience search from it.
-        quick = {**snapshot, 'provenance': {**snapshot.get('provenance', {}), 'solver_config': {**config, 'objective_profile': 'preferences-first-v1'}}}
+        # The warm start skips daily policies (their occupancy model is the expensive
+        # part); the main search enforces them, repairing the hint where needed.
+        quick = {**snapshot, 'calendar': {**snapshot['calendar'], 'realism_policy': {}},
+                 'provenance': {**snapshot.get('provenance', {}), 'solver_config': {**config, 'objective_profile': 'preferences-first-v1'}}}
         budget = time_limit * 0.5
         started = __import__('time').monotonic()
         first = generate(quick, cancel, None, budget)
@@ -100,6 +130,7 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
         return {'status':'blocked','reason':'instructor_position','assignments':[]}
     rules_of = lambda *types: rs.approved(snapshot, *types)
     room_limits = {r['activity_id']: set(rs.param(r, 'room_ids')) for r in rules_of('activity_room')}
+    pool_of = room_pools(rooms, snapshot, locks, enabled=fixed_assignments is None)
     resources = defaultdict(list)
     workload_terms = defaultdict(list)
     day_of = {}  # (activity id, occurrence) -> per-day Booleans
@@ -199,6 +230,14 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
                     penalties.append(penalty)
             room_vars = {}
             for room in suitable:
+                pool = pool_of.get(room['id'])
+                if pool:
+                    # Interchangeable rooms: one choice per pool, capacity checked below.
+                    if pool[0] not in room_vars:
+                        selected = model.new_bool_var('pool_'+prefix+'_'+pool[0])
+                        room_vars[pool[0]] = selected
+                        resources[('pool', pool[0])].append(model.new_optional_interval_var(start,length,end,selected,'pool_session_'+prefix+'_'+pool[0]))
+                    continue
                 selected = model.new_bool_var('room_'+prefix+'_'+room['id'])
                 room_vars[room['id']] = selected
                 blocks = [r for r in rules_of('room_unavailable') if r['room_id'] == room['id']]
@@ -224,7 +263,8 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
                 # The instructor choice is shared by every occurrence; hint it once.
                 if occurrence == 0:
                     for ident, var in teachers.items(): model.add_hint(var, int(ident == hint['instructor_id']))
-                for ident, var in room_vars.items(): model.add_hint(var, int(ident == hint['room_id']))
+                hinted = (pool_of.get(hint['room_id']) or [hint['room_id']])[0]
+                for ident, var in room_vars.items(): model.add_hint(var, int(ident == hinted))
     # Test-only differential hook: constrain every decision by equality, never hints.
     # No HTTP endpoint accepts this argument.
     if fixed_assignments is not None:
@@ -241,8 +281,12 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
             model.add(start==absolute)
             for ident,var in teachers.items():model.add(var==int(ident==row['instructor_id']))
             for ident,var in room_vars.items():model.add(var==int(ident==row['room_id']))
-    for intervals in resources.values():
-        if len(intervals)>1:
+    pool_sizes = {pool[0]: len(pool) for pool in pool_of.values()}
+    for key, intervals in resources.items():
+        if key[0] == 'pool':
+            if len(intervals) > pool_sizes[key[1]]:
+                model.add_cumulative(intervals, [1] * len(intervals), pool_sizes[key[1]])
+        elif len(intervals)>1:
             model.add_no_overlap(intervals)
     for record in records:
         if not cal.get("weekly_load_policy", {}).get("allow_overtime") and record["kind"] == "instructors" and record.get("max_weekly_hours") is not None:
@@ -278,11 +322,22 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
         return {'status':'cancelled','assignments':[],'solver_diagnostics':diagnostics}
     if solved:
         assignments = []
+        pooled = defaultdict(list)
         for activity,occurrence,start,teachers,room_vars,ends in choices:
             minute = solver.value(start)
             base = (minute//1440)*1440
-            assignments.append({'activity_id':activity['id'],'occurrence':occurrence,'instructor_id':next(t for t,v in teachers.items() if solver.value(v)),'room_id':next(r for r,v in room_vars.items() if solver.value(v)),'day':days[minute//1440],'start_minute':minute-base,'end_minute':ends[minute]-base})
+            chosen = next(r for r,v in room_vars.items() if solver.value(v))
+            row = {'activity_id':activity['id'],'occurrence':occurrence,'instructor_id':next(t for t,v in teachers.items() if solver.value(v)),'room_id':chosen,'day':days[minute//1440],'start_minute':minute-base,'end_minute':ends[minute]-base}
+            if chosen in pool_sizes:
+                pooled[chosen].append((minute, ends[minute], row))
+            assignments.append(row)
+        for key, sessions in pooled.items():
+            assign_pool_rooms(sessions, next(pool for pool in pool_of.values() if pool[0] == key))
         observed = {name: int(sum(solver.value(v) for v in components.get(name, []))) for name in weights if scored[name]}
+        # Score the returned solution itself: CP-SAT's reported value can sit slightly
+        # above it when presolve leaves slack on objective variables.
+        diagnostics.update(solver_reported_objective=diagnostics['objective_value'],
+                           objective_value=sum(scored[name] * value for name, value in observed.items()))
         return {'status':'completed','solver_diagnostics':{**diagnostics,'objective_components':observed},'assignments':assignments,'preference_penalty':int(sum(solver.value(v) for v in penalties)),'idle_period_penalty':observed.get('idle_periods') if policy.compact_days and profile != 'convenience-v1' else None,'objective_components':observed,'objective_definition':definition,'optimal':status==cp_model.OPTIMAL,'solver_seconds':round(solver.wall_time,3)}
     return {'solver_diagnostics':diagnostics,'status':'infeasible' if status==cp_model.INFEASIBLE else 'unknown' if status==cp_model.UNKNOWN else 'failed','reason':'conflicting_requirements' if status==cp_model.INFEASIBLE else 'search_limit' if status==cp_model.UNKNOWN else 'model_invalid' if status==cp_model.MODEL_INVALID else 'solver_error','assignments':[]}
 

@@ -62,3 +62,39 @@ def test_instructor_account_links_to_instructor(environment):
     created = client.post('/api/users', json={'name': 'T', 'email': 't@example.test', 'role': 'instructor', 'instructor_id': 'teacher'})
     assert created.status_code == 201 and created.json()['user']['instructor_id'] == 'teacher'
     assert client.delete('/api/records/instructors/teacher', headers=version(client)).json()['detail'] == 'record_in_use'
+
+
+def ta_snapshot():
+    snapshot = example()
+    for record in snapshot['records']:
+        if record['id'] in ('t', 'u'):
+            record['position'] = 'ta'
+        if record['id'] == 'a':
+            record['activity_type'] = 'tutorial'
+    return snapshot
+
+
+def test_every_ta_teaches():
+    snapshot = ta_snapshot()
+    # Activity 'b' can only go to t, so u must take 'a' even if t could teach both.
+    result = generate(snapshot)
+    assert result['status'] == 'completed'
+    assert {a['instructor_id'] for a in result['assignments']} == {'t', 'u'}
+    assert validate_schedule(snapshot, result['assignments'])['passed']
+    for row in result['assignments']:
+        row['instructor_id'] = 't'
+    report = validate_schedule(snapshot, result['assignments'])
+    assert 'ta_teaching' in report['errors']
+    assert any('no teaching' in v['message'] for v in report['violations'])
+
+
+def test_ta_who_cannot_teach_is_named_before_generation():
+    snapshot = ta_snapshot()
+    snapshot['records'].append({'id': 'idle', 'kind': 'instructors', 'name': 'Idle TA', 'position': 'ta'})
+    blockers = inspect_inputs(snapshot)['blockers']
+    assert [b['resource_id'] for b in blockers if b['code'] == 'ta_without_teaching'] == ['idle']
+    assert generate(snapshot)['reason'] == 'ta_without_teaching'
+    # Eligible, but three TAs cannot share two activities.
+    next(r for r in snapshot['records'] if r['id'] == 'a')['eligible_instructors'].append('idle')
+    next(r for r in snapshot['records'] if r['id'] == 'b')['eligible_instructors'] = ['t', 'u', 'idle']
+    assert any(b['code'] == 'ta_without_teaching' for b in inspect_inputs(snapshot)['blockers'])

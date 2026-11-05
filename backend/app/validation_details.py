@@ -42,6 +42,8 @@ def details(snapshot, rows, report):
         for typ,field,ident in [('activity_allowed','activity_id',activity['id'])]+[('group_allowed','group_id',g) for g in groups]:
             windows=[r for r in rules if r['type']==typ and r.get(field)==ident]
             if not rs.within_windows(windows,day,start,end):add('approved_allowed_windows',[a],[ident],[r.get('id','legacy-rule') for r in windows])
+    for r in records.values():
+        if r['kind']=='instructors' and r.get('position')=='ta' and not any(a['instructor_id']==r['id'] for a in rows):add('ta_teaching',[],[r['id']],message=f"{r.get('name','A TA')} has no teaching.")
     for w in report.get('workload') or []:
         if w['exceeded']:add('weekly_workload',[a for a in rows if a['instructor_id']==w['instructor_id']],[w['instructor_id']])
     realism=report.get('realism') or {};policy=realism.get('policy',{})
@@ -68,6 +70,7 @@ def details(snapshot, rows, report):
         if check=='complete_assignment':applicable=sum(a['sessions'] for a in activities);basis='required occurrences'
         elif check=='instructor_day_off':applicable=sum(bool(r.get('day_off')) for r in records.values() if r['kind']=='instructors');basis='instructors with a configured day off'
         elif check=='instructor_position':applicable=sum(bool(records.get(a['instructor_id'],{}).get('position')) for a in rows);basis='sessions taught by an instructor classified as doctor or TA'
+        elif check=='ta_teaching':applicable=sum(r['kind']=='instructors' and r.get('position')=='ta' for r in records.values());basis='TAs, each with at least one session'
         elif check=='resource_conflicts':applicable=len(rows)*(len(rows)-1)//2;basis='assignment pairs; exact room/instructor/group IDs, half-open time intervals'
         elif check=='configured_weekly_workload':applicable=sum(w['configured'] for w in report.get('workload') or []);basis='instructors with 12-hour standard load and extra-time accounting' if cal.get('weekly_load_policy',{}).get('allow_overtime') else 'instructors with configured weekly maxima'
         elif check=='approved_assignment_locks':applicable=len(report.get('assignment_locks') or []);basis='approved locks'

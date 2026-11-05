@@ -687,6 +687,7 @@ export const words = {
 };
 export type Word = keyof typeof words.en;
 export const errors: Record<string, [string, string]> = {
+  ta_without_teaching: ["Every TA must teach. Add the TA to a course's tutorials or labs, then try again.", "يجب أن يدرّس كل معيد. أضف المعيد إلى سكاشن أو معامل مقرر ثم حاول مجددًا."],
   instructor_position: ["Lectures need doctors; tutorials and labs need TAs.", "المحاضرات للدكاترة؛ السكاشن والمعامل للمعيدين."],
   position_in_use: ["This instructor is already eligible for activities that need the other position.", "هذا المدرس مؤهل بالفعل لأنشطة تحتاج الوظيفة الأخرى."],
   invalid_parameters: ["Fill in the values this rule type needs.", "أدخل القيم التي يحتاجها هذا النوع من القواعد."],

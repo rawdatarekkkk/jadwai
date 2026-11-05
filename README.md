@@ -18,7 +18,7 @@ The local Phase 2 foundation is implemented and verified, and the Phase 3 academ
 
 The owner's target: the administrator builds a teaching or exam timetable that satisfies every rule and is as convenient as possible; constraints can be typed in plain text; instructors and students see only their own published schedule.
 
-- **Doctors and TAs.** Each instructor is a Doctor (teaches lectures) or a TA (teaches tutorials and labs). Course setup, activities, input checks, the solver and the validator all enforce this strictly. Instructors saved before this change stay unclassified (a warning) until edited.
+- **Doctors and TAs.** Each instructor is a Doctor (teaches lectures) or a TA (teaches tutorials and labs). Course setup, activities, input checks, the solver and the validator all enforce this strictly. Instructors saved before this change stay unclassified (a warning) until edited. Every TA must teach at least one session: the solver and validator enforce it, and Check inputs names any TA who cannot be given one.
 - **Special rooms.** Room *features* (for example `Data Science Lab`, `Workshop`, `GPU`) are matched against an activity's *required features*; only rooms with every required feature are used. The rule *Activity must use these rooms* pins an activity to specific rooms.
 - **Realistic sessions.** A session may span consecutive named periods whose teaching minutes add up to its duration (a 3-hour lab over two 90-minute periods); breaks of up to 30 minutes stay inside the session. Rules accept half-hour times and *Every day*.
 - **New rule types:** activity must use these rooms; activities on different days; instructor or student-group daily hour limit; instructor teaching days per week.

@@ -125,9 +125,12 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
             hours = record["max_weekly_hours"]
             if type(hours) not in (int, float) or not 0 <= hours <= 168 or hours * 2 != int(hours * 2):
                 return {"status":"blocked", "reason":"invalid_workload_limit", "assignments":[]}
-    from app.positions import position_conflict
+    from app.positions import position_conflict, tas_without_teaching
     if any(position_conflict(a['activity_type'], by_id.get(t)) for a in activities for t in a['eligible_instructors']):
         return {'status':'blocked','reason':'instructor_position','assignments':[]}
+    tas = [r for r in records if r['kind'] == 'instructors' and r.get('position') == 'ta']
+    if tas_without_teaching(tas, activities):
+        return {'status':'blocked','reason':'ta_without_teaching','assignments':[]}
     rules_of = lambda *types: rs.approved(snapshot, *types)
     room_limits = {r['activity_id']: set(rs.param(r, 'room_ids')) for r in rules_of('activity_room')}
     pool_of = room_pools(rooms, snapshot, locks, enabled=fixed_assignments is None)
@@ -291,6 +294,9 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
     for record in records:
         if not cal.get("weekly_load_policy", {}).get("allow_overtime") and record["kind"] == "instructors" and record.get("max_weekly_hours") is not None:
             model.add(sum(workload_terms[record["id"]]) <= int(record["max_weekly_hours"] * 60))
+    # Every TA teaches: each must be selected for at least one activity.
+    for ta in tas:
+        model.add(sum(workload_terms[ta['id']]) >= 1)
     add_limit_rules(model, snapshot, choices, day_of, len(days))
     components = {'preferences': penalties}
     if active_policy or profile == 'convenience-v1':

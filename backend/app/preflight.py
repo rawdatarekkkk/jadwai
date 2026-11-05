@@ -69,6 +69,10 @@ def inspect_inputs(snapshot):
             placements[(ident,occurrence)]=possible
             if selected and not possible:issue('lock_contradiction','An approved lock cannot fit the current calendar, resources or approved rules.',ident,[lock['id'] for lock in selected]+related)
         for g in groups:load[g]+=duration*activity['sessions']
+    from app.positions import tas_without_teaching
+    valid=[a for a in activities if all(records.get(t,{}).get('kind')=='instructors' for t in a['eligible_instructors'])]
+    for ta in tas_without_teaching([r for r in records.values() if r['kind']=='instructors'],valid):
+        issue('ta_without_teaching',f"{records[ta]['name']} cannot be given any session. Every TA must teach: add this TA to a course's tutorials or labs, or add more activities to the pool.",resource_id=ta)
     day_minutes=sum(p['end']-p['start'] for p in cal.get('teaching_periods',[])) or (cal['end_hour']-cal['start_hour'])*60
     for g,minutes in load.items():
         cap=policy.get('student_daily_hours');available=len(cal['days'])*min(day_minutes,day_minutes if cap is None else cap*60)

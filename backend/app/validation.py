@@ -3,7 +3,7 @@ from collections import Counter, defaultdict
 from app import rule_semantics as rs
 from app.calendar_slots import placement_for
 
-CHECKS = ["complete_assignment", "calendar", "instructor_eligibility", "instructor_position", "instructor_day_off", "instructor_continuity", "room_suitability", "resource_conflicts", "approved_unavailability", "approved_room_unavailability", "approved_group_unavailability", "configured_weekly_workload", "approved_assignment_locks", "approved_allowed_windows", "approved_room_rules", "approved_daily_limits", "approved_teaching_days", "approved_separate_days"]
+CHECKS = ["complete_assignment", "calendar", "instructor_eligibility", "instructor_position", "ta_teaching", "instructor_day_off", "instructor_continuity", "room_suitability", "resource_conflicts", "approved_unavailability", "approved_room_unavailability", "approved_group_unavailability", "configured_weekly_workload", "approved_assignment_locks", "approved_allowed_windows", "approved_room_rules", "approved_daily_limits", "approved_teaching_days", "approved_separate_days"]
 
 
 def validate_schedule(snapshot, assignments):
@@ -80,6 +80,9 @@ def validate_schedule(snapshot, assignments):
             if rule["type"] == "unavailable" and rule["instructor_id"] == teacher:
                 errors.add("approved_unavailability")
     errors |= limit_rule_errors(snapshot, activities, assignments)
+    teaching = {a["instructor_id"] for a in assignments}
+    if any(r["kind"] == "instructors" and r.get("position") == "ta" and r["id"] not in teaching for r in records.values()):
+        errors.add("ta_teaching")
     # Independently sum assigned teaching minutes (breaks inside a session excluded).
     workload = []
     for teacher in records.values():

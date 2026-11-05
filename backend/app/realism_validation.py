@@ -35,11 +35,16 @@ def convenience_components(snapshot, assignments):
     for row in assignments:
         covered = slots_in(snapshot['calendar'], row['start_minute'], row['end_minute'])
         edge += bool(covered) and (covered[0] == 0 or covered[-1] == count - 1)
-    from app.objective import LONG_DAY_MINUTES
+    from app.objective import LONG_DAY_MINUTES, WORKLOAD_STEPS, WORKLOAD_UNIT
+    records = {r['id']: r for r in snapshot['records']}
+    taught = Counter()
+    for row in assignments:
+        taught[row['instructor_id']] += records[row['activity_id']]['duration']
     slots = day_slots(snapshot['calendar'])
     per_day = Counter((row['activity_id'], row['day']) for row in assignments)
     return {
         'repeat_same_day': sum(n - 1 for n in per_day.values()),
+        'workload_balance': sum(cost * (max(0, minutes - threshold) // WORKLOAD_UNIT) for minutes in taught.values() for threshold, cost in WORKLOAD_STEPS),
         'long_day_minutes': sum(max(0, sum(slots[i][1] - slots[i][0] for i in s) - LONG_DAY_MINUTES) for (k, _, _), s in used.items() if k == 'group'),
         'student_gaps': sum(gaps(s) for (k, _, _), s in used.items() if k == 'group'),
         'instructor_gaps': sum(gaps(s) for (k, _, _), s in used.items() if k == 'instructor'),

@@ -11,13 +11,20 @@ convenience-v1 components (all non-negative integers):
   group_peak       per group, the busiest day's occupied slots (balances the week)
   repeat_same_day  extra sessions of one activity on the same day (spreads lectures)
   long_day_minutes a group's teaching minutes beyond LONG_DAY_MINUTES in a day
+  workload_balance stepped cost of each instructor's weekly load (see WORKLOAD_STEPS)
 """
 from app.calendar_slots import day_slots
 
 CONVENIENCE_WEIGHTS = {'preferences': 20, 'repeat_same_day': 15, 'student_gaps': 10, 'instructor_gaps': 5,
-                       'instructor_days': 3, 'student_days': 4, 'group_peak': 2, 'edge_sessions': 1, 'long_day_minutes': 1}
+                       'instructor_days': 3, 'student_days': 4, 'group_peak': 2, 'edge_sessions': 1, 'long_day_minutes': 1,
+                       'workload_balance': 1}
 # A group's teaching beyond this many minutes in one day counts against convenience.
 LONG_DAY_MINUTES = 270
+# Weekly teaching load: (minutes threshold, cost per half hour above it). The rising steps
+# make moving a session from a busy instructor to a quiet one always worthwhile, and the
+# last step is the 12-hour standard load, so overtime is a last resort.
+WORKLOAD_STEPS = ((180, 1), (360, 3), (720, 20))
+WORKLOAD_UNIT = 30
 PROFILES = ('convenience-v1', 'preferences-first-v1', 'weighted-v1')
 
 

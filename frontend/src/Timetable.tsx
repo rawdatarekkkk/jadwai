@@ -1,7 +1,7 @@
 import { createPortal, flushSync } from "react-dom";
 import { timetableFilename } from "./exportNames";
 import { LockSessionButton } from "./AssignmentLocks";
-import { RunSettings, PreparationReport, defaultSettings } from "./RunChecks";
+import { RunSettings, PreparationReport, settingsFor } from "./RunChecks";
 import { SchedulePrint } from "./SchedulePrint";
 import { ScenarioActions } from "./ScenarioActions";
 import { useEffect, useRef, useState } from "react";
@@ -214,7 +214,7 @@ export function Timetable({
   };
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [settings,setSettings] = useState(defaultSettings);
+  const [settings,setSettings] = useState(() => settingsFor(ws));
   const [historical,setHistorical] = useState(false);
   const [error, setError] = useState("");
   const [errorKind, setErrorKind] = useState("");

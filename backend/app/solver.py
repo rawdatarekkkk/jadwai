@@ -296,6 +296,8 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
     if active_policy or profile == 'convenience-v1':
         from app.realism_model import add_realism
         components.update(add_realism(model, cal, choices, policy.model_dump(), convenience=profile == 'convenience-v1'))
+    if profile == 'convenience-v1':
+        components['workload_balance'] = workload_balance(model, workload_terms)
     from app.objective import weights as profile_weights, effective
     weights, scored = profile_weights(snapshot, config), effective(snapshot, config)
     model.minimize(sum(weight * sum(components.get(name, [])) for name, weight in scored.items()))
@@ -340,6 +342,22 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
                            objective_value=sum(scored[name] * value for name, value in observed.items()))
         return {'status':'completed','solver_diagnostics':{**diagnostics,'objective_components':observed},'assignments':assignments,'preference_penalty':int(sum(solver.value(v) for v in penalties)),'idle_period_penalty':observed.get('idle_periods') if policy.compact_days and profile != 'convenience-v1' else None,'objective_components':observed,'objective_definition':definition,'optimal':status==cp_model.OPTIMAL,'solver_seconds':round(solver.wall_time,3)}
     return {'solver_diagnostics':diagnostics,'status':'infeasible' if status==cp_model.INFEASIBLE else 'unknown' if status==cp_model.UNKNOWN else 'failed','reason':'conflicting_requirements' if status==cp_model.INFEASIBLE else 'search_limit' if status==cp_model.UNKNOWN else 'model_invalid' if status==cp_model.MODEL_INVALID else 'solver_error','assignments':[]}
+
+
+def workload_balance(model, workload_terms):
+    """Stepped cost of each instructor's weekly teaching minutes (see objective.py)."""
+    from app.objective import WORKLOAD_STEPS, WORKLOAD_UNIT
+    costs = []
+    for teacher, terms in workload_terms.items():
+        load = model.new_int_var(0, 10080 * 7, f'load_{teacher}')
+        model.add(load == sum(terms))
+        for threshold, cost in WORKLOAD_STEPS:
+            above = model.new_int_var(0, 10080 * 7, f'above_{teacher}_{threshold}')
+            model.add_max_equality(above, [load - threshold, 0])
+            units = model.new_int_var(0, 10080 * 7, f'units_{teacher}_{threshold}')
+            model.add_division_equality(units, above, WORKLOAD_UNIT)
+            costs.append(cost * units)
+    return costs
 
 
 def add_limit_rules(model, snapshot, choices, day_of, day_count):

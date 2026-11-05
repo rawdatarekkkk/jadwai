@@ -128,3 +128,19 @@ def test_rules_api_accepts_new_vocabulary(environment):
         assert client.post(f"/api/rules/{r['id']}/approve", headers=version(client)).status_code == 200
     preflight = client.get('/api/schedules/preflight/current').json()
     assert not any(b['code'] == 'unsupported_rule' for b in preflight['blockers'])
+
+
+def test_workload_balance_shares_tutorials_across_eligible_tas():
+    snap = periods_snapshot()
+    snap['calendar']['days'] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday']
+    teachers = [{'id': f'ta{i}', 'kind': 'instructors', 'name': f'TA {i}', 'position': 'ta'} for i in range(2)]
+    groups = [{'id': f'g{i}', 'kind': 'groups', 'size': 20} for i in range(10)]
+    rooms = [{'id': f'x{i}', 'kind': 'rooms', 'capacity': 25, 'room_type': 'lecture', 'equipment': []} for i in range(4)]
+    tutorials = [{'id': f'tut{i}', 'kind': 'courses', 'sessions': 1, 'duration': 90, 'activity_type': 'tutorial', 'eligible_instructors': ['ta0', 'ta1'], 'group_ids': [f'g{i}']} for i in range(10)]
+    snap['records'] = teachers + groups + rooms + tutorials
+    snap['provenance'] = {'solver_config': {**CONFIG, 'objective_profile': 'convenience-v1'}}
+    result = generate(snap, time_limit=10)
+    assert result['status'] == 'completed'
+    assert result['objective_components']['workload_balance'] == convenience_components(snap, result['assignments'])['workload_balance']
+    loads = sorted(sum(a['instructor_id'] == t['id'] for a in result['assignments']) for t in teachers)
+    assert loads[1] - loads[0] <= 2  # without the score one TA would take all ten

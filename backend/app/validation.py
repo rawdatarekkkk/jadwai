@@ -3,7 +3,7 @@ from collections import Counter, defaultdict
 from app import rule_semantics as rs
 from app.calendar_slots import placement_for
 
-CHECKS = ["complete_assignment", "calendar", "instructor_eligibility", "instructor_position", "ta_teaching", "instructor_day_off", "instructor_continuity", "room_suitability", "resource_conflicts", "approved_unavailability", "approved_room_unavailability", "approved_group_unavailability", "configured_weekly_workload", "approved_assignment_locks", "approved_allowed_windows", "approved_room_rules", "approved_daily_limits", "approved_teaching_days", "approved_separate_days"]
+CHECKS = ["complete_assignment", "calendar", "instructor_eligibility", "instructor_position", "ta_teaching", "instructor_day_off", "instructor_continuity", "room_suitability", "resource_conflicts", "approved_unavailability", "approved_room_unavailability", "approved_group_unavailability", "configured_weekly_workload", "approved_assignment_locks", "approved_allowed_windows", "approved_room_rules", "approved_daily_limits", "approved_teaching_days", "approved_separate_days", "advising_student_conflicts"]
 
 
 def validate_schedule(snapshot, assignments):
@@ -33,6 +33,8 @@ def validate_schedule(snapshot, assignments):
         errors.add("complete_assignment")
     teachers = {}
     occupied = []
+    # Students joining an activity from outside its groups need seats too.
+    joining = Counter(a for s in snapshot.get("students", []) for a in s["activity_ids"] if a in activities and s.get("group_id") not in activities[a]["group_ids"])
     for row in assignments:
         activity = activities.get(row.get("activity_id"))
         if not activity:
@@ -54,7 +56,7 @@ def validate_schedule(snapshot, assignments):
             errors.add("calendar")
             continue
         room = records.get(row.get("room_id"), {})
-        size = sum(records.get(g, {}).get("size", 10**9) for g in activity["group_ids"])
+        size = sum(records.get(g, {}).get("size", 10**9) for g in activity["group_ids"]) + joining[activity["id"]]
         required_type = "lab" if activity["activity_type"] == "lab" else "lecture"
         if room.get("kind") != "rooms" or (room.get("capacity") or 0) < size or not set(room.get("room_types") or [room.get("room_type")]) & {required_type, "flexible"} or not set(activity.get("required_equipment", [])) <= set(room.get("equipment", [])):
             errors.add("room_suitability")
@@ -80,6 +82,7 @@ def validate_schedule(snapshot, assignments):
             if rule["type"] == "unavailable" and rule["instructor_id"] == teacher:
                 errors.add("approved_unavailability")
     errors |= limit_rule_errors(snapshot, activities, assignments)
+    errors |= advising_errors(snapshot, activities, assignments)
     teaching = {a["instructor_id"] for a in assignments}
     if any(r["kind"] == "instructors" and r.get("position") == "ta" and r["id"] not in teaching for r in records.values()):
         errors.add("ta_teaching")
@@ -150,6 +153,18 @@ def limit_rule_errors(snapshot, activities, assignments):
         if any(activity_days[x] & activity_days[y] for i, x in enumerate(ids) for y in ids[i + 1:]):
             errors.add("approved_separate_days")
     return errors
+
+
+def advising_errors(snapshot, activities, assignments):
+    """No two sessions of one advising student may overlap."""
+    sessions = defaultdict(list)
+    for a in assignments:
+        sessions[a.get("activity_id")].append((a.get("day"), a.get("start_minute"), a.get("end_minute")))
+    for student in snapshot.get("students", []):
+        mine = sorted(t for ident in student["activity_ids"] if ident in activities for t in sessions[ident])
+        if any(x[0] == y[0] and y[1] < x[2] for x, y in zip(mine, mine[1:])):
+            return {"advising_student_conflicts"}
+    return set()
 
 
 def report(errors, workload=None, realism=None, checked_locks=None):

@@ -32,6 +32,14 @@ def create_exam(body:ExamInput,request:Request,user=Depends(administrator),db=De
     records=db.scalars(select(Record)).all()
     sizes={r.id:r.data['size'] for r in records if r.kind=='groups'}
     courses,missing=course_inputs(db.scalars(select(CourseCatalog).order_by(CourseCatalog.code)).all(),ws.exam_cohort_rules or DEFAULT_COHORT_RULES,sizes)
+    # Advising students sit the exams of their own courses: each is a cohort of their own.
+    from app.advising import student_rows
+    for student in student_rows(db):
+        added={c['course_id'] for c in student['changes'] if c['action']=='add'}
+        for row in courses:
+            if row['id'] in student['course_ids']:
+                row['participants']=sorted(set(row['participants'])|{'student:'+student['code']})
+                if row['id'] in added and row['students']:row['students']+=1
     days=[body.start_date+timedelta(days=i) for i in range((body.end_date-body.start_date).days+1)]
     snapshot={'courses':courses,'missing_cohort_codes':missing,'dates':[d.isoformat() for d in days if not body.exclude_fridays or d.weekday()!=4],'slots':SLOTS,'max_exams_per_cohort_day':body.max_exams_per_cohort_day,'timezone':ws.timezone,'settings':body.model_dump(mode='json'),'time_limit_seconds':body.time_limit_seconds}
     if body.use_halls:

@@ -130,6 +130,7 @@ SCHEMAS = {"instructors": Instructor, "courses": Course, "rooms": Room, "groups"
 
 class NewUser(Strict):
     group_id: str | None = None
+    advising_student_id: str | None = None
     instructor_id: str | None = None
     name: Name
     email: Annotated[
@@ -146,6 +147,7 @@ class NewUser(Strict):
 
 class UserUpdate(Strict):
     group_id: str | None = None
+    advising_student_id: str | None = None
     instructor_id: str | None = None
     name: Name
     role: Literal["administrator", "viewer", "student", "instructor"]

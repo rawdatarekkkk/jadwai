@@ -77,6 +77,12 @@ def inspect_inputs(snapshot):
     for g,minutes in load.items():
         cap=policy.get('student_daily_hours');available=len(cal['days'])*min(day_minutes,day_minutes if cap is None else cap*60)
         if minutes>available:issue('group_weekly_capacity','Required group teaching minutes exceed the week’s teaching capacity.',resource_id=g)
+    by_activity={a['id']:a for a in activities}
+    for student in snapshot.get('students',[]):
+        if not student['activity_ids']:
+            warnings.append(dict(code='advising_student_empty',resource_id=student['id'],message=f"Advising student {student['code']} attends no sessions."))
+        minutes=sum(by_activity[a]['duration']*by_activity[a]['sessions'] for a in student['activity_ids'] if a in by_activity)
+        if minutes>len(cal['days'])*day_minutes:issue('advising_student_capacity',f"Advising student {student['code']} has more teaching than the week can hold.",resource_id=student['id'])
     from app.calendar_slots import end_for
     lock_end=lambda lock,activity:end_for(cal,activity['duration'],lock['start_minute']) or lock['start_minute']+activity['duration']
     fixed=[]

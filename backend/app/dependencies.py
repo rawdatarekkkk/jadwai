@@ -104,6 +104,7 @@ def info(user):
         "role": user.role,
         "group_id": user.group_id,
         "instructor_id": user.instructor_id,
+        "advising_student_id": user.advising_student_id,
         "active": user.active,
         "version": user.version,
     }

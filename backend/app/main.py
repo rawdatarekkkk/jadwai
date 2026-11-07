@@ -291,3 +291,5 @@ app.include_router(scenarios_router)
 
 from app.portal import router as portal_router
 app.include_router(portal_router)
+from app.advising import router as advising_router
+app.include_router(advising_router)

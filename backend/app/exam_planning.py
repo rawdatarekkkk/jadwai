@@ -17,7 +17,12 @@ DEFAULT_COHORT_RULES={'broad_programs':['businessadministration','businessadmini
     'tracks':{'ENGINEERING':['automotivemechatronics','roboticsandautomation','manufacturingengineering','automationandcontrolengineering','electricalpowersystemsengineering']},
     'aliases':{'mechanicalengineeringmanufacturing':'manufacturingengineering'}}
 # Two exams on one day weigh more than exams on consecutive days.
-EXAM_WEIGHTS={'same_day_exams':20,'back_to_back_days':10,'peak_slot':3,'halls_used':1}
+# An advising student over the daily maximum is a last resort, named in the result.
+EXAM_WEIGHTS={'advising_extra_exams':100,'same_day_exams':20,'back_to_back_days':10,'peak_slot':3,'halls_used':1}
+
+
+def advising(cohort):
+    return cohort.startswith('student:')
 
 
 def minutes(text):
@@ -118,11 +123,14 @@ def generate_exam_draft(snapshot):
     for i,c in enumerate(courses):
         for cohort in c['participants']:memberships[cohort].append(i)
     daily=min(per_day,len(SLOTS))
-    crowded=[{'cohort':cohort,'exams':len(ids),'available_days':len(days)} for cohort,ids in memberships.items() if len(ids)>len(days)*daily]
+    # Advising students never sit two exams at once; their daily maximum gives way only
+    # when their courses cannot be spread otherwise (see advising_extra_exams).
+    limit_of=lambda cohort:len(SLOTS) if advising(cohort) else daily
+    crowded=[{'cohort':cohort,'exams':len(ids),'available_days':len(days)} for cohort,ids in memberships.items() if len(ids)>len(days)*limit_of(cohort)]
     if crowded:
-        required_days=max(ceil(len(ids)/daily) for ids in memberships.values())
+        required_days=max(ceil(len(ids)/limit_of(cohort)) for cohort,ids in memberships.items())
         recommendations=[{'action':'extend_period','required_days':required_days,'additional_days':required_days-len(days),'message':f'Use at least {required_days} eligible exam days ({required_days-len(days)} more than currently selected) while keeping the daily maximum at {per_day}.'}]
-        required_daily=max(ceil(len(ids)/len(days)) for ids in memberships.values()) if days else 4
+        required_daily=max(ceil(len(ids)/len(days)) for cohort,ids in memberships.items() if not advising(cohort)) if days else 4
         if per_day<required_daily<=len(SLOTS):recommendations.append({'action':'raise_daily_limit','daily_limit':required_daily,'message':f'Alternatively, raise the daily maximum to at least {required_daily} exams per cohort. Review student workload before changing this policy.'})
         recommendations.append({'action':'review_cohorts','message':'Review the affected courses’ program/semester eligibility for incorrect overlap. Keep genuine shared cohorts together.'})
         return {'status':'infeasible','reason':'not_enough_days','details':crowded,'assignments':[],'recommendations':recommendations,'recommendation_note':'These are capacity requirements, not a guarantee. Generate again after adjusting constraints to verify the complete timetable.'}
@@ -131,7 +139,9 @@ def generate_exam_draft(snapshot):
     # days are still counted once per cohort, as exam_convenience counts them.
     sets=Counter(frozenset(ids) for ids in memberships.values())
     maximal=[ids for ids in sets if not any(ids<other for other in sets)]
-    floors={ids:back_to_back_floor(len(ids),days,daily) for ids in sets}
+    hard={frozenset(ids) for cohort,ids in memberships.items() if not advising(cohort)}
+    hard_maximal=[ids for ids in hard if not any(ids<other for other in hard)]
+    floors={ids:back_to_back_floor(len(ids),days,daily if ids in hard else len(SLOTS)) for ids in sets}
     need=[halls_needed(c['students'],halls) for c in courses] if with_halls else []
     limits={}
     if with_halls:
@@ -147,12 +157,14 @@ def generate_exam_draft(snapshot):
             model.add_exactly_one(x[i,d,s] for d in range(len(days)) for s in range(3))
         for ids in maximal:
             for d in range(len(days)):
-                model.add(sum(x[i,d,s] for i in ids for s in range(3))<=per_day)
                 for s in range(3):model.add_at_most_one(x[i,d,s] for i in ids)
+        for ids in hard_maximal:
+            for d in range(len(days)):
+                model.add(sum(x[i,d,s] for i in ids for s in range(3))<=per_day)
         peak=model.new_int_var(0,len(courses),'peak_slot_exams')
         for d in range(len(days)):
             for s in range(3):model.add(sum(x[i,d,s] for i in range(len(courses)))<=peak)
-        terms={'peak_slot':[(1,peak)],'back_to_back_days':[],'same_day_exams':[],'halls_used':[]}
+        terms={'peak_slot':[(1,peak)],'back_to_back_days':[],'same_day_exams':[],'advising_extra_exams':[],'halls_used':[]}
         # A cohort sitting exams on two consecutive calendar days is inconvenient.
         for n,(ids,count) in enumerate(sets.items()):
             sits=[]
@@ -162,11 +174,16 @@ def generate_exam_draft(snapshot):
             for d in range(len(days)-1):
                 if (date.fromisoformat(days[d+1])-date.fromisoformat(days[d])).days==1:
                     both=model.new_bool_var(f'b2b_{n}_{d}');model.add(both>=sits[d]+sits[d+1]-1);pairs.append(both)
-            if per_day>1:
+            if per_day>1 or ids not in hard:
                 for d in range(len(days)):
-                    extra=model.new_int_var(0,per_day-1,f'extra_{n}_{d}')
-                    model.add(extra>=sum(x[i,d,s] for i in ids for s in range(3))-1)
+                    exams=sum(x[i,d,s] for i in ids for s in range(3))
+                    extra=model.new_int_var(0,len(SLOTS)-1,f'extra_{n}_{d}')
+                    model.add(extra>=exams-1)
                     terms['same_day_exams'].append((count,extra))
+                    if ids not in hard and per_day<len(SLOTS):
+                        over=model.new_int_var(0,len(SLOTS)-per_day,f'over_{n}_{d}')
+                        model.add(over>=exams-per_day)
+                        terms['advising_extra_exams'].append((count,over))
             if floors[ids]:model.add(sum(pairs)>=floors[ids])  # proven bound; helps the search stop early
             terms['back_to_back_days']+=[(count,v) for v in pairs]
         use={}
@@ -256,6 +273,9 @@ def generate_exam_draft(snapshot):
     observed=exam_convenience(snapshot,assignments)
     observed['back_to_back_unavoidable']=sum(floors[ids]*count for ids,count in sets.items())
     recommendations=[]
+    if observed['advising_exceptions']:
+        names=', '.join(sorted({e['student'] for e in observed['advising_exceptions']}))
+        recommendations.append({'action':'advising_exceptions','message':f"Advising students over the daily maximum: {names}. Their courses cannot be spread further within these dates; they never have two exams at the same time. Arrange this with them, or add exam dates."})
     if observed['back_to_back_unavoidable']:
         recommendations.append({'action':'reduce_back_to_back','message':f"{observed['back_to_back_unavoidable']} of the {observed['back_to_back_days']} back-to-back exam days cannot be avoided: some groups have more exams than these dates allow without consecutive days. Add exam dates to reduce them, or allow {per_day+1} exams per day, which replaces some of them with two exams on one day." if per_day<len(SLOTS) else f"{observed['back_to_back_unavoidable']} of the {observed['back_to_back_days']} back-to-back exam days cannot be avoided with these dates. Add exam dates to reduce them."})
     return {'status':'completed','assignments':sorted(assignments,key=lambda a:(a['date'],a['start_time'],a['course_code'])),'validation':validation,'solver_seconds':solver.wall_time,'optimal_for_slot_balance':outcome==cp_model.OPTIMAL,'convenience':observed,'invigilation_load':dict(load),'limitations':limitations,'recommendations':recommendations}
@@ -275,7 +295,9 @@ def exam_convenience(snapshot,assignments):
         for cohort in courses[a['course_id']]['participants']:days_by_cohort[cohort].add(date.fromisoformat(a['date']))
     back=sum(1 for days in days_by_cohort.values() for d in days if d+timedelta(days=1) in days)
     per_day=Counter((cohort,a['date']) for a in assignments for cohort in courses[a['course_id']]['participants'])
-    return {'back_to_back_days':back,'same_day_exams':sum(n-1 for n in per_day.values() if n>1),'peak_slot':max(slots.values(),default=0),'halls_used':sum(len(a.get('halls',[])) for a in assignments)}
+    limit=snapshot['max_exams_per_cohort_day']
+    return {'back_to_back_days':back,'same_day_exams':sum(n-1 for n in per_day.values() if n>1),
+            'advising_exceptions':[{'student':cohort.split(':',1)[1],'date':day,'exams':n} for (cohort,day),n in sorted(per_day.items()) if advising(cohort) and n>limit],'peak_slot':max(slots.values(),default=0),'halls_used':sum(len(a.get('halls',[])) for a in assignments)}
 
 
 def validate_exam_draft(snapshot,assignments):
@@ -306,7 +328,7 @@ def validate_exam_draft(snapshot,assignments):
                     ta_slots[(ta['id'],a.get('date'),a.get('start_time'))]+=1
                     slot=next((sl for sl in SLOTS if sl[0]==a.get('start_time')),None)
                     if slot and a.get('date') in snapshot['dates'] and not ta_free(ta,a['date'],slot):errors.append('invigilator_availability')
-    if any(n>snapshot['max_exams_per_cohort_day'] for n in cohort_days.values()):errors.append('cohort_daily_limit')
+    if any(n>snapshot['max_exams_per_cohort_day'] for (cohort,_),n in cohort_days.items() if not advising(cohort)):errors.append('cohort_daily_limit')
     if any(n>1 for n in cohort_slots.values()):errors.append('cohort_slot_conflicts')
     if any(n>1 for n in hall_slots.values()):errors.append('hall_double_booking')
     if any(n>1 for n in ta_slots.values()):errors.append('invigilator_conflict')

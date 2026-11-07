@@ -68,6 +68,7 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), default="administrator")
     group_id: Mapped[str | None] = mapped_column(ForeignKey("record.id"), nullable=True)
     instructor_id: Mapped[str | None] = mapped_column(ForeignKey("record.id"), nullable=True)
+    advising_student_id: Mapped[str | None] = mapped_column(ForeignKey("advising_student.id", ondelete="SET NULL"), nullable=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     version: Mapped[int] = mapped_column(Integer, default=1)
 
@@ -508,3 +509,24 @@ class ExtractionJob(Base):
     status: Mapped[str] = mapped_column(String(30))
     proposal_id: Mapped[str | None] = mapped_column(ForeignKey('extraction_proposal.id'), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class AdvisingStudent(Base):
+    """A student whose courses differ from their home group's (retakes, drops, other sections)."""
+    __tablename__ = "advising_student"
+    __table_args__ = (Index("advising_student_code_ci", func.lower(column("code")), unique=True),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    code: Mapped[str] = mapped_column(String(20))
+    name: Mapped[str] = mapped_column(String(100))
+    group_id: Mapped[str | None] = mapped_column(ForeignKey("student_group.id", ondelete="SET NULL"), nullable=True)
+    changes: Mapped[list["AdvisingChange"]] = relationship(cascade="all, delete-orphan", lazy="selectin")
+
+
+class AdvisingChange(Base):
+    """drop: not taking this home-group course. add: taking this course with another group."""
+    __tablename__ = "advising_change"
+    __table_args__ = (CheckConstraint("(action = 'drop' AND group_id IS NULL) OR (action = 'add' AND group_id IS NOT NULL)", name="advising_change_shape"),)
+    student_id: Mapped[str] = mapped_column(ForeignKey("advising_student.id", ondelete="CASCADE"), primary_key=True)
+    course_id: Mapped[str] = mapped_column(ForeignKey("course_catalog.id", ondelete="CASCADE"), primary_key=True)
+    action: Mapped[str] = mapped_column(String(10), primary_key=True)
+    group_id: Mapped[str | None] = mapped_column(ForeignKey("student_group.id", ondelete="CASCADE"), nullable=True)

@@ -687,6 +687,9 @@ export const words = {
 };
 export type Word = keyof typeof words.en;
 export const errors: Record<string, [string, string]> = {
+  not_a_home_course: ["The student's group does not take this course, so it cannot be dropped.", "مجموعة الطالب لا تدرس هذا المقرر، فلا يمكن إسقاطه."],
+  already_taking_course: ["The student already takes this course with their group. Drop it first to take it with another group.", "الطالب يدرس هذا المقرر مع مجموعته. أسقطه أولاً ليدرسه مع مجموعة أخرى."],
+  no_sessions_for_group: ["That group has no sessions of this course to join.", "لا توجد حصص لهذا المقرر مع تلك المجموعة."],
   ta_without_teaching: ["Every TA must teach. Add the TA to a course's tutorials or labs, then try again.", "يجب أن يدرّس كل معيد. أضف المعيد إلى سكاشن أو معامل مقرر ثم حاول مجددًا."],
   instructor_position: ["Lectures need doctors; tutorials and labs need TAs.", "المحاضرات للدكاترة؛ السكاشن والمعامل للمعيدين."],
   position_in_use: ["This instructor is already eligible for activities that need the other position.", "هذا المدرس مؤهل بالفعل لأنشطة تحتاج الوظيفة الأخرى."],

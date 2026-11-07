@@ -4,14 +4,21 @@ import io
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy import select
 from app.dependencies import current_user, db_session, fail
-from app.models import CourseCatalog, ExamRun, Record, ScheduleRun, Workspace
+from app.models import AdvisingStudent, CourseCatalog, ExamRun, Record, ScheduleRun, Workspace
 
 router = APIRouter()
 SAFE_FIELDS = ('id', 'kind', 'name', 'code', 'year', 'major', 'activity_type')
 
 
 def personal(db, user):
-    if user.role == 'student':
+    advising = db.get(AdvisingStudent, user.advising_student_id) if user.role == 'student' and user.advising_student_id else None
+    if advising:
+        # An advising student's own courses replace their home group's.
+        owner = db.get(Record, advising.group_id) if advising.group_id else None
+        kind = 'groups'
+        if owner is None:
+            return None, None, []
+    elif user.role == 'student':
         owner = db.get(Record, user.group_id) if user.group_id else None
         kind = 'groups'
     elif user.role == 'instructor':
@@ -27,6 +34,8 @@ def personal(db, user):
         records = {r['id']: r for r in row.snapshot['records']}
         if kind == 'groups':
             mine = {r['id'] for r in records.values() if r['kind'] == 'courses' and owner.id in r.get('group_ids', [])}
+            if advising:
+                mine = set(next((x['activity_ids'] for x in row.snapshot.get('students', []) if x['id'] == advising.id), []))
             assignments = [a for a in row.result['assignments'] if a['activity_id'] in mine]
         else:
             assignments = [a for a in row.result['assignments'] if a['instructor_id'] == owner.id]
@@ -53,7 +62,8 @@ def personal(db, user):
         for a in exam_run.result['assignments']:
             course = next((c for c in exam_run.snapshot['courses'] if c['id'] == a['course_id']), {})
             halls = a.get('halls') or []
-            if kind == 'groups' and 'group:' + owner.id in course.get('participants', []):
+            cohort = 'student:' + advising.code if advising else 'group:' + owner.id
+            if kind == 'groups' and cohort in course.get('participants', []):
                 exams.append({**{k: a[k] for k in ('course_code', 'course_name', 'date', 'start_time', 'end_time')}, 'halls': [h['room_code'] for h in halls], 'role': 'student'})
             if kind == 'instructors' and a['course_id'] in teaches:
                 exams.append({**{k: a[k] for k in ('course_code', 'course_name', 'date', 'start_time', 'end_time')}, 'halls': [h['room_code'] for h in halls], 'role': 'course'})

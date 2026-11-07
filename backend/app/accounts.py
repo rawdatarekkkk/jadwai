@@ -17,6 +17,7 @@ from app.dependencies import (
     workspace_lock,
 )
 from app.models import (
+    AdvisingStudent,
     Record,
     LoginBucket,
     PasswordReset,
@@ -87,7 +88,7 @@ def live():
 
 
 # Latest migration revision; bump with every new migration.
-SCHEMA_HEAD = "0029"
+SCHEMA_HEAD = "0030"
 
 
 @router.get("/api/health")
@@ -221,7 +222,19 @@ def linked_record(db, body, role, field, kind):
 
 
 def student_group(db, body):
+    if body.role == "student" and body.advising_student_id:
+        if body.group_id:
+            fail(422, "invalid_input")
+        return None
     return linked_record(db, body, "student", "group_id", "groups")
+
+
+def advising_link(db, body):
+    """A student account may instead follow one advising student's personal courses."""
+    ident = body.advising_student_id
+    if ident and (body.role != "student" or db.get(AdvisingStudent, ident) is None):
+        fail(422, "invalid_input")
+    return ident or None
 
 
 def account_instructor(db, body):
@@ -241,6 +254,7 @@ def create_user(
         role=body.role,
         group_id=student_group(db, body),
         instructor_id=account_instructor(db, body),
+        advising_student_id=advising_link(db, body),
         active=True,
         version=1,
         password=hash_password(secrets.token_urlsafe(40)),
@@ -285,8 +299,9 @@ def update_user(
             fail(409, "last_administrator")
     group_id = student_group(db, body)
     instructor_id = account_instructor(db, body)
-    permissions_changed = row.role != body.role or row.active != body.active or row.group_id != group_id or row.instructor_id != instructor_id
-    row.group_id, row.instructor_id = group_id, instructor_id
+    advising_id = advising_link(db, body)
+    permissions_changed = row.role != body.role or row.active != body.active or row.group_id != group_id or row.instructor_id != instructor_id or row.advising_student_id != advising_id
+    row.group_id, row.instructor_id, row.advising_student_id = group_id, instructor_id, advising_id
     row.name, row.role, row.active = body.name, body.role, body.active
     row.version += 1
     if permissions_changed:

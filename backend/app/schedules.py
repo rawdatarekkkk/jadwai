@@ -22,11 +22,14 @@ class GenerateInput(Strict):
 
 
 def snapshot_of(db, ws):
+    from app.advising import student_rows
+    from app.advising_rules import snapshot_students
     return {"name": ws.name, "term": ws.term, "input_version": ws.version,
         "calendar": {**{k: getattr(ws, k) for k in ("timezone", "days", "start_hour", "end_hour", "period_minutes", "teaching_periods", "realism_policy")}, "weekly_load_policy": {"regular_hours": 12, "allow_overtime": True}},
         "records": [{"id": r.id, "kind": r.kind, **r.data} for r in db.scalars(select(Record).order_by(Record.id))],
         "assignment_locks": [lock.data for lock in db.scalars(select(AssignmentLock).where(AssignmentLock.status == "approved").order_by(AssignmentLock.id))],
-        "rules": [{"id": r.id, "status": r.status, **r.data} for r in db.scalars(select(Rule).where(Rule.status == "approved").order_by(Rule.id))]}
+        "rules": [{"id": r.id, "status": r.status, **r.data} for r in db.scalars(select(Rule).where(Rule.status == "approved").order_by(Rule.id))],
+        "students": snapshot_students(student_rows(db))}
 
 
 def representation(row, current_version):

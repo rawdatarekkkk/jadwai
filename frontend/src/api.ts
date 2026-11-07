@@ -84,6 +84,7 @@ export type User = {
   role: string;
   group_id?: string | null;
   instructor_id?: string | null;
+  advising_student_id?: string | null;
   active: boolean;
   version: number;
 };

@@ -16,7 +16,7 @@ class SolverSettings(Strict):
 
 CONFIG = {"profile": "cp-sat-baseline-v1", "time_limit_seconds": 20,
           "random_seed": 42, "search_workers": 2}
-VALIDATOR_VERSION = "independent-checks-v6-positions-limits-convenience"
+VALIDATOR_VERSION = "independent-checks-v7-advising-students"
 
 
 def fingerprint(value):

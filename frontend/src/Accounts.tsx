@@ -16,6 +16,8 @@ export function Accounts({ user, t, lang, onSessionLost, onChanged }: Props) {
   const [groups, setGroups] = useState<Workspace["records"]>([]);
   const [teachers, setTeachers] = useState<Workspace["records"]>([]);
   const [selectedRole, setSelectedRole] = useState("viewer");
+  const [advising, setAdvising] = useState<{ id: string; code: string; name: string }[]>([]);
+  const [advisingChoice, setAdvisingChoice] = useState("");
   const [rows, setRows] = useState<Account[]>([]),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -38,6 +40,7 @@ export function Accounts({ user, t, lang, onSessionLost, onChanged }: Props) {
   };
   useEffect(() => {
     void load();
+    void api<{ students: { id: string; code: string; name: string }[] }>("/advising-students").then(r => setAdvising(r.students)).catch(() => setAdvising([]));
     void api<Workspace>("/workspace").then(w => { setGroups(w.records.filter(r => r.kind === "groups")); setTeachers(w.records.filter(r => r.kind === "instructors")); }).catch(() => {});
   }, []);
   const close = () => {
@@ -75,7 +78,7 @@ export function Accounts({ user, t, lang, onSessionLost, onChanged }: Props) {
           className="btn primary"
           onClick={() => {
             setError("");
-            setSelectedRole("viewer");
+            setSelectedRole("viewer"); setAdvisingChoice("");
             setModal({ type: "create" });
           }}
         >
@@ -110,7 +113,7 @@ export function Accounts({ user, t, lang, onSessionLost, onChanged }: Props) {
               <button
                 onClick={() => {
                   setError("");
-                  setSelectedRole(row.role);
+                  setSelectedRole(row.role); setAdvisingChoice(row.advising_student_id || "");
                   setModal({ type: "edit", row });
                 }}
               >
@@ -173,7 +176,8 @@ export function Accounts({ user, t, lang, onSessionLost, onChanged }: Props) {
                         name: f.get("name"),
                         email: f.get("email"),
                         role: f.get("role"),
-                        group_id: f.get("role") === "student" ? f.get("group_id") : null,
+                        group_id: f.get("role") === "student" && !f.get("advising_student_id") ? f.get("group_id") : null,
+                        advising_student_id: f.get("role") === "student" ? f.get("advising_student_id") || null : null,
                         instructor_id: f.get("role") === "instructor" ? f.get("instructor_id") : null,
                       },
                     );
@@ -186,7 +190,8 @@ export function Accounts({ user, t, lang, onSessionLost, onChanged }: Props) {
                       {
                         name: f.get("name"),
                         role: f.get("role"),
-                        group_id: f.get("role") === "student" ? f.get("group_id") : null,
+                        group_id: f.get("role") === "student" && !f.get("advising_student_id") ? f.get("group_id") : null,
+                        advising_student_id: f.get("role") === "student" ? f.get("advising_student_id") || null : null,
                         instructor_id: f.get("role") === "instructor" ? f.get("instructor_id") : null,
                         active: f.get("active") === "on",
                       },
@@ -231,7 +236,8 @@ export function Accounts({ user, t, lang, onSessionLost, onChanged }: Props) {
                   <option value="administrator">{t("admin")}</option>
                 </select>
               </label>
-              {selectedRole === "student" && <label>{lang === "ar" ? "مجموعة الطالب" : "Student group"}<select name="group_id" required defaultValue={modal.row?.group_id || ""}><option value="">{lang === "ar" ? "اختر المجموعة" : "Choose a group"}</option>{groups.map(g => <option key={g.id} value={g.id}>{g.year ? `Year ${g.year} · ` : ""}{g.major || ""} · {g.name}</option>)}</select></label>}
+              {selectedRole === "student" && !!advising.length && <label>{lang === "ar" ? "طالب إرشاد (اختياري)" : "Advising student (optional)"}<select name="advising_student_id" value={advisingChoice} onChange={e => setAdvisingChoice(e.target.value)}><option value="">{lang === "ar" ? "يتبع جدول مجموعته" : "Follows their group's timetable"}</option>{advising.map(a => <option key={a.id} value={a.id}>{a.code} · {a.name}</option>)}</select></label>}
+              {selectedRole === "student" && !advisingChoice && <label>{lang === "ar" ? "مجموعة الطالب" : "Student group"}<select name="group_id" required defaultValue={modal.row?.group_id || ""}><option value="">{lang === "ar" ? "اختر المجموعة" : "Choose a group"}</option>{groups.map(g => <option key={g.id} value={g.id}>{g.year ? `Year ${g.year} · ` : ""}{g.major || ""} · {g.name}</option>)}</select></label>}
               {selectedRole === "instructor" && <label>{t("linkedInstructor")}<select name="instructor_id" required defaultValue={modal.row?.instructor_id || ""}><option value="">{t("linkedInstructor")}</option>{teachers.map(r => <option key={r.id} value={r.id}>{r.name} · {r.code}{r.position ? ` · ${t(r.position)}` : ""}</option>)}</select></label>}
               {modal.type === "edit" && (
                 <label className="check-label">

@@ -44,6 +44,7 @@ import { Evaluation } from "./Evaluation";
 import { ExamSchedule } from "./ExamSchedule";
 import { SourceTimetables } from "./SourceTimetables";
 import { CourseSetup } from "./CourseSetup";
+import { AdvisingStudents } from "./AdvisingStudents";
 export default function App() {
   const annotationStore=useRef<BrowserReviewSnapshot|null>(null);
   const [lang, setLang] = useState<"en" | "ar">(() =>
@@ -65,6 +66,7 @@ export default function App() {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [courseSetupOpen, setCourseSetupOpen] = useState(false);
+  const [advisingOpen, setAdvisingOpen] = useState(false);
   const [scheduleMode,setScheduleMode] = useState<"teaching"|"exams">("exams");
   const [sessionExpired, setSessionExpired] = useState(false);
   const [resetToken, setResetToken] = useState(() =>
@@ -692,6 +694,7 @@ export default function App() {
                         </button>
                       )}
                       {kind === "courses" && user.role === "administrator" && <button className="btn white" onClick={() => setCourseSetupOpen(true)}><Icon name="sliders" size={16}/>{t("courseSetup")}</button>}
+                      {kind === "groups" && user.role === "administrator" && <button className="btn white" onClick={() => setAdvisingOpen(true)}><Icon name="people" size={16}/>{lang === "ar" ? "طلاب الإرشاد" : "Advising students"}</button>}
                       <button
                         className="btn primary"
                         onClick={() => {
@@ -1118,6 +1121,7 @@ export default function App() {
         </div>
       )}
       {courseSetupOpen && ws && <CourseSetup ws={ws} t={t} close={() => setCourseSetupOpen(false)} saved={refresh} />}
+      {advisingOpen && ws && <AdvisingStudents ws={ws} lang={lang} t={t} close={() => setAdvisingOpen(false)} saved={refresh} />}
       {modal && (
         <Modal
           title={

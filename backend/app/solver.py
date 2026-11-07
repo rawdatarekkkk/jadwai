@@ -140,6 +140,13 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
     room_limits = {r['activity_id']: set(rs.param(r, 'room_ids')) for r in rules_of('activity_room')}
     pool_of = room_pools(rooms, snapshot, locks, enabled=fixed_assignments is None)
     resources = defaultdict(list)
+    from app.advising_rules import conflict_sets, extra_seats
+    # Advising students: none of a student's own sessions may overlap.
+    personal = defaultdict(list)
+    for n, ids in enumerate(conflict_sets(snapshot)):
+        for a in ids:
+            personal[a].append(n)
+    seats = extra_seats(snapshot)
     workload_terms = defaultdict(list)
     day_of = {}  # (activity id, occurrence) -> per-day Booleans
     choices, penalties = [], []
@@ -147,7 +154,7 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
     for activity in activities:
         if cancel and cancel.is_set():
             return {'status':'cancelled','assignments':[]}
-        size = sum(by_id[g]['size'] for g in activity['group_ids'])
+        size = sum(by_id[g]['size'] for g in activity['group_ids']) + seats[activity['id']]
         room_type = 'lab' if activity['activity_type']=='lab' else 'lecture'
         suitable = [r for r in rooms if (r.get('capacity') or 0)>=size and bool(set(r.get('room_types') or [r.get('room_type')]) & {room_type,'flexible'}) and set(activity.get('required_equipment',[]))<=set(r.get('equipment',[]))]
         for allowed_rooms in [room_limits[activity['id']]] if activity['id'] in room_limits else []:
@@ -217,6 +224,8 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
             day_of[(activity['id'], occurrence)] = flags
             for group in activity['group_ids']:
                 resources[('group',group)].append(interval)
+            for n in personal[activity['id']]:
+                resources[('student',n)].append(interval)
             for teacher,selected in teachers.items():
                 if not allowed[teacher]:
                     model.add(selected==0)

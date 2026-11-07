@@ -16,7 +16,8 @@ WEEKDAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'
 DEFAULT_COHORT_RULES={'broad_programs':['businessadministration','businessadministrationcore','informaticsandcomputerscience'],
     'tracks':{'ENGINEERING':['automotivemechatronics','roboticsandautomation','manufacturingengineering','automationandcontrolengineering','electricalpowersystemsengineering']},
     'aliases':{'mechanicalengineeringmanufacturing':'manufacturingengineering'}}
-EXAM_WEIGHTS={'back_to_back_days':10,'peak_slot':3,'halls_used':1}
+# Two exams on one day weigh more than exams on consecutive days.
+EXAM_WEIGHTS={'same_day_exams':20,'back_to_back_days':10,'peak_slot':3,'halls_used':1}
 
 
 def minutes(text):
@@ -62,6 +63,43 @@ def ta_free(ta,day,slot):
     return not any((r.get('day') in (None,weekday)) and low<round(r['end_hour']*60) and round(r['start_hour']*60)<high for r in ta.get('unavailable',[]))
 
 
+def back_to_back_floor(exams,dates,daily):
+    """Fewest back-to-back exam days a cohort with this many exams must have on these dates.
+    It needs at least ceil(exams/daily) days. In a run of L consecutive dates, m chosen days
+    leave at least max(0, 2m-L-1) adjacent pairs; the extra cost of each further day never
+    falls, so taking the cheapest days first gives the minimum."""
+    runs=[]
+    for d in sorted(date.fromisoformat(x) for x in dates):
+        if runs and (d-runs[-1][-1]).days==1:runs[-1].append(d)
+        else:runs.append([d])
+    cost=lambda length,m:max(0,2*m-length-1)
+    steps=sorted(cost(len(r),m)-cost(len(r),m-1) for r in runs for m in range(1,len(r)+1))
+    return sum(steps[:ceil(exams/daily)])
+
+def halls_needed(students,halls):
+    """Fewest halls that can seat these students (largest halls first)."""
+    total=0
+    for n,capacity in enumerate(sorted((h['capacity'] for h in halls),reverse=True),1):
+        total+=capacity
+        if total>=students:return n
+    return len(halls)
+
+def pack_halls(students,halls,limit):
+    """Give each exam in one slot its own halls, using as few halls as possible and at most
+    `limit` (free invigilators). Returns hall indexes per exam, or None if impossible."""
+    if not students:return []
+    model=cp_model.CpModel()
+    y={(e,h):model.new_bool_var(f'y_{e}_{h}') for e in range(len(students)) for h in range(len(halls))}
+    for e,n in enumerate(students):model.add(sum(halls[h]['capacity']*y[e,h] for h in range(len(halls)))>=n)
+    for h in range(len(halls)):model.add_at_most_one(y[e,h] for e in range(len(students)))
+    model.add(sum(y.values())<=limit)
+    # Fewest halls, then fewest empty seats.
+    model.minimize(sum((10000+halls[h]['capacity'])*v for (e,h),v in y.items()))
+    solver=cp_model.CpSolver();solver.parameters.max_time_in_seconds=5;solver.parameters.num_search_workers=1;solver.parameters.random_seed=42
+    if solver.solve(model) not in (cp_model.OPTIMAL,cp_model.FEASIBLE):return None
+    return [[h for h in range(len(halls)) if solver.value(y[e,h])] for e in range(len(students))]
+
+
 def generate_exam_draft(snapshot):
     courses=snapshot['courses'];days=snapshot['dates'];per_day=snapshot['max_exams_per_cohort_day']
     with_halls='halls' in snapshot
@@ -88,57 +126,101 @@ def generate_exam_draft(snapshot):
         if per_day<required_daily<=len(SLOTS):recommendations.append({'action':'raise_daily_limit','daily_limit':required_daily,'message':f'Alternatively, raise the daily maximum to at least {required_daily} exams per cohort. Review student workload before changing this policy.'})
         recommendations.append({'action':'review_cohorts','message':'Review the affected courses’ program/semester eligibility for incorrect overlap. Keep genuine shared cohorts together.'})
         return {'status':'infeasible','reason':'not_enough_days','details':crowded,'assignments':[],'recommendations':recommendations,'recommendation_note':'These are capacity requirements, not a guarantee. Generate again after adjusting constraints to verify the complete timetable.'}
-    model=cp_model.CpModel();x={}
-    for i in range(len(courses)):
-        for d in range(len(days)):
-            for s in range(3):x[i,d,s]=model.new_bool_var(f'exam_{i}_{d}_{s}')
-        model.add_exactly_one(x[i,d,s] for d in range(len(days)) for s in range(3))
-    for ids in memberships.values():
-        for d in range(len(days)):
-            model.add(sum(x[i,d,s] for i in ids for s in range(3))<=per_day)
-            for s in range(3):model.add_at_most_one(x[i,d,s] for i in ids)
-    peak=model.new_int_var(0,len(courses),'peak_slot_exams')
-    for d in range(len(days)):
-        for s in range(3):model.add(sum(x[i,d,s] for i in range(len(courses)))<=peak)
-    terms={'peak_slot':[peak]}
-    # A cohort sitting exams on two consecutive calendar days is inconvenient.
-    sits={}
-    for cohort,ids in memberships.items():
-        for d in range(len(days)):
-            sits[cohort,d]=model.new_bool_var(f'sits_{cohort}_{d}')
-            model.add_max_equality(sits[cohort,d],[x[i,d,s] for i in ids for s in range(3)])
-    back_to_back=[]
-    for cohort in memberships:
-        for d in range(len(days)-1):
-            if (date.fromisoformat(days[d+1])-date.fromisoformat(days[d])).days==1:
-                both=model.new_bool_var(f'b2b_{cohort}_{d}')
-                model.add(both>=sits[cohort,d]+sits[cohort,d+1]-1)
-                back_to_back.append(both)
-    terms['back_to_back_days']=back_to_back
-    use={}
+    # Cohorts sitting the same exams produce identical constraints, and a cohort whose
+    # exams are a subset of another's is covered by the larger one's limits. Back-to-back
+    # days are still counted once per cohort, as exam_convenience counts them.
+    sets=Counter(frozenset(ids) for ids in memberships.values())
+    maximal=[ids for ids in sets if not any(ids<other for other in sets)]
+    floors={ids:back_to_back_floor(len(ids),days,daily) for ids in sets}
+    need=[halls_needed(c['students'],halls) for c in courses] if with_halls else []
+    limits={}
     if with_halls:
-        y={(i,h):model.new_bool_var(f'hall_{i}_{h}') for i in range(len(courses)) for h in range(len(halls))}
-        for i,c in enumerate(courses):
-            model.add(sum(halls[h]['capacity']*y[i,h] for h in range(len(halls)))>=c['students'])
-        for h in range(len(halls)):
+        for d,day in enumerate(days):
+            for s,slot in enumerate(SLOTS):
+                free=sum(ta_free(t,day,slot) for t in tas) if tas is not None else len(halls)
+                limits[d,s]=min(len(halls),free)
+    def build(joint):
+        model=cp_model.CpModel();x={}
+        for i in range(len(courses)):
+            for d in range(len(days)):
+                for s in range(3):x[i,d,s]=model.new_bool_var(f'exam_{i}_{d}_{s}')
+            model.add_exactly_one(x[i,d,s] for d in range(len(days)) for s in range(3))
+        for ids in maximal:
+            for d in range(len(days)):
+                model.add(sum(x[i,d,s] for i in ids for s in range(3))<=per_day)
+                for s in range(3):model.add_at_most_one(x[i,d,s] for i in ids)
+        peak=model.new_int_var(0,len(courses),'peak_slot_exams')
+        for d in range(len(days)):
+            for s in range(3):model.add(sum(x[i,d,s] for i in range(len(courses)))<=peak)
+        terms={'peak_slot':[(1,peak)],'back_to_back_days':[],'same_day_exams':[],'halls_used':[]}
+        # A cohort sitting exams on two consecutive calendar days is inconvenient.
+        for n,(ids,count) in enumerate(sets.items()):
+            sits=[]
+            for d in range(len(days)):
+                v=model.new_bool_var(f'sits_{n}_{d}');model.add_max_equality(v,[x[i,d,s] for i in ids for s in range(3)]);sits.append(v)
+            pairs=[]
+            for d in range(len(days)-1):
+                if (date.fromisoformat(days[d+1])-date.fromisoformat(days[d])).days==1:
+                    both=model.new_bool_var(f'b2b_{n}_{d}');model.add(both>=sits[d]+sits[d+1]-1);pairs.append(both)
+            if per_day>1:
+                for d in range(len(days)):
+                    extra=model.new_int_var(0,per_day-1,f'extra_{n}_{d}')
+                    model.add(extra>=sum(x[i,d,s] for i in ids for s in range(3))-1)
+                    terms['same_day_exams'].append((count,extra))
+            if floors[ids]:model.add(sum(pairs)>=floors[ids])  # proven bound; helps the search stop early
+            terms['back_to_back_days']+=[(count,v) for v in pairs]
+        use={}
+        if with_halls:
             for d in range(len(days)):
                 for s in range(3):
-                    in_use=[]
-                    for i in range(len(courses)):
-                        z=model.new_bool_var(f'use_{i}_{h}_{d}_{s}')
-                        model.add_bool_and([x[i,d,s],y[i,h]]).only_enforce_if(z)
-                        model.add_bool_or([x[i,d,s].Not(),y[i,h].Not()]).only_enforce_if(z.Not())
-                        use[i,h,d,s]=z;in_use.append(z)
-                    model.add_at_most_one(in_use)
-        if tas is not None:
-            for d,day in enumerate(days):
-                for s,slot in enumerate(SLOTS):
-                    free=sum(ta_free(t,day,slot) for t in tas)
-                    model.add(sum(use[i,h,d,s] for i in range(len(courses)) for h in range(len(halls)))<=free)
-        terms['halls_used']=list(y.values())
-    model.minimize(sum(EXAM_WEIGHTS[k]*sum(v) for k,v in terms.items()))
-    solver=cp_model.CpSolver();solver.parameters.max_time_in_seconds=snapshot.get('time_limit_seconds',20);solver.parameters.num_search_workers=4;solver.parameters.random_seed=42
-    outcome=solver.solve(model)
+                    # Seats and the number of halls (each needing a free TA) in every slot.
+                    model.add(sum(c['students']*x[i,d,s] for i,c in enumerate(courses))<=sum(h['capacity'] for h in halls))
+                    model.add(sum(need[i]*x[i,d,s] for i in range(len(courses)))<=limits[d,s])
+        if with_halls and joint:
+            y={(i,h):model.new_bool_var(f'hall_{i}_{h}') for i in range(len(courses)) for h in range(len(halls))}
+            for i,c in enumerate(courses):model.add(sum(halls[h]['capacity']*y[i,h] for h in range(len(halls)))>=c['students'])
+            for h in range(len(halls)):
+                for d in range(len(days)):
+                    for s in range(3):
+                        in_use=[]
+                        for i in range(len(courses)):
+                            z=model.new_bool_var(f'use_{i}_{h}_{d}_{s}')
+                            model.add_bool_and([x[i,d,s],y[i,h]]).only_enforce_if(z)
+                            model.add_bool_or([x[i,d,s].Not(),y[i,h].Not()]).only_enforce_if(z.Not())
+                            use[i,h,d,s]=z;in_use.append(z)
+                        model.add_at_most_one(in_use)
+            for d in range(len(days)):
+                for s in range(3):model.add(sum(use[i,h,d,s] for i in range(len(courses)) for h in range(len(halls)))<=limits[d,s])
+            terms['halls_used']=[(1,v) for v in y.values()]
+        model.minimize(sum(EXAM_WEIGHTS[k]*coef*v for k,pairs in terms.items() for coef,v in pairs))
+        return model,x,use
+    def solve(model,seconds,hint=None):
+        if hint:
+            for var,value in hint.items():model.add_hint(var,value)
+        solver=cp_model.CpSolver();solver.parameters.max_time_in_seconds=seconds;solver.parameters.num_search_workers=4;solver.parameters.random_seed=42
+        return solver,solver.solve(model)
+    budget=snapshot.get('time_limit_seconds',20)
+    # Dates and slots first, with seat and hall-count limits per slot; then halls slot by
+    # slot, which are small independent problems. If a slot cannot be packed, fall back
+    # to the joint model, started from the first solution.
+    model,x,_=build(False)
+    solver,outcome=solve(model,budget)
+    halls_for={}
+    if with_halls and outcome in (cp_model.OPTIMAL,cp_model.FEASIBLE):
+        for d in range(len(days)):
+            for s in range(3):
+                ids=[i for i in range(len(courses)) if solver.value(x[i,d,s])]
+                packed=pack_halls([courses[i]['students'] for i in ids],halls,limits[d,s])
+                if packed is None:halls_for=None;break
+                for i,chosen in zip(ids,packed):halls_for[i]=chosen
+            if halls_for is None:break
+        if halls_for is None:
+            first={(i,d,s):solver.value(v) for (i,d,s),v in x.items()}
+            model,x2,use=build(True)
+            solver,outcome=solve(model,budget,{x2[k]:v for k,v in first.items()})
+            x=x2
+            if outcome in (cp_model.OPTIMAL,cp_model.FEASIBLE):
+                halls_for={i:[h for h in range(len(halls)) if any(solver.value(use[i,h,d,s]) for d in range(len(days)) for s in range(3))] for i in range(len(courses))}
     if outcome not in (cp_model.OPTIMAL,cp_model.FEASIBLE):
         infeasible=outcome==cp_model.INFEASIBLE
         return {'status':'infeasible' if infeasible else 'unknown','reason':'search_outcome','assignments':[], 'recommendations':[
@@ -154,7 +236,7 @@ def generate_exam_draft(snapshot):
                 row={'course_id':c['id'],'course_name':c['name'],'course_code':c['code'],'date':day,'start_time':start,'end_time':end,'duration_minutes':120,'programs':c['programs']}
                 if with_halls:
                     row['students']=c['students']
-                    row['halls']=[{'room_id':halls[h]['id'],'room_code':halls[h]['code'],'capacity':halls[h]['capacity'],'invigilator_id':None} for h in range(len(halls)) if solver.value(use[i,h,d,s])]
+                    row['halls']=[{'room_id':halls[h]['id'],'room_code':halls[h]['code'],'capacity':halls[h]['capacity'],'invigilator_id':None} for h in halls_for[i]]
                 assignments.append(row)
     if with_halls and tas is not None:
         # Per slot any free TA can take any hall, so a least-loaded-first assignment
@@ -172,7 +254,11 @@ def generate_exam_draft(snapshot):
     limitations=['Conflict checks use course program/semester labels and configured group IDs, not individual enrolments.','A draft requires institutional review before use.']
     if not with_halls:limitations.insert(0,'Dates and times only; rooms and invigilators are not assigned.')
     observed=exam_convenience(snapshot,assignments)
-    return {'status':'completed','assignments':sorted(assignments,key=lambda a:(a['date'],a['start_time'],a['course_code'])),'validation':validation,'solver_seconds':solver.wall_time,'optimal_for_slot_balance':outcome==cp_model.OPTIMAL,'convenience':observed,'invigilation_load':dict(load),'limitations':limitations}
+    observed['back_to_back_unavoidable']=sum(floors[ids]*count for ids,count in sets.items())
+    recommendations=[]
+    if observed['back_to_back_unavoidable']:
+        recommendations.append({'action':'reduce_back_to_back','message':f"{observed['back_to_back_unavoidable']} of the {observed['back_to_back_days']} back-to-back exam days cannot be avoided: some groups have more exams than these dates allow without consecutive days. Add exam dates to reduce them, or allow {per_day+1} exams per day, which replaces some of them with two exams on one day." if per_day<len(SLOTS) else f"{observed['back_to_back_unavoidable']} of the {observed['back_to_back_days']} back-to-back exam days cannot be avoided with these dates. Add exam dates to reduce them."})
+    return {'status':'completed','assignments':sorted(assignments,key=lambda a:(a['date'],a['start_time'],a['course_code'])),'validation':validation,'solver_seconds':solver.wall_time,'optimal_for_slot_balance':outcome==cp_model.OPTIMAL,'convenience':observed,'invigilation_load':dict(load),'limitations':limitations,'recommendations':recommendations}
 
 
 def _group(assignments):
@@ -182,13 +268,14 @@ def _group(assignments):
 
 
 def exam_convenience(snapshot,assignments):
-    """Independently counted: cohort back-to-back exam days, busiest slot, halls used."""
+    """Independently counted: cohort back-to-back exam days, extra exams on one day, busiest slot, halls used."""
     courses={c['id']:c for c in snapshot['courses']};days_by_cohort=defaultdict(set);slots=Counter()
     for a in assignments:
         slots[(a['date'],a['start_time'])]+=1
         for cohort in courses[a['course_id']]['participants']:days_by_cohort[cohort].add(date.fromisoformat(a['date']))
     back=sum(1 for days in days_by_cohort.values() for d in days if d+timedelta(days=1) in days)
-    return {'back_to_back_days':back,'peak_slot':max(slots.values(),default=0),'halls_used':sum(len(a.get('halls',[])) for a in assignments)}
+    per_day=Counter((cohort,a['date']) for a in assignments for cohort in courses[a['course_id']]['participants'])
+    return {'back_to_back_days':back,'same_day_exams':sum(n-1 for n in per_day.values() if n>1),'peak_slot':max(slots.values(),default=0),'halls_used':sum(len(a.get('halls',[])) for a in assignments)}
 
 
 def validate_exam_draft(snapshot,assignments):

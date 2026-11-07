@@ -99,3 +99,37 @@ def test_exam_api_assigns_halls_and_tas(environment):
     login(client, 'ta1@example.test')
     roles = {(e['course_code'], e['role']) for e in client.get('/api/me/schedule').json()['exams']}
     assert ('ALG', 'course') in roles
+
+
+def test_unavoidable_back_to_back_days_are_counted_and_explained():
+    from app.exam_planning import back_to_back_floor
+    assert back_to_back_floor(2, DATES, 1) == 0
+    assert back_to_back_floor(3, DATES, 1) == 2  # three exams on Tue, Wed, Thu
+    assert back_to_back_floor(3, DATES, 2) == 0  # two days are enough: Tue and Thu
+    assert back_to_back_floor(3, ['2026-10-20', '2026-10-21', '2026-10-22', '2026-10-23'], 1) == 1
+    snap = sample()
+    for c in snap['courses']:
+        c['participants'] = ['year1']
+    snap['courses'] = snap['courses'][1:]  # A, B, C: one cohort, three exams, three days
+    result = generate_exam_draft(snap)
+    assert result['status'] == 'completed', result
+    assert result['convenience']['back_to_back_days'] == result['convenience']['back_to_back_unavoidable'] == 2
+    assert result['recommendations'][0]['action'] == 'reduce_back_to_back'
+
+
+def test_two_exams_on_one_day_are_counted():
+    snap = sample()
+    snap['dates'], snap['max_exams_per_cohort_day'] = DATES[:1], 2
+    snap['courses'] = [dict(c, participants=['year1']) for c in snap['courses'][1:3]]
+    result = generate_exam_draft(snap)
+    assert result['status'] == 'completed', result
+    assert result['convenience']['same_day_exams'] == 1
+
+
+def test_halls_are_packed_per_slot_or_reported_impossible():
+    from app.exam_planning import pack_halls
+    halls = [{'capacity': 100}, {'capacity': 50}, {'capacity': 50}]
+    big, small = pack_halls([120, 40], halls, 3)
+    assert 0 in big and len(big) == 2 and len(small) == 1 and not set(big) & set(small)
+    assert pack_halls([120, 80], halls, 3) is None  # enough seats in total, but they cannot be split that way
+    assert pack_halls([40, 40], halls, 1) is None  # one free invigilator, two halls needed

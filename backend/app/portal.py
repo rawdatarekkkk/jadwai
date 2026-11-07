@@ -4,7 +4,7 @@ import io
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy import select
 from app.dependencies import current_user, db_session, fail
-from app.models import ExamRun, Record, ScheduleRun, Workspace
+from app.models import CourseCatalog, ExamRun, Record, ScheduleRun, Workspace
 
 router = APIRouter()
 SAFE_FIELDS = ('id', 'kind', 'name', 'code', 'year', 'major', 'activity_type')
@@ -48,11 +48,15 @@ def personal(db, user):
     exams = []
     exam_run = db.scalar(select(ExamRun).where(ExamRun.published_at.isnot(None)))
     if exam_run and exam_run.result.get('status') == 'completed':
+        # Courses this instructor teaches, from the current course setup.
+        teaches = {c.id for c in db.scalars(select(CourseCatalog)) if any(owner.id in ids for ids in c.eligibility.values())} if kind == 'instructors' else set()
         for a in exam_run.result['assignments']:
             course = next((c for c in exam_run.snapshot['courses'] if c['id'] == a['course_id']), {})
             halls = a.get('halls') or []
             if kind == 'groups' and 'group:' + owner.id in course.get('participants', []):
                 exams.append({**{k: a[k] for k in ('course_code', 'course_name', 'date', 'start_time', 'end_time')}, 'halls': [h['room_code'] for h in halls], 'role': 'student'})
+            if kind == 'instructors' and a['course_id'] in teaches:
+                exams.append({**{k: a[k] for k in ('course_code', 'course_name', 'date', 'start_time', 'end_time')}, 'halls': [h['room_code'] for h in halls], 'role': 'course'})
             if kind == 'instructors':
                 duties = [h['room_code'] for h in halls if h.get('invigilator_id') == owner.id]
                 if duties:

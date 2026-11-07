@@ -649,7 +649,7 @@ export function Timetable({
               </small>
               {reportNotice && <small role="alert">{reportNotice}</small>}
             </div>
-            {administrator && <ScenarioActions key={run.id} ws={ws} run={run} runs={runs} lang={lang} reload={reload} select={setSelected}/>}
+            {administrator && <ScenarioActions key={run.id} ws={ws} run={run} runs={runs} lang={lang} reload={reload} select={setSelected} notify={setReportNotice}/>}
           </div>
           <div
             className="schedule-layout-switch"

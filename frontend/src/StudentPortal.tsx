@@ -5,7 +5,7 @@ import { MyAccount } from "./Accounts";
 import { Icon, Modal } from "./components";
 import { words, type Word } from "./i18n";
 
-type Exam = { course_code: string; course_name: string; date: string; start_time: string; end_time: string; halls: string[]; role: "student" | "invigilator" };
+type Exam = { course_code: string; course_name: string; date: string; start_time: string; end_time: string; halls: string[]; role: "student" | "invigilator" | "course" };
 type Personal = { group?: DataRecord | null; instructor?: DataRecord | null; run: ScheduleRun | null; exams: Exam[] };
 
 /** Read-only personal timetable for students (their group) and instructors (their sessions and invigilation). */
@@ -25,8 +25,8 @@ export function StudentPortal({user, lang, setLang, onSignedOut}: {user: User; l
     {error && <div className="error" role="alert">{ar ? "تعذر تحميل الجدول. حاول مجدداً." : "Couldn’t load your schedule. Try refreshing or signing in again."}<button onClick={onSignedOut}>{ar ? "تسجيل الدخول" : "Sign in"}</button></div>}
     {data?.run ? <>{data.run.stale && <div className="error" role="status">{ar ? "تغيرت المدخلات منذ نشر هذا الجدول. تحقق مع الإدارة." : "Inputs have changed since this timetable was published. Check with your administrator for an update."}</div>}<div className="student-grid-scroll"><ScheduleGrid run={data.run} assignments={data.run.result?.assignments || []} lang={lang}/></div>{!data.run.result?.assignments.length && <p>{ar ? "لا توجد حصص لك في هذا الجدول." : "You have no sessions in this timetable."}</p>}</> : !busy && !error && <div className="student-empty"><Icon name="calendar" size={36}/><h3>{ar ? "جدولك قريباً" : "Your schedule is on its way"}</h3><p>{t("notPublished")}</p></div>}
     </section>
-    {!!data?.exams.length && <section className="panel"><h2>{teacher ? t("invigilation") : t("myExams")}</h2><table className="source-timetable-table"><thead><tr><th>{ar ? "التاريخ" : "Date"}</th><th>{ar ? "الوقت" : "Time"}</th><th>{ar ? "المقرر" : "Course"}</th><th>{t("examHalls")}</th></tr></thead><tbody>
-      {data.exams.map(e => <tr key={`${e.course_code}-${e.date}-${e.role}`}><td><bdi>{e.date}</bdi></td><td><bdi>{e.start_time}–{e.end_time}</bdi></td><td>{e.course_name} · {e.course_code}</td><td>{e.halls.join(", ")}</td></tr>)}
+    {!!data?.exams.length && <section className="panel"><h2>{teacher ? (ar ? "الامتحانات" : "Exams") : t("myExams")}</h2><table className="source-timetable-table"><thead><tr><th>{ar ? "التاريخ" : "Date"}</th><th>{ar ? "الوقت" : "Time"}</th><th>{ar ? "المقرر" : "Course"}</th><th>{t("examHalls")}</th>{teacher && <th>{ar ? "الدور" : "Role"}</th>}</tr></thead><tbody>
+      {data.exams.map(e => <tr key={`${e.course_code}-${e.date}-${e.role}`}><td><bdi>{e.date}</bdi></td><td><bdi>{e.start_time}–{e.end_time}</bdi></td><td>{e.course_name} · {e.course_code}</td><td>{e.halls.join(", ")}</td>{teacher && <td>{e.role === "invigilator" ? t("invigilation") : ar ? "امتحان مقررك" : "Your course"}</td>}</tr>)}
     </tbody></table></section>}
     </main>{account && <Modal title={t("myAccount")} close={() => setAccount(false)} t={t}><MyAccount user={user} t={t} lang={lang} onSignedOut={onSignedOut}/></Modal>}
   </div>;

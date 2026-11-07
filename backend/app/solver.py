@@ -86,7 +86,12 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
                  'provenance': {**snapshot.get('provenance', {}), 'solver_config': {**config, 'objective_profile': 'preferences-first-v1'}}}
         budget = time_limit * 0.5
         started = __import__('time').monotonic()
-        first = generate(quick, cancel, None, budget)
+        # Register the warm-start solver too, so Cancel can stop it; its progress
+        # figures use another scoring scale, so they are not reported.
+        register = (lambda solver: on_solver(solver) and None) if on_solver else None
+        first = generate(quick, cancel, register, budget)
+        if cancel and cancel.is_set():
+            return {'status':'cancelled','assignments':[]}
         if first['status'] != 'completed':
             return first
         remaining = max(0.5, time_limit - (__import__('time').monotonic() - started)) if time_limit else 0

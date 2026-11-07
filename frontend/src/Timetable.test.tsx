@@ -154,7 +154,7 @@ test("Arabic draft displays actual time and translated generation control", asyn
   render(
     <Timetable ws={ws} lang="ar" administrator refresh={async () => {}} />,
   );
-  expect(await screen.findByText("الأحد")).toBeTruthy();
+  expect((await screen.findAllByText("الأحد")).length).toBeGreaterThan(0);
   expect(screen.getByRole("button", { name: "إنشاء الجدول" })).toBeTruthy();
 });
 

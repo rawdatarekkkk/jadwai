@@ -179,3 +179,16 @@ def test_validator_failure_never_becomes_a_completed_draft(environment, monkeypa
     assert run['status'] == 'failed'
     assert run['result']['reason'] == 'validation_failed'
     assert run['result']['assignments'] == []
+
+
+def test_cancel_reaches_the_warm_start_solver():
+    from app.provenance import CONFIG
+    snap = example()
+    snap['provenance'] = {'solver_config': {**CONFIG, 'objective_profile': 'convenience-v1'}}
+    solvers, cancel = [], Event()
+    def started(solver):
+        solvers.append(solver)
+        cancel.set()  # cancel as soon as the first (warm-start) solver exists
+        return None
+    assert generate(snap, cancel, started)['status'] == 'cancelled'
+    assert len(solvers) == 1  # the main search never started

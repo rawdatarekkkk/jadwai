@@ -8,7 +8,7 @@ type Comparison = { a: { name: string | null; metrics: Record<string, number> };
 const clock = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 
 /** Admin controls for one completed draft: name, publish, validated move, compare, CSV. */
-export function ScenarioActions({ ws, run, runs, lang, reload, select }: { ws: Workspace; run: ScheduleRun; runs: ScheduleRun[]; lang: "en" | "ar"; reload: () => Promise<void>; select: (id: string) => void }) {
+export function ScenarioActions({ ws, run, runs, lang, reload, select, notify }: { ws: Workspace; run: ScheduleRun; runs: ScheduleRun[]; lang: "en" | "ar"; reload: () => Promise<void>; select: (id: string) => void; notify: (message: string) => void }) {
   const t = (k: keyof typeof words.en) => words[lang][k];
   const ar = lang === "ar";
   const [name, setName] = useState(run.name || ""), [busy, setBusy] = useState(false), [message, setMessage] = useState("");
@@ -16,6 +16,11 @@ export function ScenarioActions({ ws, run, runs, lang, reload, select }: { ws: W
   const [move, setMove] = useState({ session: "", day: "", start: "", room: "" });
   const records = run.snapshot.records;
   const label = (id: string) => records.find(r => r.id === id)?.name || id;
+  const dayName = (d: string) => t(d as keyof typeof words.en) || d;
+  const code = (id: string) => records.find(r => r.id === id)?.code || id;
+  // Same-named activities differ by group, so show the groups in the session list.
+  const groupsOf = (activityId: string) => (records.find(r => r.id === activityId)?.group_ids || []).map(code).join(", ");
+  const draftName = (r: ScheduleRun) => `${r.name || (ar ? "مسودة" : "Draft")} · ${new Date(r.created_at).toLocaleString(ar ? "ar-EG" : "en-GB")}`;
   const others = runs.filter(r => r.id !== run.id && r.status === "completed");
   async function act(action: () => Promise<void>) {
     setBusy(true); setMessage("");
@@ -47,9 +52,9 @@ export function ScenarioActions({ ws, run, runs, lang, reload, select }: { ws: W
       <div className="form-grid">
         <label>{ar ? "الحصة" : "Session"}<select value={move.session} onChange={e => setMove({ ...move, session: e.target.value })}>
           <option value="">—</option>
-          {sessions.map(a => <option key={`${a.activity_id}:${a.occurrence}`} value={`${a.activity_id}:${a.occurrence}`}>{label(a.activity_id)} #{a.occurrence + 1} · {a.day} {clock(a.start_minute)} · {label(a.room_id)}</option>)}
+          {sessions.map(a => <option key={`${a.activity_id}:${a.occurrence}`} value={`${a.activity_id}:${a.occurrence}`}>{label(a.activity_id)} · {groupsOf(a.activity_id)} · {dayName(a.day)} {clock(a.start_minute)} · {label(a.room_id)}</option>)}
         </select></label>
-        <label>{ar ? "اليوم" : "Day"}<select value={move.day} onChange={e => setMove({ ...move, day: e.target.value })}><option value="">{ar ? "بدون تغيير" : "Keep"}</option>{cal.days.map(d => <option key={d} value={d}>{d}</option>)}</select></label>
+        <label>{ar ? "اليوم" : "Day"}<select value={move.day} onChange={e => setMove({ ...move, day: e.target.value })}><option value="">{ar ? "بدون تغيير" : "Keep"}</option>{cal.days.map(d => <option key={d} value={d}>{dayName(d)}</option>)}</select></label>
         <label>{ar ? "البداية" : "Start"}<select value={move.start} onChange={e => setMove({ ...move, start: e.target.value })}><option value="">{ar ? "بدون تغيير" : "Keep"}</option>{starts.map(s => <option key={s} value={s}>{clock(s)}</option>)}</select></label>
         <label>{ar ? "القاعة" : "Room"}<select value={move.room} onChange={e => setMove({ ...move, room: e.target.value })}><option value="">{ar ? "بدون تغيير" : "Keep"}</option>{records.filter(r => r.kind === "rooms").map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
       </div>
@@ -60,16 +65,18 @@ export function ScenarioActions({ ws, run, runs, lang, reload, select }: { ws: W
         if (move.room) change.room_id = move.room;
         const made = await api<{ id: string }>(`/schedules/${run.id}/edits`, "POST", { request_key: crypto.randomUUID(), changes: [change] });
         await reload(); select(made.id);
-        setMessage(ar ? "تم حفظ التعديل كمسودة جديدة بعد التحقق." : "Saved as a new validated draft. The original is unchanged.");
+        // This panel remounts for the new draft, so the page shows the confirmation.
+        notify(ar ? "تم حفظ التعديل كمسودة جديدة بعد التحقق. المسودة الأصلية لم تتغير." : "Saved as a new validated draft. The original is unchanged.");
       })}>{t("editSession")}</button>
     </details>
     {others.length > 0 && <details><summary>{t("compare")}</summary>
-      <label>{ar ? "قارن مع" : "Compare with"}<select value={other} onChange={e => setOther(e.target.value)}><option value="">—</option>{others.map(r => <option key={r.id} value={r.id}>{r.name || new Date(r.created_at).toLocaleString(ar ? "ar-EG" : "en-GB")}</option>)}</select></label>
+      <label>{ar ? "قارن مع" : "Compare with"}<select value={other} onChange={e => setOther(e.target.value)}><option value="">—</option>{others.map(r => <option key={r.id} value={r.id}>{draftName(r)}</option>)}</select></label>
       <button className="btn white" disabled={busy || !other} onClick={() => void act(async () => setComparison(await api<Comparison>(`/schedule-comparisons?a=${run.id}&b=${other}`)))}>{t("compare")}</button>
       {comparison && <div>
         <table className="source-timetable-table"><thead><tr><th></th><th>{comparison.a.name || (ar ? "هذه المسودة" : "This draft")}</th><th>{comparison.b.name || (ar ? "الأخرى" : "Other")}</th></tr></thead>
           <tbody>{Object.keys(comparison.a.metrics).filter(k => k !== "same_inputs").map(k => <tr key={k}><td>{k.replace(/_/g, " ")}</td><td>{comparison.a.metrics[k]}</td><td>{comparison.b.metrics[k]}</td></tr>)}</tbody></table>
-        <p>{comparison.moved_sessions.length} {ar ? "حصص تغيرت" : "sessions differ"} · <small>{comparison.note}</small></p>
+        <p>{comparison.moved_sessions.length === 1 ? (ar ? "حصة واحدة تغيرت" : "1 session differs") : `${comparison.moved_sessions.length} ${ar ? "حصص تغيرت" : "sessions differ"}`} · <small>{comparison.note}</small></p>
+        <ul>{comparison.moved_sessions.slice(0, 12).map(m => <li key={`${m.activity_id}:${m.occurrence}`}>{label(m.activity_id)} · {groupsOf(m.activity_id)}: {m.changed.map(f => ({ day: ar ? "اليوم" : "day", start_minute: ar ? "الوقت" : "time", end_minute: "", room_id: ar ? "القاعة" : "room", instructor_id: ar ? "المدرس" : "instructor" } as Record<string, string>)[f]).filter(Boolean).join(", ")}</li>)}</ul>
       </div>}
     </details>}
     {message && <p role="status">{message}</p>}

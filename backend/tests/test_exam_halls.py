@@ -88,3 +88,14 @@ def test_exam_api_assigns_halls_and_tas(environment):
     fresh = client.post('/api/exam-schedules', headers=version(client), json={'start_date': '2026-10-20', 'end_date': '2026-10-22', 'time_limit_seconds': 5}).json()
     assert client.post(f"/api/exam-schedules/{fresh['id']}/publish", headers=version(client)).status_code == 200
     assert next(r for r in client.get('/api/exam-schedules').json() if r['id'] == fresh['id'])['published_at']
+
+    # Instructors see the exams of the courses they teach as well as invigilation duties.
+    from app.models import User
+    from app.security import hash_password
+    teacher = next(r for r in client.get('/api/workspace').json()['records'] if r['code'] == 'TA1')
+    with factory.begin() as db:
+        db.get(CourseCatalog, 'alg').eligibility = {'lecture': [], 'tutorial': [teacher['id']], 'lab': []}
+        db.add(User(id='ta-user', email='ta1@example.test', name='TA One', role='instructor', instructor_id=teacher['id'], password=hash_password('test-password-123')))
+    login(client, 'ta1@example.test')
+    roles = {(e['course_code'], e['role']) for e in client.get('/api/me/schedule').json()['exams']}
+    assert ('ALG', 'course') in roles

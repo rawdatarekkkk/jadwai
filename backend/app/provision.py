@@ -75,6 +75,13 @@ def provision():
         )
         conn.exec_driver_sql("GRANT SELECT,UPDATE ON schedule_run TO jadwai_worker")
     engine.dispose()
+    # Only record URLs for the database this .env already describes. Provisioning
+    # another database (for example a demo) must not repoint the live app at it.
+    current = values.get("DATABASE_ADMIN_URL") or values.get("DATABASE_URL")
+    target = make_url(owner)
+    if current and (lambda u: (u.host, u.port, u.database))(make_url(current)) != (target.host, target.port, target.database):
+        print(f"Provisioned roles for database {target.database}; .env left unchanged (it describes another database).")
+        return
     values["DATABASE_ADMIN_URL"] = owner
     envfile.write_text("\n".join(f"{k}={v}" for k, v in values.items()) + "\n")
     envfile.chmod(0o600)

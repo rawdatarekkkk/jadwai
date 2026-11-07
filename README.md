@@ -39,7 +39,7 @@ After updating, apply migrations 0027–0029 with `bash scripts/setup.sh` (it al
 Requirements: Python 3.14, Node.js 22+, Docker with Compose. The first setup downloads dependencies.
 
 ```sh
-cd "/Users/apple/Documents/ChatGPT/Bachelor cdx/jadwai"
+cd ~/Downloads/jadwai
 bash scripts/setup.sh
 bash scripts/dev.sh
 ```

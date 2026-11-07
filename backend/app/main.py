@@ -1,3 +1,4 @@
+import os
 from uuid import uuid4
 
 from fastapi import Depends, FastAPI, Request, Response
@@ -24,6 +25,14 @@ from app.schemas import CalendarInput, RuleInput
 from app.schedules import router as schedules_router
 
 app = FastAPI(title="JadwAI API", version="0.2.0")
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    """The API has no page of its own; send browsers to the website."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(os.environ.get("JADWAI_WEB_URL", "http://127.0.0.1:5180"))
+
 app.include_router(accounts_router)
 app.include_router(import_router)
 app.include_router(locks_router)

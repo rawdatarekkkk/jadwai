@@ -254,3 +254,9 @@ def test_invalid_rules(environment, updates):
         ).status_code
         == 422
     )
+
+
+def test_api_root_sends_browsers_to_the_website(environment):
+    client, _ = environment
+    response = client.get('/', follow_redirects=False)
+    assert response.status_code == 307 and response.headers['location'].startswith('http')

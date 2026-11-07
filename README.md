@@ -80,6 +80,15 @@ Use **Semester settings** to edit the term, optional paired dates, timezone, tea
 
 Under **Academic data**, choose a category, then **Import CSV**. The dialog shows exact headers. Activity imports resolve existing instructor and group codes. Separate multiple codes/equipment names with `|`. Limits: 500 rows and 1 MB. Preview is read-only; commit revalidates every row against the preview version and writes either all rows or none.
 
+### Real data from the Winter 2026 workbook
+
+1. `cd backend && .venv/bin/python ../scripts/make_data_template.py` writes `data-entry/JadwAI-data-template.xlsx` from the imported workbook data: every room, group (programme, semester, stream, group number) and course is already listed. `data-entry/` is git-ignored.
+2. Fill the yellow cells: room capacities and uses, staff (code, name, position `doctor`/`ta`, day off), group sizes, and per course the weekly lectures/tutorials/labs, minutes, doctors, TAs and room features. Row 2 of each sheet is an example and is skipped.
+3. Check it (read-only): `.venv/bin/python ../scripts/import_data_template.py ../data-entry/JadwAI-data-template.xlsx`. Every problem is listed with its sheet and row, including TAs who teach nothing.
+4. Import it: add `--commit`. The importer signs in with `JADWAI_EMAIL`/`JADWAI_PASSWORD` (`JADWAI_URL` defaults to the live API on port 8010), writes a JSON backup to `backups/` first, then creates or updates records by code.
+
+The full university is about 2,700 weekly sessions, more than the solver's 600-session limit per run; generate per faculty.
+
 ## Runtime database separation
 
 Setup keeps `DATABASE_ADMIN_URL` for migrations and provisioning, and creates separate `DATABASE_URL` and `WORKER_DATABASE_URL` credentials for restricted runtime roles. The API may append audit events but cannot alter/delete them or create schema objects. The worker may write its heartbeat and clean expired credentials; it cannot modify academic inputs. Normal development processes omit migration-owner and bootstrap-password credentials.

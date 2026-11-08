@@ -26,9 +26,15 @@ NEGATIVE = ("can't", 'cant', 'cannot', 'can not', 'not available', 'unavailable'
             'not teach', "doesn't teach", "don't teach", 'not free', 'busy', 'off on', 'day off', 'avoid', 'not be scheduled', 'never',
             'not on', 'no teaching', 'closed', 'under maintenance', 'not usable', 'blocked',
             'لا يستطيع', 'لا تستطيع', 'لا يمكن', 'غير متاح', 'غير متاحة', 'مش فاضي', 'مش فاضية', 'مشغول', 'مشغولة', 'لا محاضرات',
-            'مفيش محاضرات', 'بدون محاضرات', 'إجازة', 'اجازة', 'مغلق', 'مغلقة', 'لا يدرس', 'لا تدرس', 'ممنوع')
+            'مفيش محاضرات', 'بدون محاضرات', 'إجازة', 'اجازة', 'مغلق', 'مغلقة', 'لا يدرس', 'لا تدرس', 'ممنوع',
+            # Egyptian and English negations found missing on development data
+            'مش متاح', 'مش متاحة', 'مش هيقدر', 'مش هتقدر', 'مش هقدر', 'مينفعش', 'ماينفعش', 'ما ينفعش', 'مش ممكن',
+            'do not schedule', "don't schedule", 'no scheduling', 'must not')
 PREFER = ('prefer', 'prefers', 'would like', 'likes to', 'rather', 'ideally', 'يفضل', 'تفضل', 'يحب', 'تحب', 'يفضّل')
-ONLY = ('only', 'just', 'must be on', 'must be between', 'فقط', 'بس')
+ONLY = ('only', 'just', 'must be on', 'must be between', 'must fit', 'no other time', 'no other times', 'فقط', 'بس', 'لازم يكون', 'لازم تكون')
+TEACHING_WORDS = ('teach', 'teaching', 'lecture', 'instructor', 'dr.', 'dr ', 'prof', 'doctor', 'يدرس', 'تدرس', 'التدريس', 'دكتور', 'دكتورة', 'د.', 'معيد', 'معيدة')
+VAGUE_EARLY = ('early', 'earlier', 'بدري', 'مبكر', 'مبكرا')
+VAGUE_LATE = ('late', 'later', 'متأخر', 'متاخر')
 SAME_DAY = ('not on the same day', 'not the same day', 'different days', 'separate days', 'same day', 'نفس اليوم', 'أيام مختلفة', 'ايام مختلفة')
 ROOM_WORDS = ('in room', 'in the', 'room', 'lab ', 'hall', 'must be in', 'needs', 'held in', 'في قاعة', 'في معمل', 'قاعة', 'معمل', 'مدرج')
 ARABIC_DIGITS = str.maketrans('٠١٢٣٤٥٦٧٨٩', '0123456789')
@@ -276,8 +282,10 @@ def parse(text, context):
         if not groups:
             clarify.append(f'no_groups_in_year_{year.group(1)}')
     ambiguous = amb_i + amb_g + amb_r + amb_a
-    for word in ambiguous:
-        clarify.append(f'ambiguous_name:{word}')
+    # Stable question codes (annotation guide v2): which kind of name is ambiguous, not the word itself.
+    for words, code in ((amb_i, 'ambiguous_instructor'), (amb_g, 'ambiguous_group'), (amb_r, 'ambiguous_room'), (amb_a, 'ambiguous_activity')):
+        if words:
+            clarify.append(code)
     for kind_word, kind in (('lab', 'lab'), ('معمل', 'lab'), ('tutorial', 'tutorial'), ('سكشن', 'tutorial'), ('lecture', 'lecture'), ('محاضرة', 'lecture')):
         if mentions(text, kind_word) and any(a.get('data', a)['activity_type'] == kind for a in activities):
             activities = [a for a in activities if a.get('data', a)['activity_type'] == kind]
@@ -319,13 +327,21 @@ def parse(text, context):
         negative = any(normalise(p) in text for p in NEGATIVE)
         prefer = any(normalise(p) in text for p in PREFER)
         only = any(normalise(p) in text for p in ONLY)
-        if not (negative or prefer or only or days or window):
+        vague = next((code for words, code in ((VAGUE_EARLY, 'undefined_early'), (VAGUE_LATE, 'undefined_late')) if any(mentions(text, normalise(w)) for w in words)), None)
+        if vague and not window:
+            clarify.append(vague)  # "early" is not a time; ask instead of guessing one
+        elif not (negative or prefer or only or days or window):
             unsupported.append('unrecognised_request')
         elif not (instructors or groups or rooms or activities):
             if not ambiguous:
-                clarify.append('missing_target')
+                # A person was meant but no instructor of that name exists.
+                clarify.append('unknown_instructor' if any(normalise(w) in text for w in TEACHING_WORDS) else 'missing_target')
         elif not days and not window:
-            clarify.append('missing_day_or_time')
+            clarify.append('day_required')
+        elif not (negative or prefer or only):
+            clarify.append('rule_type_and_strength_required')  # "Nour Hassan, Sunday, 08:00-10:00": closed, preferred or only?
+        elif window and not days and not prefer and not any(phrase in text for phrase in EVERY_DAY):
+            clarify.append('day_required')  # a mandatory time without a day: never assume every day
         else:
             start, end = window or whole_day
             inner = allowed or whole_day  # for allowed and preferred windows

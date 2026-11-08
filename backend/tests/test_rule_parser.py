@@ -59,7 +59,7 @@ def test_generic_words_in_group_names_are_not_ambiguous():
 
 def test_ambiguous_first_name_asks_for_clarification():
     output = parse('Ahmed cannot teach on Sunday', CONTEXT)
-    assert output['decision'] == 'clarify' and output['clarifications'] == ['ambiguous_name:ahmed']
+    assert output['decision'] == 'clarify' and output['clarifications'] == ['ambiguous_instructor']
 
 
 def test_special_room_requirement_uses_activity_type():
@@ -91,7 +91,7 @@ def test_only_on_a_day_becomes_unavailability_elsewhere():
 
 def test_unrecognised_and_missing_target():
     assert parse('make it nice', CONTEXT)['decision'] == 'unsupported'
-    assert parse('nobody can teach on Sunday', CONTEXT)['clarifications'] == ['missing_target']
+    assert parse('nobody can teach on Sunday', CONTEXT)['clarifications'] == ['unknown_instructor']
 
 
 def test_interpret_endpoint_stores_reviewable_proposal(environment):
@@ -141,7 +141,7 @@ def test_arabic_text_finds_instructors_stored_with_english_names():
 
 def test_arabic_first_name_shared_by_two_people_asks_which():
     out = parse('سارة مش فاضية يوم الحد', ENGLISH_NAMED)
-    assert out['decision'] == 'clarify' and any(c.startswith('ambiguous_name') for c in out['clarifications'])
+    assert out['decision'] == 'clarify' and out['clarifications'] == ['ambiguous_instructor']
 
 
 def test_everyday_arabic_words_are_not_read_as_names():
@@ -153,3 +153,20 @@ def test_everyday_arabic_words_are_not_read_as_names():
 def test_each_day_after_named_days_means_those_days():
     out = parse('Dr. Ahmed Hassan is unavailable Monday and Tuesday from 08:00 to 10:00 on each day', CONTEXT)
     assert sorted(p['data']['day'] for p in out['proposals']) == ['Monday', 'Tuesday']
+
+
+def test_questions_use_the_annotation_guide_codes():
+    ask = lambda text: parse(text, CONTEXT)['clarifications']
+    assert ask('Dr. Ahmed Hassan cannot teach from 08:00 to 10:00') == ['day_required']
+    assert ask('Dr. Ahmed Hassan, Sunday, 08:00-10:00') == ['rule_type_and_strength_required']
+    assert ask('Mona Adel cannot teach Sunday 08:00-10:00') == [] and ask('Nour Fathy cannot teach Sunday 08:00-10:00') == ['unknown_instructor']
+    assert ask('Schedule Dr. Ahmed Hassan early') == ['undefined_early']
+    # A preference without a day still means every day; so does an explicit "every day".
+    assert parse('Dr. Ahmed Hassan prefers mornings', CONTEXT)['decision'] == 'ready'
+    assert parse('Dr. Ahmed Hassan cannot teach before 10 every day', CONTEXT)['decision'] == 'ready'
+
+
+def test_egyptian_negations_are_closures_not_only_windows():
+    for text in ('Dr. Ahmed Hassan مش متاح Sunday من 08:00 لـ10:00', 'Do not schedule CS1-G1 on Sunday between 14:00 and 16:00'):
+        out = parse(text, CONTEXT)
+        assert out['decision'] == 'ready' and out['proposals'][0]['data']['type'] in ('unavailable', 'group_unavailable'), out

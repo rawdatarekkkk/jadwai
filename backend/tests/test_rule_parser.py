@@ -106,3 +106,45 @@ def test_interpret_endpoint_stores_reviewable_proposal(environment):
     assert review.status_code == 201, review.text
     rules = client.get('/api/workspace').json()['rules']
     assert [(r['type'], r['day'], r['end_hour'], r['status']) for r in rules] == [('unavailable', 'Monday', 10, 'draft')]
+
+
+def test_quarter_hours_never_shrink_a_closure_or_widen_an_allowed_window():
+    closed = parse('Hall 1 is closed on Thursday from 12:00 to 15:15', CONTEXT)['proposals'][0]['data']
+    assert (closed['type'], closed['start_hour'], closed['end_hour']) == ('room_unavailable', 12, 15.5)
+    preferred = parse('Dr. Ahmed Hassan prefers Sunday from 8:15 to 11:45', CONTEXT)['proposals'][0]['data']
+    assert (preferred['type'], preferred['start_hour'], preferred['end_hour']) == ('preferred_period', 8.5, 11.5)
+
+
+ENGLISH_NAMED = {'calendar': CALENDAR, 'records': [
+    {'id': 'sara-s', 'kind': 'instructors', 'data': {'name': 'Dr. Sara Saleh', 'code': 'D-1', 'position': 'doctor'}},
+    {'id': 'sara-h', 'kind': 'instructors', 'data': {'name': 'Sara Hassan', 'code': 'T-1', 'position': 'ta'}},
+    {'id': 'mahmoud', 'kind': 'instructors', 'data': {'name': 'Dr. Mahmoud Osman', 'code': 'D-2', 'position': 'doctor'}},
+    {'id': 'mona', 'kind': 'instructors', 'data': {'name': 'Mona Kamel', 'code': 'T-2', 'position': 'ta'}},
+]}
+
+
+def only_rule(text):
+    out = parse(text, ENGLISH_NAMED)
+    assert out['decision'] == 'ready', out
+    [p] = out['proposals']
+    d = p['data']
+    return d['instructor_id'], d['day'], d['start_hour'], d['end_hour']
+
+
+def test_arabic_text_finds_instructors_stored_with_english_names():
+    assert only_rule('د. سارة صالح لا تستطيع التدريس يوم الإثنين بعد 2 الظهر') == ('sara-s', 'Monday', 14, 18)
+    # Egyptian Arabic, Egyptian day name, and "من" (from) is never read as Mona.
+    assert only_rule('دكتورة سارة صالح مش فاضية يوم التلات من 8 لحد 10') == ('sara-s', 'Tuesday', 8, 10)
+    # عثمان is "Osman" in Egyptian spelling.
+    assert only_rule('محمود عثمان مش فاضي يوم الخميس') == ('mahmoud', 'Thursday', 8, 18)
+
+
+def test_arabic_first_name_shared_by_two_people_asks_which():
+    out = parse('سارة مش فاضية يوم الحد', ENGLISH_NAMED)
+    assert out['decision'] == 'clarify' and any(c.startswith('ambiguous_name') for c in out['clarifications'])
+
+
+def test_everyday_arabic_words_are_not_read_as_names():
+    out = parse('عايزين الجدول يبقى أحسن', {**ENGLISH_NAMED, 'records': ENGLISH_NAMED['records'] + [
+        {'id': 'hassan', 'kind': 'instructors', 'data': {'name': 'Hassan Lotfy', 'code': 'T-3', 'position': 'ta'}}]})
+    assert out['decision'] == 'unsupported' and not out['clarifications']

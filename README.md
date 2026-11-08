@@ -89,6 +89,8 @@ Under **Academic data**, choose a category, then **Import CSV**. The dialog show
 3. Check it (read-only): `.venv/bin/python ../scripts/import_data_template.py ../data-entry/JadwAI-data-template.xlsx`. Every problem is listed with its sheet and row, including TAs who teach nothing.
 4. Import it: add `--commit`. The importer signs in with `JADWAI_EMAIL`/`JADWAI_PASSWORD` (`JADWAI_URL` defaults to the live API on port 8010), writes a JSON backup to `backups/` first, then creates or updates records by code.
 
+5. Advising students go on the optional **Advising students** sheet: student code, name, home group, courses dropped (course codes) and courses taken with another group (`COURSE@GROUP`, a section change being a drop plus an add, separated by `|`). The check confirms each home group exists, each dropped course is one the group takes, each added course is taught to the named group, and that a course the group already takes is dropped before being added elsewhere. On `--commit` they are created or updated (matched by code) after groups and courses. Older workbooks without the sheet import unchanged.
+
 The full university is about 2,700 weekly sessions, more than the solver's 600-session limit per run; build it in parts (below).
 
 ## Runtime database separation

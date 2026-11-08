@@ -193,6 +193,8 @@ def main(target):
         'Groups: one row per tutorial/lab group with its number of students. Lectures are shared by all groups of a stream.',
         'Courses: one row per course and programme semester. Give lecture, tutorial and lab sessions per week and who may teach them:',
         '         Doctors (lectures) and TAs (tutorials and labs) as staff codes from the Staff sheet. Every TA must teach something.',
+        'Advising students: students whose courses differ from their group (retakes, section changes, electives). Home group code;',
+        '         Drop courses as course codes; Add courses as COURSE@GROUP, the group whose sessions they join (a section change is a drop and an add).',
         '',
         'When done, save the file and send it back; the importer checks every row and reports problems before changing anything.',
     ]
@@ -272,6 +274,13 @@ def main(target):
         row(ws, [c['catalog'].code if c['catalog'] else None, name, programme, semester, streams_text, 1, tuts, labs, 90,
                  None, None, None, c['catalog'].expected_students if c['catalog'] else None, c['blocks'], '; '.join(checks)],
             fill_columns=(0, 9, 10) if not c['catalog'] else (9, 10))
+    ws = sheet(wb, 'Advising students', ['Code', 'Name', 'Home group', 'Drop courses', 'Add courses', 'Check'], [14, 28, 24, 30, 46, 40],
+               {'Code': 'Student ID, at most 20 characters', 'Home group': 'Group code from the Groups sheet',
+                'Drop courses': 'Course codes the student does not take with the home group, separated by |',
+                'Add courses': 'COURSE@GROUP for each course taken with another group, separated by |'})
+    row(ws, ['EXAMPLE', 'Omar Hamed', 'INF3-ACS-I-G01', 'CSEN301', 'CSEN102@INF1-ACS-I-G03|CSEN301@INF3-ACS-I-G02', ''], example=True)
+    for _ in range(100):
+        row(ws, [None] * 6, fill_columns=(0, 1, 2, 3, 4))
     wb.move_sheet('Lists', offset=len(wb.sheetnames))
     Path(target).parent.mkdir(parents=True, exist_ok=True)
     wb.save(target)

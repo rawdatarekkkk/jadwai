@@ -114,7 +114,46 @@ def check(path, calendar):
     for code, person in staff.items():
         if person['position'] == 'ta' and code not in teaching_tas:
             problems.append(f'Staff: TA {code} ({person["name"]}) is not listed for any tutorial or lab. Every TA must teach.')
-    return {'rooms': rooms, 'staff': staff, 'groups': groups, 'courses': courses}, problems
+    advising = advising_rows(wb, groups, courses, bad)
+    return {'rooms': rooms, 'staff': staff, 'groups': groups, 'courses': courses, 'advising': advising}, problems
+
+
+def advising_rows(wb, groups, courses, bad):
+    """Advising students: a home group plus courses dropped and courses taken with another group.
+
+    Optional sheet (older workbooks have none). Drop: course codes. Add: COURSE@GROUP, the group
+    whose sessions the student joins."""
+    if 'Advising students' not in wb.sheetnames:
+        return []
+    taught = defaultdict(set)  # course code -> group codes that take it
+    for c in courses:
+        for codes in c['streams'].values():
+            taught[c['code']].update(codes)
+    found, seen = [], set()
+    for n, r in rows(wb, 'Advising students'):
+        code, home = str(r['Code'] or '').strip(), str(r['Home group'] or '').strip()
+        name = str(r['Name'] or '').strip()
+        drops = split(r['Drop courses'])
+        adds = [tuple(x.split('@', 1)) if '@' in x else (x, '') for x in split(r['Add courses'])]
+        if not code or not name: bad('Advising students', n, 'code and name are required'); continue
+        if len(code) > 20: bad('Advising students', n, 'code must be at most 20 characters')
+        if code.casefold() in seen: bad('Advising students', n, f'student {code} appears twice')
+        seen.add(code.casefold())
+        if home not in groups: bad('Advising students', n, f'home group {home or "(empty)"} is not on the Groups sheet'); continue
+        if not drops and not adds: bad('Advising students', n, 'list at least one dropped or added course')
+        if len(drops) + len(adds) > 30: bad('Advising students', n, 'at most 30 course changes')
+        for course in drops:
+            if course not in taught: bad('Advising students', n, f'dropped course {course} is not on the Courses sheet')
+            elif home not in taught[course]: bad('Advising students', n, f'{home} does not take {course}, so it cannot be dropped')
+        for course, group in adds:
+            if not group: bad('Advising students', n, f'write the added course as COURSE@GROUP ({course}@...)')
+            elif course not in taught: bad('Advising students', n, f'added course {course} is not on the Courses sheet')
+            elif group not in groups: bad('Advising students', n, f'group {group} is not on the Groups sheet')
+            elif group not in taught[course]: bad('Advising students', n, f'{group} does not take {course}')
+            elif home in taught[course] and course not in drops: bad('Advising students', n, f'{home} already takes {course}; drop it too to take it with {group}')
+        if len({c for c, _ in adds}) < len(adds) or len(set(drops)) < len(drops): bad('Advising students', n, 'a course is listed twice')
+        found.append({'row': n, 'code': code, 'name': name[:100], 'home': home, 'drops': drops, 'adds': [a for a in adds if a[1]]})
+    return found
 
 
 class Api:
@@ -152,7 +191,7 @@ def commit(plan, api):
                 api.write('PUT', f'/records/{kind}/{current["id"]}', body, f'{kind} {code}'); ids[code] = current['id']
             else:
                 ids[code] = api.write('POST', f'/records/{kind}', body, f'{kind} {code}')['id']
-    by_code = defaultdict(list)
+    by_code, course_ids = defaultdict(list), {}
     for course in plan['courses']:
         by_code[course['code']].append(course)
     made = 0
@@ -168,6 +207,7 @@ def commit(plan, api):
                 'expected_students': next((c['expected'] for c in rows_ if c['expected']), None)}
         current = catalog.get(code.casefold())
         course_id = api.write('PUT', f'/course-catalog/{current["id"]}', {**body, 'name': current['name']}, f'course {code}')['id'] if current else api.write('POST', '/course-catalog', body, f'course {code}')['id']
+        course_ids[code] = course_id
         for c in rows_:
             for stream, codes in c['streams'].items():
                 if c['counts']['lecture']:
@@ -181,7 +221,25 @@ def commit(plan, api):
                         api.write('POST', '/records/courses', {'course_id': course_id, 'name': c['name'], 'code': f'{code[:12]}-A{made}', 'activity_type': kind,
                                   'sessions': c['counts'][kind], 'duration': c['minutes'], 'eligible_instructors': [ids[t] for t in c['tas']],
                                   'group_ids': [ids[g]], 'required_equipment': c['features'] if kind == 'lab' else []}, f'{code} {kind} ({g})')
-    print(f'Imported {len(plan["rooms"])} rooms, {len(plan["staff"])} staff, {len(plan["groups"])} groups, {len(by_code)} courses, {made} activities. Backup: {backup}')
+    students = commit_advising(plan.get('advising', []), ids, course_ids, api)
+    print(f'Imported {len(plan["rooms"])} rooms, {len(plan["staff"])} staff, {len(plan["groups"])} groups, {len(by_code)} courses, {made} activities, {students} advising students. Backup: {backup}')
+
+
+def commit_advising(students, ids, course_ids, api):
+    """Create or update advising students (matched by code) after their groups and courses exist."""
+    if not students:
+        return 0
+    existing = {s['code'].casefold(): s for s in api.get('/advising-students')['students']}
+    for s in students:
+        body = {'code': s['code'], 'name': s['name'], 'group_id': ids[s['home']],
+                'changes': [{'action': 'drop', 'course_id': course_ids[c], 'group_id': None} for c in s['drops']]
+                           + [{'action': 'add', 'course_id': course_ids[c], 'group_id': ids[g]} for c, g in s['adds']]}
+        current = existing.get(s['code'].casefold())
+        if current:
+            api.write('PUT', f'/advising-students/{current["id"]}', body, f'advising student {s["code"]}')
+        else:
+            api.write('POST', '/advising-students', body, f'advising student {s["code"]}')
+    return len(students)
 
 
 def main():
@@ -195,7 +253,7 @@ def main():
         print('\n'.join('  ' + p for p in problems[:200]))
         sys.exit(1)
     sessions = sum((c['counts']['lecture'] * len(c['streams'])) + sum(c['counts'][k] * sum(len(v) for v in c['streams'].values()) for k in ('tutorial', 'lab')) for c in plan['courses'])
-    print(f'OK: {len(plan["rooms"])} rooms, {len(plan["staff"])} staff, {len(plan["groups"])} groups, {len(plan["courses"])} course rows, {sessions} weekly sessions.')
+    print(f'OK: {len(plan["rooms"])} rooms, {len(plan["staff"])} staff, {len(plan["groups"])} groups, {len(plan["courses"])} course rows, {sessions} weekly sessions, {len(plan["advising"])} advising students.')
     if '--commit' in sys.argv:
         commit(plan, api)
 

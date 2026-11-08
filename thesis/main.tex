@@ -150,9 +150,9 @@ or measured.
 \hypertarget{university-timetabling}{%
 \section{University timetabling}\label{university-timetabling}}
 
-University timetabling shapes whether students can attend required classes and assessments and whether staff can deliver them within the institution's available time and facilities. An overlapping required lecture can prevent attendance; an unsuitable room can prevent a planned laboratory activity; poorly coordinated examination dates can conflict with local assessment rules. These are educational and administrative problems before they are computational ones. Course timetabling organises repeated teaching activities, while examination timetabling organises assessment events, with different room and calendar requirements (Petrovic \& Burke, 2004$\dagger$).
+University timetabling shapes whether students can attend required classes and assessments and whether staff can deliver them within the institution's available time and facilities. An overlapping required lecture can prevent attendance; an unsuitable room can prevent a planned laboratory activity; poorly coordinated examination dates can conflict with local assessment rules. These are educational and administrative problems before they are computational ones. Course timetabling organises repeated teaching activities, while examination timetabling organises assessment events, with different room and calendar requirements~\cite{petrovic2004university}.
 
-The five retained timetabling papers illustrate different priorities. Sobh, Cousens and Patel (n.d.$\dagger$) focus on offering course combinations that meet students' degree requirements. Müller, Rudová and Müllerová (2025) describe the need to attend compatible lectures, seminars and laboratories, including travel between locations. Abdennadher and Edward (n.d.$\dagger$) consider examination clashes, retakes, core-exam limits and spacing between difficult examinations at GUC. Kaya (2026) includes institutional-scale examination revision and coordinator control.
+The five retained timetabling papers illustrate different priorities. Sobh, Cousens and Patel~\cite{sobh_course_scheduler} focus on offering course combinations that meet students' degree requirements. Müller, Rudová and Müllerová~\cite{muller2025itc} describe the need to attend compatible lectures, seminars and laboratories, including travel between locations. Abdennadher and Edward~\cite{abdennadher_guc_exams} consider examination clashes, retakes, core-exam limits and spacing between difficult examinations at GUC. Kaya~\cite{kaya2026drl} includes institutional-scale examination revision and coordinator control.
 
 A mandatory rule protects a requirement that the institution has decided must hold, such as avoiding simultaneous classes for the same student group. A preference expresses a desirable arrangement, such as a preferred teaching period, which may compete with other needs. These categories and their priorities must be agreed locally. The papers primarily evaluate scheduling results; they do not justify assuming that a conflict-free timetable automatically improves learning or graduation. This study accordingly treats educational access and administrative usability as motivations and measures the outcomes within its actual scope.
 
@@ -173,11 +173,11 @@ administrator\textquotesingle s intention.
 
 In the five timetabling papers reviewed, this translation step is not itself
 studied. Constraints are encoded by developers in declarative programs
-(Abdennadher \& Edward, n.d.†),
-supplied in standard benchmark formats (Müller et al., 2025), formalised
-by researchers for a given institution (Kaya, 2026), set as weights by
-the timetable officer (Petrovic \& Burke, 2004†), or entered by
-instructors choosing time slots (Sobh, Cousens \& Patel, n.d.†).
+\cite{abdennadher_guc_exams},
+supplied in standard benchmark formats~\cite{muller2025itc}, formalised
+by researchers for a given institution~\cite{kaya2026drl}, set as weights by
+the timetable officer~\cite{petrovic2004university}, or entered by
+instructors choosing time slots~\cite{sobh_course_scheduler}.
 Existing systems offer form-based entry, which is precise but laborious.
 An observation recorded in the project specification from a walkthrough
 of the public UniTime demonstration on 4 October 2026 (a sample dataset
@@ -201,10 +201,10 @@ necessarily a correct interpretation; models may invent entities or
 silently choose thresholds; and a correct extraction does not make a
 schedule valid. Recent work on LLMs in scheduling indicates that wording
 affects constraint faithfulness when models are asked to \emph{produce}
-schedules from text (Sharma \& Sharma, 2026; preprint), and that
+schedules from text~\cite{sharma2026schedbench} (preprint), and that
 small-scale attempts to convert user preferences into optimisation
-constraints in other domains are still preliminary (arXiv:2503.21360;
-preprint, Sanguinetti et al., 2025). These sources concern different tasks
+constraints in other domains are still preliminary~\cite{sanguinetti2025preferences}
+(preprint). These sources concern different tasks
 and settings; they motivate care and measurement, not a conclusion about
 university timetabling.
 
@@ -221,9 +221,9 @@ The five reviewed timetabling papers provide evidence about scheduling needs and
 Within the five retained timetabling papers, constraint acquisition is a developer or
 administrator task and is not evaluated as a research problem (Chapter~\ref{literature-review}). The additional LLM-related sources verified so far address
 different questions: LLMs solving scheduling problems described in text
-(Sharma \& Sharma, 2026), a pilot on appliance scheduling in Italian
-(Sanguinetti et al., 2025), and a benchmark of LLMs writing constraint
-models from problem descriptions (Michailidis, Tsouros \& Guns, 2025),
+\cite{sharma2026schedbench}, a pilot on appliance scheduling in Italian
+\cite{sanguinetti2025preferences}, and a benchmark of LLMs writing constraint
+models from problem descriptions~\cite{michailidis2025cpbench},
 whose task differs because the output is a general constraint program
 with no institutional data to resolve against and no review step. The
 gap addressed here is therefore the \emph{evaluation of
@@ -331,7 +331,7 @@ The review is a focused reading of five retained timetabling papers and one addi
 
 \section{Course planning and access to required teaching}
 \subsection{Sobh, Cousens and Patel: Course Scheduler}
-\textbf{Educational problem and beneficiaries.} Sobh, Cousens and Patel (n.d.$\dagger$) address the difficulty of deciding which courses to offer and when to offer them so that students can meet degree requirements. Their motivating example is a senior student with only a small set of remaining courses: an unsuitable offering or a clash can obstruct completion of the degree. The primary operator is the department chairperson or administrator; instructors contribute availability and teaching preferences, while students benefit indirectly through access to suitable course combinations (supplied PDF, pp.~1--2).
+\textbf{Educational problem and beneficiaries.} Sobh, Cousens and Patel~\cite{sobh_course_scheduler} address the difficulty of deciding which courses to offer and when to offer them so that students can meet degree requirements. Their motivating example is a senior student with only a small set of remaining courses: an unsuitable offering or a clash can obstruct completion of the degree. The primary operator is the department chairperson or administrator; instructors contribute availability and teaching preferences, while students benefit indirectly through access to suitable course combinations (supplied PDF, pp.~1--2).
 
 \textbf{Implemented capabilities and educational requirements.} The described suite combines student course requirements with instructor teaching capabilities and load limits to identify possible course offerings. Instructors select teaching times and rank possible course sets. Administrators inspect schedule viability, view specific student conflicts, and adjust course times through the interfaces. The tool gives feedback on which student requirements a proposed schedule satisfies. Thus, its educational emphasis is course access and progression, rather than merely filling a weekly grid (pp.~12--17).
 
@@ -339,8 +339,8 @@ The review is a focused reading of five retained timetabling papers and one addi
 
 \textbf{Implications for this project.} A useful timetable must protect access to required teaching and explain conflicts in terms an administrator can act on. This supports conflict reporting, review, and safe manual adjustment in the proposed project. However, the proposed prototype starts with predefined course activities and student groups. It does not select semester course offerings, optimise degree completion, or provide individual enrolment-based schedules unless those extensions are approved.
 
-\subsection{Müller, Rudová and Müllerová (2025): real-world course timetabling}
-\textbf{Educational problem and beneficiaries.} Müller et al. (2025) examine the diversity of real university course-timetabling needs through ITC~2019. The central educational issue is whether students can attend the required combination of lectures, seminars, and laboratories. Beneficiaries include students seeking compatible class combinations and administrators coordinating teaching across faculties, buildings, and institutional calendars.
+\subsection{Müller, Rudová and Müllerová: real-world course timetabling}
+\textbf{Educational problem and beneficiaries.} Müller et al.~\cite{muller2025itc} examine the diversity of real university course-timetabling needs through ITC~2019. The central educational issue is whether students can attend the required combination of lectures, seminars, and laboratories. Beneficiaries include students seeking compatible class combinations and administrators coordinating teaching across faculties, buildings, and institutional calendars.
 
 \textbf{Capabilities represented in the study.} The paper describes thirty benchmark instances from ten universities using UniTime in practice. The competition model combines class time and room assignment with student sectioning: students must be assigned the appropriate class types and compatible lecture--seminar or lecture--laboratory combinations. It represents room capacities and unavailable periods, repeated meetings and week patterns, travel time between rooms, and requirements on gaps, breaks, teaching days, and daily load (journal pp.~248--250). A student conflict can arise from either overlapping classes or insufficient travel time. These are requirements represented by the benchmark and contributing institutions; the paper is not presenting a newly tested interface for all these functions.
 
@@ -352,7 +352,7 @@ The review is a focused reading of five retained timetabling papers and one addi
 
 \section{Examination access, workload and institutional coordination}
 \subsection{Abdennadher and Edward: examination timetabling at GUC}
-\textbf{Educational problem and beneficiaries.} Abdennadher and Edward (n.d.$\dagger$) describe examination scheduling at the German University in Cairo. At the time described, manual course scheduling reportedly took about three weeks and examination scheduling about one week. Shared courses and resources across faculties made separate faculty schedules unsuitable. Examination administrators are the direct users; students benefit from schedules that allow them to sit their examinations, including examinations retaken from earlier semesters (supplied PDF, pp.~1--3).
+\textbf{Educational problem and beneficiaries.} Abdennadher and Edward~\cite{abdennadher_guc_exams} describe examination scheduling at the German University in Cairo. At the time described, manual course scheduling reportedly took about three weeks and examination scheduling about one week. Shared courses and resources across faculties made separate faculty schedules unsuitable. Examination administrators are the direct users; students benefit from schedules that allow them to sit their examinations, including examinations retaken from earlier semesters (supplied PDF, pp.~1--3).
 
 \textbf{Implemented capabilities and educational requirements.} The system assigns examinations to periods, distributes students among rooms and seats, and displays results through a graphical interface. Its requirements include avoiding simultaneous exams for the same group, preventing semester clashes within a major to accommodate retakes, allowing no more than one core exam per day, limiting daily examinations, separating difficult examinations, respecting available seats, and supporting fixed and unavailable periods. Difficulty ratings are described as supplied by lecturers and students. These features connect scheduling to assessment workload and access; they should not be interpreted as evidence that the software itself determines pedagogically appropriate difficulty ratings (pp.~3--7).
 
@@ -360,8 +360,8 @@ The review is a focused reading of five retained timetabling papers and one addi
 
 \textbf{Implications for this project.} The paper supports clear distinctions between student access rules, assessment-spacing rules, and resource restrictions. It also motivates collecting local institutional requirements rather than copying another university's rules. Examination spacing and retake accommodation are relevant if an examination extension is approved; they are not automatically requirements for the current weekly course-timetabling scope.
 
-\subsection{Kaya (2026): multi-campus examination decision support}
-\textbf{Educational problem and beneficiaries.} Kaya (2026) addresses large-scale examination scheduling at a multi-campus Turkish university. Examinations have different durations, and many cohorts require more seats than a single room provides. Coordinators need to organise examinations within campus and facility restrictions while maintaining compatible assessment schedules. Students and teaching staff are affected by the resulting placements, although coordinators are the direct decision-support users.
+\subsection{Kaya: multi-campus examination decision support}
+\textbf{Educational problem and beneficiaries.} Kaya~\cite{kaya2026drl} addresses large-scale examination scheduling at a multi-campus Turkish university. Examinations have different durations, and many cohorts require more seats than a single room provides. Coordinators need to organise examinations within campus and facility restrictions while maintaining compatible assessment schedules. Students and teaching staff are affected by the resulting placements, although coordinators are the direct decision-support users.
 
 \textbf{Implemented capabilities and educational requirements.} The reported framework handles duration-based placements, allocation across multiple rooms, room types and capacities, campus restrictions, instructor availability, and cohort non-overlap. Its institutional decision-support workflow lets coordinators reopen selected examinations and revise placements while preserving locked assignments. The paper describes selecting courses, moving placements, accepting suggestions, and approving a schedule (Sections~4.7 and 5.11--5.12). These capabilities matter because institutional timetables are revised and reviewed rather than simply generated once.
 
@@ -371,7 +371,7 @@ The review is a focused reading of five retained timetabling papers and one addi
 
 \section{University timetabling as an institutional decision}
 \subsection{Petrovic and Burke: University Timetabling}
-\textbf{Problem and beneficiaries.} Petrovic and Burke (2004$\dagger$) review university course and examination timetabling as a major administrative activity. Their chapter concerns the interests of timetable officers, students and teachers, particularly the difficulty of satisfying different institutional priorities within limited resources (supplied PDF, pp.~2--3).
+\textbf{Problem and beneficiaries.} Petrovic and Burke~\cite{petrovic2004university} review university course and examination timetabling as a major administrative activity. Their chapter concerns the interests of timetable officers, students and teachers, particularly the difficulty of satisfying different institutional priorities within limited resources (supplied PDF, pp.~2--3).
 
 \textbf{Capabilities discussed.} The chapter reviews approaches to constructing feasible schedules, balancing several quality criteria, reusing previous scheduling experience, and adapting methods across problems. Its educational contribution to this review is the distinction between mandatory attendance and resource rules and desirable preferences, alongside recognition that those rules vary across universities. It explains why course and examination scheduling need different assumptions about repeated meetings and room use. Because this is a review chapter, these capabilities should not be presented as features implemented together in a single system.
 
@@ -380,8 +380,8 @@ The review is a focused reading of five retained timetabling papers and one addi
 \textbf{Implications for this project.} The proposed prototype should let administrators express supported local requirements, identify which are mandatory, and inspect which preferences remain unmet. The distinction is important educationally: avoiding a clash protects access, while satisfying a preferred teaching time improves convenience under a particular institutional policy. Neither should be conflated with a demonstrated change in educational achievement.
 
 \section{Natural-language preferences and faithful interpretation}
-\subsection{Sanguinetti et al. (2025): From User Preferences to Optimization Constraints Using Large Language Models}
-\textbf{Problem and beneficiaries.} Sanguinetti et al. investigate how people can express household appliance needs in ordinary language so that those needs become constraints for an energy optimizer. The motivation is that a community's energy-saving objectives may conflict with individual routines: a technically efficient recommendation is of limited use if it ignores when a person needs hot water or air conditioning. The direct beneficiaries are household users in Italian renewable energy communities. Although this is not an educational study, the same concern motivates the proposed timetable interface: an administrator's intended attendance or availability requirement must survive its translation into a formal rule (supplied PDF, pp.~1--3).
+\subsection{Sanguinetti et al.: From User Preferences to Optimization Constraints Using Large Language Models}
+\textbf{Problem and beneficiaries.} Sanguinetti et al.~\cite{sanguinetti2025preferences} investigate how people can express household appliance needs in ordinary language so that those needs become constraints for an energy optimizer. The motivation is that a community's energy-saving objectives may conflict with individual routines: a technically efficient recommendation is of limited use if it ignores when a person needs hot water or air conditioning. The direct beneficiaries are household users in Italian renewable energy communities. Although this is not an educational study, the same concern motivates the proposed timetable interface: an administrator's intended attendance or availability requirement must survive its translation into a formal rule (supplied PDF, pp.~1--3).
 
 \textbf{Capabilities studied.} The evaluated component converts Italian utterances into representations of appliance operating times or desired temperatures. It supports requests applying throughout the time horizon, within a specified interval, after a start time, or until an end time. The input includes both the utterance and manually identified preference spans marked with XML tags. The study therefore evaluates conversion of identified preferences, rather than the complete discovery of all requirements in unrestricted text. A connection to an external optimizer is described within the wider project; the paper does not establish a completed, evaluated workflow with user clarification, interpretation approval and downstream schedule validation (pp.~3--8).
 
@@ -405,7 +405,7 @@ The review is a focused reading of five retained timetabling papers and one addi
 \section{Research gap and limits of the review}
 Within the five retained timetabling papers, the educational needs are represented as predefined rules, input data, preferences or choices made through interfaces. None evaluates the proposed combination of ordinary-language requirement entry, explicit interpretation review, useful clarification, and separate measurement of interpretation accuracy for university course scheduling. This bounded observation motivates studying whether administrators can record their scheduling needs with less effort while preserving their intended meaning. It is not a claim that no related system exists anywhere. Within the sources examined, Arabic and Egyptian Arabic administrative constraint extraction is not evaluated; the Cairo examination context does not itself establish natural-language input support. This motivates language-stratified evaluation without asserting broader novelty.
 
-The additional study by Sanguinetti et al. (2025) directly evaluates preference-to-constraint conversion in another domain, so the translation task itself is not claimed as new. It does not evaluate the proposed university review workflow. Other sources cited in the introduction provide further context rather than evidence of educational effectiveness in this project. A documented search of further educational timetabling and human-centred scheduling literature is needed before making a broader novelty claim. The search should record sources, dates, inclusion criteria and screening decisions, and include terms concerning student access, administrative workload, participatory scheduling and requirement entry alongside natural-language scheduling.
+The additional study by Sanguinetti et al.~\cite{sanguinetti2025preferences} directly evaluates preference-to-constraint conversion in another domain, so the translation task itself is not claimed as new. It does not evaluate the proposed university review workflow. Other sources cited in the introduction provide further context rather than evidence of educational effectiveness in this project. A documented search of further educational timetabling and human-centred scheduling literature is needed before making a broader novelty claim. The search should record sources, dates, inclusion criteria and screening decisions, and include terms concerning student access, administrative workload, participatory scheduling and requirement entry alongside natural-language scheduling.
 
 \section{Summary}
 The reviewed literature identifies three priorities for the proposed study: protecting access to required teaching, expressing institution-specific scheduling needs, and keeping administrators informed and in control. Existing evidence mainly establishes scheduling capabilities and operational results. The methodology therefore evaluates both the correctness of recorded requirements and the effort and understanding involved in the administrative workflow, without claiming unmeasured improvements in student learning.
@@ -562,7 +562,7 @@ the vocabulary); and paraphrase variants of the above.
 \textbf{Sources of statements (to be agreed, OQ-09).} Options, which can
 be combined: (a) statements authored by the researcher from the
 constraint examples in the supplied literature (for example the exam and
-constraint lists in Abdennadher \& Edward, n.d.†) and the candidate vocabulary; (b) statements elicited
+constraint lists in~\cite{abdennadher_guc_exams}) and the candidate vocabulary; (b) statements elicited
 from scheduling staff or instructors, if access and approval are
 available; (c) wording drawn from real department communications,
 anonymised, if permitted; (d) model-assisted paraphrasing of
@@ -725,8 +725,8 @@ prevention}\label{development--validation--held-out-separation-and-leakage-preve
   stated limitation of any later re-use.
 \item
   \textbf{Prompt-sensitivity.} Because SCHEDBench-type results suggest
-  that wording and ordering can change model behaviour (Sharma \&
-  Sharma, 2026; preprint, author-reported), the dataset includes
+  that wording and ordering can change model behaviour~\cite{sharma2026schedbench}
+  (preprint, author-reported), the dataset includes
   paraphrase families, and consistency across paraphrases is reported
   (Section\textasciitilde3.9).
 \end{itemize}
@@ -740,7 +740,8 @@ Documented support for schema-constrained (structured) output; (2)
 availability through an API under terms acceptable for the data used
 (OQ-18); (3) a stable, versioned model identifier; (4) listed price and
 rate limits compatible with the budget (OQ-13); (5) context size
-sufficient for the entity context; (6) vendor diversity.
+sufficient for the entity context; (6) vendor diversity. Candidate
+models are described in their vendor documentation~\cite{openai_gpt6_luna,google_gemini38_flash,anthropic_claude_docs}.
 Open-weight/local models may be added if privacy or cost requires.
 
 \textbf{Candidate selection remains open.} Earlier planning documents contain provisional model names; these are not treated here as verified availability, supported capabilities or approved purchases. Before experiments, official provider documentation must be checked and dated for exact model identifiers, structured-output support, prices, rate limits and data terms. Candidate selection must follow the stated criteria and an approved budget. No extraction benchmark has yet been run in this project. AI tools have assisted drafting and implementation; their use will be disclosed according to university policy, with the author responsible for checking claims and experimental records.
@@ -935,8 +936,7 @@ model and compared by whether they accept the same set of candidate
 timetables (a set of fixed timetables, each checked by fixing every
 assignment variable, as in Section\textasciitilde3.11). This is reported
 separately as a secondary measure in the spirit of solution-based
-judging used in constraint-modelling benchmarks (Michailidis et al.,
-2025). It can only show equivalence on the tested timetables, not in
+judging used in constraint-modelling benchmarks~\cite{michailidis2025cpbench}. It can only show equivalence on the tested timetables, not in
 general, and is never used in place of the field-level scoring above.
 
 \hypertarget{scheduling-and-validation-metrics}{%
@@ -1004,7 +1004,7 @@ documented parameters (activities, rooms, instructors, groups, grid) and
 recorded seeds; (c) optionally, a small benchmark-derived instance with
 \emph{explicitly mapped semantics}, noting that the ITC 2019 model
 contains features (weeks, student sectioning, many distribution types)
-outside the core scope (Müller et al., 2025). {[}TBD: scale.{]} Tested
+outside the core scope~\cite{muller2025itc}. {[}TBD: scale.{]} Tested
 scale is reported with every result.
 
 \textbf{Measures.} Assignment completeness; hard violations found by the
@@ -1211,7 +1211,9 @@ on the benchmark does not imply correct schedules in deployment, and
 valid schedules do not imply correct extraction.
 
 \section{JadwAI implementation status and phased delivery (25 October 2026)}\label{implementation-status}
-JadwAI is a new application, separate from the earlier prototype; UniTime is a reference rather than a fork. Its architecture uses React/TypeScript, Python/FastAPI, PostgreSQL, SQLAlchemy/Alembic, a separate scheduling worker, OR-Tools CP-SAT and an independently implemented validator. Phase~4 is complete for the explicitly supported weekly manual scheduling baseline. This milestone does not mean that every proposed SRS variant or the complete research project is finished. Phase~5 evaluation preparation is in progress. JAI currently provides guided interface navigation, not LLM extraction.
+\emph{Measured evidence from 8 November 2026, including university-scale generation, repair suggestions and the rule-based baseline, is reported in Chapter~\ref{evidence}.}
+
+JadwAI is a new application, separate from the earlier prototype; UniTime is a reference rather than a fork. Its architecture uses React/TypeScript, Python/FastAPI, PostgreSQL, SQLAlchemy/Alembic, a separate scheduling worker, OR-Tools CP-SAT~\cite{google_cpsat} and an independently implemented validator. Phase~4 is complete for the explicitly supported weekly manual scheduling baseline. This milestone does not mean that every proposed SRS variant or the complete research project is finished. Phase~5 evaluation preparation is in progress. JAI currently provides guided interface navigation, not LLM extraction.
 
 \subsection{Academic data, access and approval}
 The local foundation includes administrator, viewer and student accounts; password setup/recovery and expiring sessions; login rate limits; restricted database roles; transactional audit records; and optimistic concurrency checks. Normalised academic records cover instructors, rooms, student groups and teaching activities, instructor eligibility, attending-group references and room-equipment requirements. Groups are organised by study year, major and group. Academic CSV imports provide previews, errors, atomic commits and stale-version rejection. Calendar settings are editable; a full parent-course/component hierarchy and rule-replacement history remain unfinished.
@@ -1350,29 +1352,130 @@ requirements. Every other evaluated capability has an FR.
 \section{Decisions needed to finalise this
 chapter}\label{decisions-needed-to-finalise-this-chapter}}
 
-The remaining decisions concern complete constraint semantics; university template, citation style and length; dataset source, size and annotators; success targets; participant study and ethics; model selection and approved cost cap; data/provider policy; institutional workload values and additional daily-limit variants; partial diagnostic result sources; and the submission deadline. Exams, language scope, group-based conflict checking and elapsed-teaching-hour units have been resolved as stated in Chapter~1. The initial corpus remains unreviewed, so its current size and labels do not resolve the final research sampling or annotation decisions.
+The remaining decisions concern complete constraint semantics; university template and length; dataset source, size and annotators; success targets; participant study and ethics; model selection and approved cost cap; data/provider policy; institutional workload values and additional daily-limit variants; partial diagnostic result sources; and the submission deadline. Exams, language scope, group-based conflict checking and elapsed-teaching-hour units have been resolved as stated in Chapter~1. The citation style has been resolved as IEEE (BibTeX style \texttt{ieeetr}, numbered in order of first citation). The initial corpus remains unreviewed, so its current size and labels do not resolve the final research sampling or annotation decisions.
 
-\chapter*{References}
-\addcontentsline{toc}{chapter}{References}
+\chapter{Implementation and System Evaluation Evidence (8 November 2026)}\label{evidence}
+
+\section{Purpose and boundary}
+This chapter records measured evidence about the implemented JadwAI system as of 8 November 2026. It concerns the scheduling engine, its independent validator, the repair diagnosis for impossible timetables, reports and exports, and a rule-based interpretation baseline. It does \emph{not} answer the research questions about large-language-model interpretation (RQ1--RQ3): no model was called, no paid provider was used, and the multilingual corpus labels remain draft and unreviewed (Section~\ref{dataset-construction}). Engineering checks and research results are kept separate, as in Section~\ref{implementation-status}.
+
+All runs used one laptop (Intel Core i5-1038NG7, 4~cores and 8~threads, 16\,GB memory, macOS~26.5.1), Python~3.14.5 and OR-Tools CP-SAT~9.15.6755~\cite{google_cpsat} with eight search workers and random seed~42. Times are wall-clock seconds on that machine and depend on hardware. Every timetable reported as valid passed JadwAI's independent validator, which recomputes completeness, eligibility, the doctor/TA split, room suitability and capacity, resource overlaps, approved rules, locks, workload and daily policies without using the solver's model. The code is at commits \texttt{e4771a1} and \texttt{4137b96} of the project repository plus the parser correction described in Section~\ref{evidence-baseline}. Scripts and logs are kept in \texttt{thesis/evidence/2026-11-08/}.
+
+\section{Teaching timetable at department scale}\label{evidence-department}
+The demonstration workspace contains 448 weekly sessions, 93 student groups in eight programmes, 123 instructors, 65 rooms and 60 advising students (students whose courses differ from their group's, for example a retake, a section change or an elective from another programme). The calendar has six teaching days with five 90-minute periods, a student limit of 7.5 teaching hours per day and at most four consecutive periods.
+
+\begin{itemize}
+\tightlist
+\item \textbf{One run.} Generation with the convenience objective completed in 253\,s and passed independent validation. None of the 60 advising students has two of their own sessions at the same time. Evaluated on the same timetable without modelling them, 24 of the 60 would have had a clash.
+\item \textbf{Published draft.} A later run (222.9\,s) placed all 448 sessions with zero room, instructor and group overlap pairs. All 65 rooms are used by more than one programme, so the absence of room double-booking is a cross-programme property rather than a per-programme one. Room time used was 23.0\% and seats filled 66.2\%, counting advising students who join or drop sessions.
+\item \textbf{Two parts.} Built as Applied Computer Science and Informatics (217 sessions) followed by the remaining seven programmes (231 sessions) with the first part fixed, the parts took 128\,s and 129\,s, each passed validation as a combined timetable, and only the complete draft could be published.
+\end{itemize}
+
+\section{Teaching timetable at university scale}\label{evidence-university}
+The Winter 2026 workbook, entered through the data template, yields 2{,}711 weekly sessions for 349 groups, 669 staff and 65 rooms. This exceeds the 600-session limit of a single run, so the timetable is generated in parts of one or more programme years, each part placed around the fixed sessions of earlier parts (Engineering alone has 912 sessions).
+
+\paragraph{What the input checks found.} Before any search, the input checks identify why the data as entered cannot produce a timetable:
+\begin{itemize}
+\tightlist
+\item 23 of 446 teaching assistants cannot be given an activity of their own, contradicting the rule that every TA teaches;
+\item eight lectures for 300--350 students have no room large enough;
+\item sessions needing laboratories require 1{,}160 teaching hours a week, while the 18 laboratories provide 810; lecture and tutorial sessions require 2{,}907 hours against 2{,}115;
+\item two courses (X118 and ENGN101) each need 87 hours a week from two TAs who have 75 hours between them;
+\item every Engineering Year~3 group needs 34.5 of the 36 hours its week can hold under the daily limits (a near-full week rather than an impossibility).
+\end{itemize}
+The TA names in the entered workbook are placeholders and the 65 rooms appear to cover one building, so these findings describe the entered data rather than the university.
+
+\paragraph{Generation in parts with documented adjustments.} To test the part mechanism at full scale, the experiment set aside the eight oversized lectures and the 23 idle TAs, added 32 placeholder TAs (so no TA pool exceeds half its capacity) and 86 placeholder rooms (25 laboratories, 61 lecture rooms; about 60\% room load), and switched off the daily policies. Table~\ref{tab:parts} reports the result with 120\,s per part.
+
+\begin{table}[h]
+\centering
 \small
-\textbf{Dagger} ($\dagger$) = year or venue not verified; see the bibliography record in the project files. Part A: supplied papers. Part B: additional sources.
+\begin{tabular}{@{}rrrrl@{}}
+\toprule
+Part & New sessions & Scheduled so far & Time (s) & Validation \\
+\midrule
+1 & 328 & 328 & 125 & passed \\
+2 & 584 & 912 & 127 & passed \\
+3 & 572 & 1{,}484 & 127 & passed \\
+4 & 581 & 2{,}065 & 128 & passed \\
+5 & 598 & 2{,}663 & 130 & passed \\
+6 & 40 & 2{,}703 & 128 & passed \\
+\bottomrule
+\end{tabular}
+\caption{University-scale teaching timetable built in six parts (adjusted data; see text).}
+\label{tab:parts}
+\end{table}
 
-\medskip\noindent\textbf{Part A --- supplied papers}
-\begin{itemize}\setlength{\itemsep}{3pt}
-\item Abdennadher, S., \& Edward, M. (n.d.$\dagger$). Constraint-based examination timetabling for the German University in Cairo. [Venue and year not verified.]
-\item Kaya, M. (2026). Constraint-aware deep Q-network with greedy fallback for large-scale multi-campus university examination scheduling. \emph{Array}, 31, 101140. \url{https://doi.org/10.1016/j.array.2026.101140}
-\item M\"uller, T., Rudov\'a, H., \& M\"uller\'ova, Z. (2025). Real-world university course timetabling at the International Timetabling Competition 2019. \emph{Journal of Scheduling}, 28, 247--267. \url{https://doi.org/10.1007/s10951-023-00801-w}
-\item Petrovic, S., \& Burke, E. K. (2004$\dagger$). University timetabling. In J. Y.-T. Leung (Ed.), \emph{Handbook of Scheduling: Algorithms, Models, and Performance Analysis} (ch.~45). Chapman \& Hall/CRC. [Publisher and year not verified from a record.]
-\item Sobh, T., Cousens, R., \& Patel, S. (n.d.$\dagger$). Course Scheduler: An automated schedule generator. University of Bridgeport. [Venue and year not verified.]
-\end{itemize}
+Every earlier session was unchanged in each later part, and the final timetable also passed validation as one whole timetable without the part plan. Two observations qualify the result. First, with the daily policies switched on, Engineering Year~3 alone found no timetable within 300\,s, while without them it was solved in 3\,s; this is consistent with the near-full week reported above. Second, convenience is optimised within each part around fixed sessions, so earlier parts are never improved by later ones; the order of parts matters.
 
-\noindent\textbf{Part B --- additional sources}
-\begin{itemize}\setlength{\itemsep}{3pt}
-\item Sharma, S. S., \& Sharma, A. (2026). SCHEDBench: A benchmark for evaluating LLM constraint faithfulness in natural-language combinatorial scheduling. arXiv:2608.00991 (preprint). \url{https://arxiv.org/abs/2608.00991}
-\item Sanguinetti, M., Perniciano, A., Zedda, L., Loddo, A., Di Ruberto, C., \& Atzori, M. (2025). \emph{From User Preferences to Optimization Constraints Using Large Language Models}. arXiv:2503.21360 (arXiv version submitted 27 March 2025; supplied manuscript carries an ITADATA2024 header; final proceedings record not verified). \url{https://arxiv.org/abs/2503.21360}
-\item Michailidis, K., Tsouros, D., \& Guns, T. (2025). CP-Bench (later renamed DCP-Bench-Open): benchmark of LLMs writing constraint models from natural-language problem descriptions. arXiv:2506.06052 (preprint; v2 dated 4 September 2025). \url{https://arxiv.org/abs/2506.06052}
-\item Google. CP-SAT solver documentation. \url{https://developers.google.com/optimization/cp/cp_solver} (accessed 8 October 2026).
-\item Vendor model documentation (accessed 8 October 2026): OpenAI GPT-6 Luna; Google Gemini 3.8 Flash; Anthropic Claude models overview and structured outputs.
-\end{itemize}
+\section{Examination timetable}
+For all 203 courses of the workbook, the examination model first computes a proven lower bound on the number of back-to-back examination days that any timetable over the given dates must contain (372). It reached that bound within 20\,s; the previous formulation found no timetable within 20\,s and 423 back-to-back days within 120\,s. Allowing two examinations per day reduced back-to-back days to 302 at the cost of 35 days with two examinations; adding four examination dates reduced them to 51. In the demonstration workspace, 35 examinations over ten days were scheduled in halls with TA invigilators; no advising student has two examinations at the same time, and the one student whose courses cannot be spread further within the dates is named for the administrator.
+
+\section{Repair suggestions for impossible timetables}\label{evidence-repair}
+When the approved inputs cannot all hold, JadwAI relaxes what an administrator could change---each approved rule, each fixed session, each instructor's day off and each daily limit---and restores them a chunk at a time while a timetable still exists. The remaining set is minimal (no single member can be restored), not necessarily the smallest possible. The affected sessions are reported from a repaired timetable that the independent validator checks against everything else. Physical data limits (rooms, eligible instructors, ``every TA teaches'', the calendar) are never relaxed. Table~\ref{tab:repair} lists the deliberately impossible cases tested.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}p{0.42\textwidth}p{0.48\textwidth}@{}}
+\toprule
+Injected problem & Diagnosis \\
+\midrule
+Two sessions of one group locked to the same time & Move one session; new day, time and room given; verified \\
+The only eligible instructor unavailable all week & Relax that rule; the one affected session listed; verified \\
+Instructor's day off is the group's only free day & Either the day off or the group rule (one change); verified \\
+Daily limit of 2 hours with 4 hours of teaching in one day & Relax the limit; ``needs 4\,h on Sunday''; verified \\
+Two courses on separate days with one teaching day & Relax the rule; both sessions listed; verified \\
+Five teaching hours in a four-hour week & No relaxation helps; data must change; overloaded group named \\
+\midrule
+Demonstration (448 sessions): an instructor unavailable all week and a G7 session locked inside the group's blocked time & Exactly these two causes, the locked session moved to another slot; 49\,s, 19 feasibility solves, 138 sessions examined locally, verified on the whole timetable \\
+\bottomrule
+\end{tabular}
+\caption{Repair diagnosis on impossible timetables.}
+\label{tab:repair}
+\end{table}
+
+On timetables above 80 sessions a complete diagnosis is too slow (one feasibility solve on the 448-session workspace takes 18--73\,s), so the search starts with the sessions the failure points at and those sharing a group or instructor with them, then proves the fix on the whole timetable within a 240\,s budget. An early version kept a limit that was not needed because a five-second check had ended without a result; inconclusive checks are now retried with more time before a candidate is declared necessary. An inconclusive search is never reported as proof.
+
+\section{Rule-based interpretation baseline}\label{evidence-baseline}
+Section~\ref{baselines} lists an optional rule-based extraction baseline for RQ1. JadwAI's built-in parser (deterministic patterns for English, formal Arabic and Egyptian Arabic) was run on all 144 statements of the development release (36 intent families, four language variants each) and scored with the project's offline scorer, which validates each output against the contract and the synthetic context before comparing it with the expected answer. The parser received only entity names as stored in JadwAI (English), not the context's Arabic aliases. A format adapter wrote whole hours as integers (10 rather than 10.0), which the contract requires; half-hour values were left unchanged.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lrl@{}}
+\toprule
+Measure & Estimate & 95\% interval \\
+\midrule
+End-to-end exact output & 0.153 (22/144) & 0.083--0.229 \\
+Decision accuracy & 0.521 & 0.389--0.653 \\
+Proposal precision / recall & 0.222 / 0.315 & \\
+Proposal F1 & 0.261 & 0.175--0.355 \\
+Field F1 & 0.451 & 0.324--0.569 \\
+\bottomrule
+\end{tabular}
+\caption{Rule-based baseline on the draft development labels (intervals: percentile bootstrap over intent families, 1{,}000 replicates).}
+\label{tab:baseline}
+\end{table}
+
+Exact outputs by language were 13/36 (English), 7/36 (mixed), 2/36 (formal Arabic) and 0/36 (Egyptian Arabic); decision accuracy was 0.58, 0.56, 0.47 and 0.47 respectively, and 139 of 144 outputs were contract-valid. Clarification and unsupported-request F1 were zero because the parser emits its own codes (for example \texttt{ambiguous\_name:ahmed}) rather than the vocabulary of annotation guide~v2 (for example \texttt{ambiguous\_instructor}); weekly-load and lock proposals (12 expected) are outside the parser's coverage. One parser error found while inspecting development outputs was corrected before the reported run: ``Monday and Tuesday \ldots{} on each day'' had been read as every day. No other tuning to the corpus was done. Because the labels are draft and unreviewed, the families are synthetic and the release is development material, these figures describe a baseline on development data only; they are not a confirmatory result and do not compare any language model.
+
+Testing the interpretation workflow on the demonstration workspace also found three faults that were then corrected: a closure ending at 15:15 was stored as ending at 15:00 (closures are now rounded outwards and permitted or preferred windows inwards); the review editor could not show a 10:30 interpretation (it now offers half hours); and Arabic statements could not name instructors stored in English (names are now compared by consonant sounds in both scripts, with Egyptian and classical readings, and a shared first name triggers a clarification).
+
+\section{Reports and exports}
+The statistics report for the published draft was recomputed independently from the saved assignments; every figure matched (448/448 sessions, sessions per day, zero overlaps, 65/65 rooms, 123/123 instructors, 22.97\% room time, no extra teaching hours). The review found that seat use ignored advising students, that unset limits were printed as ``None'', and that a report could not be limited to one group; all three were corrected. Timetable PDFs are now generated on the server as landscape A4 pages with short descriptive names (for example ``BA Y3 G7 Schedule'') because browser printing in one environment rotated the page and named the file after the application window.
+
+\section{Automated tests and limitations of this evidence}
+At the time of writing the automated suites pass: 387 backend tests, 69 frontend tests and 47 evaluation-harness tests. They include regression tests for every fault reported in this chapter.
+
+The evidence has the following limits. All measurements come from one machine and one random seed; repeated runs and other hardware may differ, and parallel search can produce different valid timetables from identical inputs. The university-scale run used adjusted data, so it demonstrates the mechanism rather than a timetable for the university. The demonstration workspace is derived from real course structures but uses invented names and advising students. The repair diagnosis returns a minimal rather than a minimum set of changes, depends on time budgets, and on large timetables searches locally first. The interpretation baseline uses draft labels reviewed by no human, a single development release and a parser written by the same author who wrote the corpus. Research results for RQ1--RQ3 still require the reviewed corpus, frozen configurations and the human-in-the-loop study described in Chapter~3.
+
+% References: IEEE transactions style (ieeetr), numbered in order of first citation.
+% Entries and their verification notes are in references.bib.
+\renewcommand{\bibname}{References}
+\cleardoublepage\phantomsection
+\addcontentsline{toc}{chapter}{References}
+\bibliographystyle{ieeetr}
+\bibliography{references}
 
 \end{document}

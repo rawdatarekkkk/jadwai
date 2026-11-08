@@ -54,3 +54,15 @@ test('publish sends the workspace version',async()=>{
  const post=calls.find(c=>c.path.endsWith('/publish'))!;
  expect((post.options!.headers as Record<string,string>)['If-Match']).toBe('"7"');
 });
+
+test('the session list shows only the group being viewed, with long group lists shortened',()=>{
+ vi.stubGlobal('fetch',vi.fn(async()=>({ok:true,status:200,json:async()=>({})})));
+ render(<ScenarioActions ws={ws} run={run} runs={[run]} lang='en' reload={async()=>{}} select={()=>{}} notify={()=>{}} shows={id=>id==='math2'} scope='Group 2'/>);
+ const options=[...(screen.getByLabelText('Session') as HTMLSelectElement).options].map(o=>o.textContent);
+ expect(options).toEqual(['— 1 session in Group 2','Math I · G2 · Monday 08:30 · Room 1']);
+});
+
+test('group ranges are compacted',async()=>{
+ const {compactGroups}=await import('./ScenarioActions');
+ expect(compactGroups(['INF1-G10','INF1-G11','INF1-G12','INF1-G14','X'])).toBe('INF1-G10–G12, INF1-G14, X');
+});

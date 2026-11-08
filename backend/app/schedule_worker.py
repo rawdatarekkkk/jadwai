@@ -14,6 +14,7 @@ from app.validation import validate_schedule
 from app.statistics import build_statistics
 
 logger = logging.getLogger("jadwai.scheduler")
+REPAIR_SECONDS = 240  # longest the worker spends finding a fix for an impossible timetable
 
 
 def recover_interrupted(factory=SessionLocal):
@@ -80,6 +81,13 @@ def process_one(factory=SessionLocal, shutdown=None):
             else:
                 result = generate(snapshot, cancelled, solver_started)
                 result["preflight"] = preparation
+        if result["status"] == "infeasible" or (result["status"] == "blocked" and result.get("reason") == "input_checks_failed"):
+            # Say what must give way, with a fix proven by the solver and the validator.
+            from app.repair import diagnose
+            repair = diagnose(snapshot, budget=REPAIR_SECONDS, cancel=cancelled,
+                              hints=[result.get("activity_id")] + [b.get("activity_id") for b in (result.get("preflight") or {}).get("blockers", [])])
+            repair.pop("assignments", None)
+            result["repair"] = repair
         if result["status"] == "completed":
             report = validate_schedule(snapshot, result["assignments"])
             from app.validation_details import preference_penalty

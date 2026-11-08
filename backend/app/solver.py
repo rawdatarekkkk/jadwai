@@ -65,10 +65,19 @@ def room_pools(rooms, snapshot, locks, enabled=True):
 
 def assign_pool_rooms(sessions, members):
     """Give each pooled session a concrete room. Sessions are intervals and at most
-    len(members) overlap at any time, so earliest-start-first assignment always succeeds."""
+    len(members) overlap at any time, so earliest-start-first assignment always succeeds.
+    A session carried over from a base run keeps its room when that room is free, and
+    other sessions avoid rooms such sessions will need later."""
+    sessions = [s if len(s) == 4 else (*s, None) for s in sessions]
     free_at = {room: -1 for room in members}
-    for start, end, row in sorted(sessions, key=lambda x: (x[0], x[1])):
-        room = min((r for r in members if free_at[r] <= start), key=lambda r: (free_at[r], r))
+    for start, end, row, keep in sorted(sessions, key=lambda x: (x[0], x[1], x[3] is None)):
+        free = [r for r in members if free_at[r] <= start]
+        if keep in free:
+            free_at[keep] = end
+            row['room_id'] = keep
+            continue
+        reserved = {k for s, _, _, k in sessions if k and s >= start}
+        room = min(free, key=lambda r: (r in reserved, free_at[r], r))
         free_at[room] = end
         row['room_id'] = room
 
@@ -117,7 +126,12 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
     days = cal['days']
     if not activities or not rooms:
         return {'status':'blocked','reason':'missing_data','assignments':[]}
-    if sum(a['sessions'] for a in activities)>MAX_SESSIONS:
+    from app.partial_plan import plan_of, in_scope, tas_that_must_teach
+    all_activities = activities
+    # Building in parts: only this part's activities and the fixed ones are modelled.
+    activities = in_scope(snapshot, activities)
+    pinned = {(r['activity_id'], r['occurrence']): r for r in (plan_of(snapshot) or {}).get('fixed', [])}
+    if sum(a['sessions'] for a in activities if (a['id'], 0) not in pinned)>MAX_SESSIONS:
         return {'status':'blocked','reason':'instance_too_large','assignments':[]}
     reason = check_rules(snapshot, by_id, cal)
     if reason:
@@ -134,7 +148,7 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
     if any(position_conflict(a['activity_type'], by_id.get(t)) for a in activities for t in a['eligible_instructors']):
         return {'status':'blocked','reason':'instructor_position','assignments':[]}
     tas = [r for r in records if r['kind'] == 'instructors' and r.get('position') == 'ta']
-    if tas_without_teaching(tas, activities):
+    if tas_without_teaching(tas, all_activities):
         return {'status':'blocked','reason':'ta_without_teaching','assignments':[]}
     rules_of = lambda *types: rs.approved(snapshot, *types)
     room_limits = {r['activity_id']: set(rs.param(r, 'room_ids')) for r in rules_of('activity_room')}
@@ -179,9 +193,19 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
             allowed[teacher] = [s for s in starts if local(s)[0] != by_id[teacher].get('day_off') and not any(rs.overlaps(r, *local(s)) for r in mandatory)]
             if windows:
                 preferred[teacher] = [s for s in starts if rs.within_windows(windows, *local(s))]
+        fixed = [pinned.get((activity['id'], o)) for o in range(activity['sessions'])]
+        if fixed[0]:
+            # Carried over from the base run: the same instructor, time and room again.
+            teacher = fixed[0]['instructor_id']
+            at = [days.index(row['day'])*1440+row['start_minute'] if row and row['day'] in days else None for row in fixed]
+            if None in at or teacher not in allowed or any(s not in allowed[teacher] or row['instructor_id'] != teacher or row['room_id'] not in {r['id'] for r in suitable} for s, row in zip(at, fixed)):
+                return {'status':'infeasible','reason':'fixed_session_invalid','activity_id':activity['id'],'assignments':[]}
+            allowed, preferred = {teacher: allowed[teacher]}, {k: v for k, v in preferred.items() if k == teacher}
         if not any(allowed.values()):
             return {'status':'infeasible','reason':'no_available_placement','activity_id':activity['id'],'assignments':[]}
-        count += sum(len(values) for values in allowed.values())*len(suitable)*activity['sessions']
+        # Interchangeable rooms share one choice variable per pool, so count pools, not rooms.
+        room_choices = len({(pool_of.get(r['id']) or [r['id']])[0] for r in suitable})
+        count += activity['sessions'] if fixed[0] else sum(len(values) for values in allowed.values())*room_choices*activity['sessions']
         if count>MAX_CANDIDATES:
             return {'status':'blocked','reason':'instance_too_large','assignments':[]}
         teachers = {t:model.new_bool_var(f'teacher_{activity["id"]}_{t}') for t in allowed}
@@ -190,13 +214,16 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
             workload_terms[ident].append(selected * activity["duration"] * activity["sessions"])
         # Ordering occurrences by start breaks symmetry, but a time lock names an
         # occurrence number, so ordering could reject valid locked timetables.
-        time_locked = any(lock['activity_id']==activity['id'] and lock.get('day') is not None for lock in locks)
-        lengths = {ends[s]-s for s in starts}
+        time_locked = fixed[0] or any(lock['activity_id']==activity['id'] and lock.get('day') is not None for lock in locks)
+        every_start, every_room = starts, suitable
         previous = None
         for occurrence in range(activity['sessions']):
             if cancel and cancel.is_set():
                 return {'status':'cancelled','assignments':[]}
             prefix = f'{activity["id"]}_{occurrence}'
+            starts = [at[occurrence]] if fixed[0] else every_start
+            suitable = [r for r in every_room if r['id'] == fixed[occurrence]['room_id']] if fixed[0] else every_room
+            lengths = {ends[s]-s for s in starts}
             start = model.new_int_var_from_domain(cp_model.Domain.from_values(starts),'start_'+prefix)
             end = model.new_int_var_from_domain(cp_model.Domain.from_values(sorted({ends[s] for s in starts})),'end_'+prefix)
             if len(lengths) == 1:
@@ -274,7 +301,7 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
                     else:model.add(False)
                 if lock.get('day') is not None:model.add(start==days.index(lock['day'])*1440+lock['start_minute'])
             choices.append((activity,occurrence,start,teachers,room_vars,{s: ends[s] for s in starts}))
-            hint = (hints or {}) and next((h for h in hints if (h['activity_id'], h['occurrence']) == (activity['id'], occurrence)), None)
+            hint = (hints or {}) and not fixed[0] and next((h for h in hints if (h['activity_id'], h['occurrence']) == (activity['id'], occurrence)), None)
             if hint:
                 model.add_hint(start, days.index(hint['day'])*1440+hint['start_minute'])
                 # The instructor choice is shared by every occurrence; hint it once.
@@ -309,7 +336,7 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
         if not cal.get("weekly_load_policy", {}).get("allow_overtime") and record["kind"] == "instructors" and record.get("max_weekly_hours") is not None:
             model.add(sum(workload_terms[record["id"]]) <= int(record["max_weekly_hours"] * 60))
     # Every TA teaches: each must be selected for at least one activity.
-    for ta in tas:
+    for ta in tas_that_must_teach(snapshot, records):
         model.add(sum(workload_terms[ta['id']]) >= 1)
     add_limit_rules(model, snapshot, choices, day_of, len(days))
     components = {'preferences': penalties}
@@ -351,7 +378,8 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
             chosen = next(r for r,v in room_vars.items() if solver.value(v))
             row = {'activity_id':activity['id'],'occurrence':occurrence,'instructor_id':next(t for t,v in teachers.items() if solver.value(v)),'room_id':chosen,'day':days[minute//1440],'start_minute':minute-base,'end_minute':ends[minute]-base}
             if chosen in pool_sizes:
-                pooled[chosen].append((minute, ends[minute], row))
+                kept = pinned.get((activity['id'], occurrence))
+                pooled[chosen].append((minute, ends[minute], row, kept and kept['room_id']))
             assignments.append(row)
         for key, sessions in pooled.items():
             assign_pool_rooms(sessions, next(pool for pool in pool_of.values() if pool[0] == key))
@@ -412,7 +440,10 @@ def add_limit_rules(model, snapshot, choices, day_of, day_count):
         for di in range(day_count):
             present = []
             for ident in rs.param(rule, 'activity_ids'):
+                meets = [day_of[(a['id'], o)][di] for a, o, *_ in choices if a['id'] == ident]
+                if not meets:
+                    continue  # scheduled in a later part
                 flag = model.new_bool_var(f'meets_{rule["id"]}_{ident}_{di}')
-                model.add_max_equality(flag, [day_of[(a['id'], o)][di] for a, o, *_ in choices if a['id'] == ident])
+                model.add_max_equality(flag, meets)
                 present.append(flag)
             model.add(sum(present) <= 1)

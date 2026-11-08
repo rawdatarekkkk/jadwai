@@ -9,8 +9,9 @@ def details(snapshot, rows, report):
     violations=[]; cal=snapshot['calendar']; activities=[r for r in records.values() if r['kind']=='courses']
     def add(code, sessions=(), resource_ids=(), rule_ids=(), message=''):
         violations.append(dict(code=code,message=message or code.replace('_',' '),sessions=[{k:a.get(k) for k in ('activity_id','occurrence','instructor_id','room_id','day','start_minute','end_minute')} for a in sessions],resource_ids=list(resource_ids),rule_ids=list(rule_ids)))
+    from app.partial_plan import in_scope, tas_that_must_teach
     counts=Counter((a['activity_id'],a['occurrence']) for a in rows)
-    for activity in activities:
+    for activity in in_scope(snapshot, activities):
         for n in range(activity['sessions']):
             count=counts[(activity['id'],n)]
             if count!=1:add('complete_assignment',[{'activity_id':activity['id'],'occurrence':n}],message=f'Expected one assignment; found {count}.')
@@ -42,8 +43,8 @@ def details(snapshot, rows, report):
         for typ,field,ident in [('activity_allowed','activity_id',activity['id'])]+[('group_allowed','group_id',g) for g in groups]:
             windows=[r for r in rules if r['type']==typ and r.get(field)==ident]
             if not rs.within_windows(windows,day,start,end):add('approved_allowed_windows',[a],[ident],[r.get('id','legacy-rule') for r in windows])
-    for r in records.values():
-        if r['kind']=='instructors' and r.get('position')=='ta' and not any(a['instructor_id']==r['id'] for a in rows):add('ta_teaching',[],[r['id']],message=f"{r.get('name','A TA')} has no teaching.")
+    for r in tas_that_must_teach(snapshot, records.values()):
+        if not any(a['instructor_id']==r['id'] for a in rows):add('ta_teaching',[],[r['id']],message=f"{r.get('name','A TA')} has no teaching.")
     for w in report.get('workload') or []:
         if w['exceeded']:add('weekly_workload',[a for a in rows if a['instructor_id']==w['instructor_id']],[w['instructor_id']])
     realism=report.get('realism') or {};policy=realism.get('policy',{})
@@ -67,7 +68,7 @@ def details(snapshot, rows, report):
     coverage=[]
     for check in report['checks']:
         applicable=len(rows);basis='assigned sessions'
-        if check=='complete_assignment':applicable=sum(a['sessions'] for a in activities);basis='required occurrences'
+        if check=='complete_assignment':applicable=sum(a['sessions'] for a in in_scope(snapshot, activities));basis='required occurrences'
         elif check=='instructor_day_off':applicable=sum(bool(r.get('day_off')) for r in records.values() if r['kind']=='instructors');basis='instructors with a configured day off'
         elif check=='instructor_position':applicable=sum(bool(records.get(a['instructor_id'],{}).get('position')) for a in rows);basis='sessions taught by an instructor classified as doctor or TA'
         elif check=='ta_teaching':applicable=sum(r['kind']=='instructors' and r.get('position')=='ta' for r in records.values());basis='TAs, each with at least one session'

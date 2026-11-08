@@ -125,10 +125,15 @@ def test_solution_progress_is_score_only_before_validation():
 
 
 def test_global_infeasibility_is_not_hidden_by_passing_local_checks():
-    snap=example()
-    snap['calendar'].update(days=['Sunday'],end_hour=11)
-    snap['records'].append(dict(id='h',kind='groups',size=20))
-    snap['records'][-2].update(duration=60,sessions=2,group_ids=['h'])
+    # Three one-hour sessions, each pair sharing a teacher or group, on a two-hour day:
+    # every resource alone fits, together they cannot.
+    snap={'calendar':{'days':['Sunday'],'start_hour':8,'end_hour':10,'period_minutes':60,'timezone':'Africa/Cairo'},'rules':[],'records':[
+        dict(id='t1',kind='instructors',name='T1'),dict(id='t2',kind='instructors',name='T2'),
+        *[dict(id=g,kind='groups',size=10) for g in ('a','b','c')],
+        *[dict(id=r,kind='rooms',capacity=30,room_type='lecture') for r in ('r1','r2')],
+        dict(id='x',kind='courses',sessions=1,duration=60,activity_type='lecture',eligible_instructors=['t1'],group_ids=['a','c']),
+        dict(id='y',kind='courses',sessions=1,duration=60,activity_type='lecture',eligible_instructors=['t1'],group_ids=['b']),
+        dict(id='z',kind='courses',sessions=1,duration=60,activity_type='lecture',eligible_instructors=['t2'],group_ids=['b','c'])]}
     assert inspect_inputs(snap)['ready']
     result=generate(snap)
     assert result['status']=='infeasible'

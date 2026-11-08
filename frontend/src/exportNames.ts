@@ -1,11 +1,14 @@
-import type { ScheduleRun } from "./api";
+const SMALL_WORDS = new Set(["and", "of", "the", "for", "in", "&"]);
+/** "Business Administration" -> "BA" (same rule as the server's PDF name). */
+export const initials = (name: string) =>
+  name.split(/[\s,/&-]+/).filter((w) => w && !SMALL_WORDS.has(w.toLowerCase())).map((w) => w[0].toUpperCase()).join("") || name.slice(0, 3);
 
-// Keep Unicode names, but strip filesystem-reserved characters and control codes.
-const part = (value: string, limit = 45) => value.normalize("NFKC")
-  .replace(/[<>:"/\\|?*\u0000-\u001f\u007f]/g, " ")
-  .trim().replace(/\s+/g, "-").replace(/[. -]+$/g, "").slice(0, limit) || "Schedule";
-
-export function timetableFilename(run: ScheduleRun, scope: string) {
-  return ["JadwAI", part(run.snapshot.term), part(run.snapshot.name), "Timetable",
-    part(scope, 65), "Draft", `v${run.input_version}`, run.created_at.slice(0, 10), run.id.slice(0, 8)].join("_");
+/** Short, descriptive name: "BA Y3 G7 Schedule", "BA Y3 Schedule", "Full Schedule". */
+export function shortScheduleName(group: { name?: string; code?: string; year?: number | null; major?: string | null } | undefined, year: string, major: string) {
+  const groupNumber = (g: { name?: string; code?: string }) =>
+    [g.name ?? "", g.code ?? ""].map((t) => t.match(/\bG\d+\b/gi)?.pop()?.toUpperCase()).find(Boolean) ?? g.code ?? g.name ?? "Group";
+  const parts = group
+    ? [group.major ? initials(group.major) : "", group.year ? `Y${group.year}` : "", groupNumber(group)]
+    : [major && major !== "__unassigned" ? initials(major) : "", year && year !== "unassigned" ? `Y${year}` : ""];
+  return `${parts.filter(Boolean).join(" ") || "Full"} Schedule`;
 }

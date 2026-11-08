@@ -334,6 +334,46 @@ test("year and major filters narrow groups and clear dependent selections", asyn
   expect(screen.queryByText("Algorithms")).toBeNull();
 });
 
+test("generating keeps the year, programme and group being viewed", async () => {
+  const classified = structuredClone(run);
+  classified.snapshot.records.find((r) => r.id === "g")!.year = 3;
+  classified.snapshot.records.find((r) => r.id === "g")!.major = "Business Administration";
+  classified.snapshot.records.push({ id: "h", kind: "groups", name: "Group B", code: "B", year: 3, major: "Business Administration", size: 20 });
+  const fresh = { ...structuredClone(classified), id: "new-run" };
+  vi.stubGlobal("fetch", vi.fn(async (_path: string, init?: RequestInit) => response(init?.method === "POST" ? fresh : [classified])));
+  render(<Timetable ws={ws} lang="en" administrator refresh={async () => {}} />);
+  fireEvent.change(await screen.findByRole("combobox", { name: "Study year" }), { target: { value: "3" } });
+  fireEvent.change(screen.getByRole("combobox", { name: "Major" }), { target: { value: "Business Administration" } });
+  const group = screen.getByRole("combobox", { name: "Student group" }) as HTMLSelectElement;
+  fireEvent.change(group, { target: { value: "g" } });
+  const button = screen.getByRole("button", { name: "Generate schedule" }) as HTMLButtonElement;
+  await waitFor(() => expect(button.disabled).toBe(false));
+  fireEvent.click(button);
+  await waitFor(() => expect((screen.getByRole("combobox", { name: "Recent drafts" }) as HTMLSelectElement).value).toBe("new-run"));
+  expect((screen.getByRole("combobox", { name: "Student group" }) as HTMLSelectElement).value).toBe("g");
+});
+
+test("the report PDF follows the group being viewed", async () => {
+  vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  const fetcher = vi.fn(async (path: string) => (path.includes("/statistics?") ? { ok: true, status: 200 } : response([run])));
+  vi.stubGlobal("fetch", fetcher);
+  render(<Timetable ws={ws} lang="en" administrator refresh={async () => {}} />);
+  fireEvent.change(await screen.findByRole("combobox", { name: "Student group" }), { target: { value: "g" } });
+  fireEvent.click(screen.getByRole("button", { name: "Download report PDF" }));
+  await waitFor(() => expect(fetcher.mock.calls.some(([path]) => path.includes("/statistics?format=pdf&group=g"))).toBe(true));
+});
+
+test("Save as PDF downloads the server's landscape file for the group being viewed", async () => {
+  const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  let href = "";
+  click.mockImplementation(function (this: HTMLAnchorElement) { href = this.getAttribute("href") ?? ""; });
+  vi.stubGlobal("fetch", vi.fn(async () => response([run])));
+  render(<Timetable ws={ws} lang="en" administrator refresh={async () => {}} />);
+  fireEvent.change(await screen.findByRole("combobox", { name: "Student group" }), { target: { value: "g" } });
+  fireEvent.click(screen.getByRole("button", { name: "Save as PDF" }));
+  expect(href).toBe(`/api/schedules/${run.id}/timetable.pdf?group=g`);
+});
+
 test("PDF print view includes only filtered sessions and preserves draft warnings", async () => {
   const data = structuredClone(run);
   data.snapshot.records.find((r) => r.id === "g")!.year = 1;
@@ -374,7 +414,7 @@ test("PDF print view includes only filtered sessions and preserves draft warning
   );
   const year = await screen.findByRole("combobox", { name: "Study year" });
   fireEvent.change(year, { target: { value: "1" } });
-  fireEvent.click(screen.getByRole("button", { name: "Save as PDF" }));
+  fireEvent.click(screen.getByRole("button", { name: "Print" }));
   expect(print).toHaveBeenCalledOnce();
   const exportView = document.querySelector(".schedule-print")!;
   expect(exportView.textContent).toContain("2 sessions");
@@ -396,7 +436,7 @@ test("Arabic PDF output retains multilingual names and timezone", async () => {
   render(
     <Timetable ws={ws} lang="ar" administrator refresh={async () => {}} />,
   );
-  fireEvent.click(await screen.findByRole("button", { name: "حفظ بصيغة PDF" }));
+  fireEvent.click(await screen.findByRole("button", { name: "طباعة" }));
   const exportView = document.querySelector(".schedule-print")!;
   expect(exportView.getAttribute("dir")).toBe("rtl");
   expect(exportView.textContent).toContain("الأحد");
@@ -422,7 +462,7 @@ test("PDF places days on rows and configured time slots on columns", async () =>
   render(
     <Timetable ws={ws} lang="en" administrator refresh={async () => {}} />,
   );
-  fireEvent.click(await screen.findByRole("button", { name: "Save as PDF" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Print" }));
   const exported = document.querySelector(".schedule-print")!;
   expect(exported.querySelectorAll(".matrix-day-label")).toHaveLength(2);
   expect(exported.querySelectorAll("tbody tr")).toHaveLength(2);
@@ -460,7 +500,7 @@ test("historical seven-period snapshots retain their exact time columns", async 
   render(
     <Timetable ws={ws} lang="en" administrator refresh={async () => {}} />,
   );
-  fireEvent.click(await screen.findByRole("button", { name: "Save as PDF" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Print" }));
   const exported = document.querySelector(".schedule-print")!;
   expect(exported.querySelectorAll("thead th")).toHaveLength(8);
   expect(exported.textContent).toContain("First Period");
@@ -520,7 +560,7 @@ test("current preset prints only five periods and no evening columns", async () 
   vi.stubGlobal("fetch", vi.fn(async () => response([data])));
   vi.spyOn(window, "print").mockImplementation(() => {});
   render(<Timetable ws={ws} lang="en" administrator refresh={async () => {}} />);
-  fireEvent.click(await screen.findByRole("button", {name: "Save as PDF"}));
+  fireEvent.click(await screen.findByRole("button", {name: "Print"}));
   const exported = document.querySelector(".schedule-print")!;
   expect(exported.querySelectorAll("thead th")).toHaveLength(6);
   expect(exported.textContent).toContain("Fifth Period");
@@ -536,10 +576,9 @@ test("print suggests a descriptive filename and restores the page title", async 
   vi.stubGlobal("fetch", vi.fn(async () => response([run])));
   const print = vi.spyOn(window, "print").mockImplementation(() => {});
   render(<Timetable ws={ws} lang="en" administrator refresh={async () => {}} />);
-  fireEvent.click(await screen.findByRole("button", {name: "Save as PDF"}));
+  fireEvent.click(await screen.findByRole("button", {name: "Print"}));
   expect(print).toHaveBeenCalledOnce();
-  expect(document.title).toContain("JadwAI_");
-  expect(document.title).toContain("_Timetable_All-Groups_Draft_");
+  expect(document.title).toBe("Full Schedule");
   fireEvent(window, new Event("afterprint"));
   expect(document.title).toBe("Original JadwAI title");
 });

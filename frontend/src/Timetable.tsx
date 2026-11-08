@@ -1,7 +1,10 @@
 import { createPortal, flushSync } from "react-dom";
-import { timetableFilename } from "./exportNames";
+import { shortScheduleName } from "./exportNames";
 import { LockSessionButton } from "./AssignmentLocks";
 import { RunSettings, PreparationReport, settingsFor } from "./RunChecks";
+import { PartPlan, unitLabel, type Parts } from "./PartPlan";
+import { RepairPanel } from "./RepairPanel";
+import { errors } from "./i18n";
 import { SchedulePrint } from "./SchedulePrint";
 import { ScenarioActions } from "./ScenarioActions";
 import { useEffect, useRef, useState } from "react";
@@ -9,6 +12,7 @@ import {
   api,
   ApiError,
   downloadScheduleStatistics,
+  downloadTimetablePdf,
   type Workspace,
   type ScheduleRun,
 } from "./api";
@@ -59,6 +63,8 @@ const copy = {
       "An activity has no available placement with its eligible instructors and approved availability rules.",
     conflicting_requirements:
       "No complete timetable satisfies the supported mandatory checks. Review shared groups, rooms and instructor availability.",
+    input_checks_failed:
+      "Some inputs cannot all hold together, so no timetable was generated.",
     instance_too_large:
       "This dataset exceeds the current draft generator’s size limit. Reduce the activities or placement options and try again.",
     missing_data:
@@ -127,6 +133,8 @@ const copy = {
       "يوجد نشاط بلا موعد متاح مع المدرسين المؤهلين وقواعد التوافر المعتمدة.",
     conflicting_requirements:
       "لا يوجد جدول كامل يحقق الفحوص الإلزامية المدعومة. راجع المجموعات والقاعات وتوافر المدرسين.",
+    input_checks_failed:
+      "بعض المدخلات لا يمكن أن تتحقق معًا، لذلك لم يُنشأ جدول.",
     instance_too_large:
       "تتجاوز البيانات الحد الحالي لمنشئ المسودات. قلّل الأنشطة أو بدائل التعيين وحاول مجدداً.",
     missing_data: "أضف نشاطاً تدريسياً وقاعة مناسبة على الأقل أولاً.",
@@ -216,6 +224,7 @@ export function Timetable({
   const [busy, setBusy] = useState(false);
   const [settings,setSettings] = useState(() => settingsFor(ws));
   const [historical,setHistorical] = useState(false);
+  const [parts,setParts] = useState<Parts|null>(null);
   const [error, setError] = useState("");
   const [errorKind, setErrorKind] = useState("");
   const requestKey = useRef<string | null>(null);
@@ -228,7 +237,7 @@ export function Timetable({
     setReportBusy(true);
     setReportNotice("");
     try {
-      await downloadScheduleStatistics(id, format);
+      await downloadScheduleStatistics(id, format, group ? { group } : { year: yearFilter, major: majorFilter });
     } catch {
       setReportNotice(
         lang === "ar"
@@ -279,7 +288,7 @@ export function Timetable({
       const run = await api<ScheduleRun>(
         "/schedules",
         "POST",
-        { request_key: requestKey.current, settings, ...(historical && selectedRun ? {source_run_id:selectedRun.id} : {}) },
+        { request_key: requestKey.current, settings, ...(historical && selectedRun ? {source_run_id:selectedRun.id} : {}), ...(parts ? {scope:parts.scope, ...(parts.base ? {base_run_id:parts.base} : {})} : {}) },
         ws.version,
       );
       requestKey.current = null;
@@ -288,7 +297,8 @@ export function Timetable({
       );
       setSelected(run.id);
       setHistorical(false);
-      setGroup("");
+      setParts(null);
+      // Keep the year, programme and group being viewed: the new draft uses the same data.
     } catch (e) {
       const code = e instanceof ApiError ? e.code : "";
       setError(
@@ -300,7 +310,9 @@ export function Timetable({
               ? t.staleError
               : code === "schedule_missing_data"
                 ? t.missing_data
-                : t.requestError,
+                : errors[code]
+                  ? errors[code][lang === "ar" ? 1 : 0]
+                  : t.requestError,
       );
       if (e instanceof ApiError && e.status !== 0 && e.status < 500)
         requestKey.current = null;
@@ -408,7 +420,7 @@ export function Timetable({
   const savePdf = () => {
     if (!run) return;
     originalTitle.current ??= document.title;
-    document.title = timetableFilename(run, group || yearFilter || majorFilter ? printScope : "All-Groups");
+    document.title = shortScheduleName(group ? record(group) as Parameters<typeof shortScheduleName>[0] : undefined, yearFilter, majorFilter);
     flushSync(() => setPrinting(true));
     try { window.print(); }
     catch (error) {
@@ -465,6 +477,7 @@ export function Timetable({
             disabled={
               busy ||
               !!pending ||
+              (!!parts && !parts.scope.length) ||
               loading ||
               !activities.length ||
               !ws.records.some((r) => r.kind === "rooms")
@@ -478,6 +491,8 @@ export function Timetable({
         </div>
       </section>
       {administrator && selectedRun && !activeRun(selectedRun) && <label className="check-label"><input type="checkbox" checked={historical} disabled={busy||!!pending} onChange={e=>{setHistorical(e.target.checked);requestKey.current=null;}}/>{lang==="ar"?"إعادة الإنشاء من المدخلات المحفوظة للمسودة المختارة؛ تجاهل التغييرات الحالية":"Generate from the selected draft’s saved inputs, ignoring current input changes"}</label>}
+      {administrator && !historical && <PartPlan ws={ws} ar={lang==="ar"} parts={parts} base={selectedRun} disabled={busy||!!pending} change={p=>{setParts(p);requestKey.current=null;}}/>}
+      {administrator && selectedRun?.progress && !selectedRun.progress.complete && <p className="notice" role="status">{lang==="ar"?`جزء من الجدول: ${selectedRun.progress.scheduled_sessions} من ${selectedRun.progress.total_sessions} حصة. المتبقي: ${selectedRun.progress.remaining_programmes.map(u=>unitLabel(u,true)).join("، ")}`:`Part of the timetable: ${selectedRun.progress.scheduled_sessions} of ${selectedRun.progress.total_sessions} sessions. Still to schedule: ${selectedRun.progress.remaining_programmes.map(u=>unitLabel(u,false)).join(", ")}`}</p>}
       {administrator && <RunSettings ws={ws} ar={lang==="ar"} settings={settings} change={v=>{setSettings(v);requestKey.current=null;}} disabled={busy||!!pending}/>}
       {(error || errorKind) && (
         <div className="error" role="alert">
@@ -624,9 +639,12 @@ export function Timetable({
                 <Icon name="check" size={16} />
                 {t.checks}
               </span>
-              <button type="button" className="btn white" onClick={savePdf}>
+              <button type="button" className="btn white" onClick={() => run && downloadTimetablePdf(run.id, group ? { group } : { year: yearFilter, major: majorFilter })}>
                 <Icon name="book" size={17} />
                 {lang === "ar" ? "حفظ بصيغة PDF" : "Save as PDF"}
+              </button>
+              <button type="button" className="btn white" onClick={savePdf}>
+                {lang === "ar" ? "طباعة" : "Print"}
               </button>
               <button
                 type="button"
@@ -639,17 +657,17 @@ export function Timetable({
               </button>
               <small>
                 {lang === "ar"
-                  ? "اختر «حفظ بتنسيق PDF» في نافذة الطباعة."
-                  : "Choose “Save as PDF” in the print dialog."}
+                  ? "«حفظ بصيغة PDF» ينزّل ملفًا أفقيًا لما تعرضه، باسم قصير مثل BA Y3 G7 Schedule."
+                  : "Save as PDF downloads a landscape file of what you are viewing, named like “BA Y3 G7 Schedule”."}
               </small>{" "}
               <small>
                 {lang === "ar"
-                  ? "تقرير PDF اختياري للجدول الكامل، مع رسوم بيانية. لا يتأثر بفلاتر العرض."
-                  : "Optional PDF summary with charts for the full schedule. Display filters do not change its statistics."}
+                  ? (group || yearFilter || majorFilter ? `تقرير PDF لـ ${printScope}، مع رسوم بيانية.` : "تقرير PDF للجدول الكامل مع رسوم بيانية. اختر سنة أو برنامجًا أو مجموعة لتقرير خاص بها.")
+                  : (group || yearFilter || majorFilter ? `PDF summary with charts for ${printScope}.` : "PDF summary with charts for the full schedule. Choose a year, programme or group for its own report.")}
               </small>
               {reportNotice && <small role="alert">{reportNotice}</small>}
             </div>
-            {administrator && <ScenarioActions key={run.id} ws={ws} run={run} runs={runs} lang={lang} reload={reload} select={setSelected} notify={setReportNotice}/>}
+            {administrator && <ScenarioActions key={run.id} ws={ws} run={run} runs={runs} lang={lang} reload={reload} select={setSelected} notify={setReportNotice} shows={matchesGroup} scope={group || yearFilter || majorFilter ? printScope : ""}/>}
           </div>
           <div
             className="schedule-layout-switch"
@@ -785,6 +803,7 @@ export function Timetable({
               : statusText(run)}
           </p>
           {result?.activity_id && <b>{record(result.activity_id)?.name}</b>}
+          {result?.repair && <RepairPanel repair={result.repair} ar={lang === "ar"} />}
         </section>
       )}
       {!run && !loading && (

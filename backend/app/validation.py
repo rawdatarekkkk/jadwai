@@ -27,7 +27,9 @@ def validate_schedule(snapshot, assignments):
         if not isinstance(row, dict) or any(type(row.get(k)) is not str for k in ("activity_id", "instructor_id", "room_id", "day")) or any(type(row.get(k)) is not int for k in ("occurrence", "start_minute", "end_minute")):
             return report({"invalid_assignment"})
     errors = set()
-    expected = Counter((a["id"], n) for a in activities.values() for n in range(a["sessions"]))
+    from app.partial_plan import covered, tas_that_must_teach
+    scope = covered(snapshot)  # a part run covers only some activities
+    expected = Counter((a["id"], n) for a in activities.values() if scope is None or a["id"] in scope for n in range(a["sessions"]))
     actual = Counter((a.get("activity_id"), a.get("occurrence")) for a in assignments)
     if actual != expected:
         errors.add("complete_assignment")
@@ -84,7 +86,7 @@ def validate_schedule(snapshot, assignments):
     errors |= limit_rule_errors(snapshot, activities, assignments)
     errors |= advising_errors(snapshot, activities, assignments)
     teaching = {a["instructor_id"] for a in assignments}
-    if any(r["kind"] == "instructors" and r.get("position") == "ta" and r["id"] not in teaching for r in records.values()):
+    if any(r["id"] not in teaching for r in tas_that_must_teach(snapshot, records.values())):
         errors.add("ta_teaching")
     # Independently sum assigned teaching minutes (breaks inside a session excluded).
     workload = []
@@ -106,7 +108,7 @@ def validate_schedule(snapshot, assignments):
                          "regular_hours": min(minutes / 60, 12) if overtime_policy else None, "extra_hours": max(0, minutes / 60 - 12) if overtime_policy else None, "standard_weekly_hours": 12 if overtime_policy else None})
     checked_locks=[]
     for lock in snapshot.get('assignment_locks',[]):
-        if lock.get('status')!='approved':continue
+        if lock.get('status')!='approved' or (scope is not None and lock.get('activity_id') not in scope):continue
         matches=[a for a in assignments if a['activity_id']==lock.get('activity_id') and a['occurrence']==lock.get('occurrence')]
         fields=[k for k in ('instructor_id','room_id','day','start_minute') if lock.get(k) is not None]
         activity = activities.get(lock.get('activity_id'))

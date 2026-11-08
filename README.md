@@ -89,7 +89,7 @@ Under **Academic data**, choose a category, then **Import CSV**. The dialog show
 3. Check it (read-only): `.venv/bin/python ../scripts/import_data_template.py ../data-entry/JadwAI-data-template.xlsx`. Every problem is listed with its sheet and row, including TAs who teach nothing.
 4. Import it: add `--commit`. The importer signs in with `JADWAI_EMAIL`/`JADWAI_PASSWORD` (`JADWAI_URL` defaults to the live API on port 8010), writes a JSON backup to `backups/` first, then creates or updates records by code.
 
-The full university is about 2,700 weekly sessions, more than the solver's 600-session limit per run; generate per faculty.
+The full university is about 2,700 weekly sessions, more than the solver's 600-session limit per run; build it in parts (below).
 
 ## Runtime database separation
 
@@ -116,6 +116,32 @@ The parent-course/component hierarchy, full manual constraint vocabulary, immuta
 Run the local stack with `bash scripts/dev.sh`, sign in as an administrator, and open **Timetable → Generate schedule**. The separate worker assigns eligible instructors, times and suitable rooms from a saved snapshot of current academic data and approved rules. Review the weekly cards, filter by group, or select a saved draft. Input changes flag older drafts as stale. Only one run is active at a time; cancellation and refresh preserve saved runs.
 
 Generation uses OR-Tools CP-SAT and a separate validator for supported constraints. It is a draft feature: configured weekly workload, practical-day policies and approved assignment locks are supported; publication is unavailable. Read `docs/VERIFICATION.md` for scoring, size/search limits and evidence. After updating an existing checkout, apply migrations through 0015 as the database owner and rerun `python -m app.provision` before starting the API/worker; `bash scripts/setup.sh` performs those steps using the saved owner URL.
+
+### Typed constraints in Arabic
+
+The built-in parser finds instructors stored with English names when the request is written in Arabic or Egyptian Arabic: "د. سارة صالح لا تستطيع التدريس يوم الإثنين بعد 2 الظهر" becomes Dr. Sara Saleh unavailable on Monday from 14:00. Names are compared by their consonant sounds in both scripts, with Egyptian and classical readings (عثمان = Osman or Othman, ج = g). A full name must match word for word; a first name alone counts only when exactly one instructor has it, otherwise the parser asks which one. Request words and everyday words (من، بعد، أحسن) are never read as names. Egyptian day names (الحد، الاتنين، التلات) are recognised. Closures with quarter hours are rounded outwards (until 15:15 blocks to 15:30); allowed and preferred windows inwards.
+
+### When a timetable is impossible
+
+If generation proves the inputs cannot all hold (or the input checks block it), the run explains how to fix it under **How to fix it**:
+- The diagnosis relaxes what an administrator could change: each approved rule, each fixed session (lock), each instructor's day off, and each daily policy limit. It then puts them back a chunk at a time while a timetable still exists, leaving a minimal set that must give way.
+- Each suggestion names the sessions it affects in a repaired timetable. A fixed session gets a concrete new slot ("Move it to Wednesday 13:45 in M.045 with Amr Osman"). The repaired timetable is checked by the independent validator against everything else and marked **Verified**.
+- Preference rules are already soft, and data limits are never relaxed: rooms, eligible instructors, "every TA teaches", and the calendar. If relaxing everything still fails, the answer is that data must change, with the input-check findings that say where.
+- On timetables over 80 sessions the search starts with the sessions the failure points at and those sharing a group or instructor with them, then proves the fix on the whole timetable. It stops after 4 minutes (`REPAIR_SECONDS`).
+- Example on the 448-session demo with an instructor made unavailable all week and two G7 sessions locked to the same time: in 63 s it found exactly those two causes, moved one locked session, and verified the fix.
+
+### Build a large timetable in parts
+
+On the Timetable page, open **Build in parts** and tick the programme years to schedule (at most 600 sessions per part; Engineering alone is about 900, so it takes more than one part). Then select that draft, tick **Continue from the selected draft**, choose more, and generate again. Repeat until nothing is left.
+- Each part keeps every earlier session exactly as it was: same day, time, instructor and room. A session may move only to an identical room in the same interchangeable pool, and it keeps its own room whenever that room is free. A part's new sessions are placed around them, so shared instructors, rooms, student groups and advising students are never double-booked across parts.
+- Every part is checked as one combined timetable by the independent validator. Activities of programme years not yet scheduled are simply missing. A part must give teaching to every idle TA that the remaining activities could not all still cover (a one-TA-per-activity matching), so no part strands a TA.
+- Only a draft covering every session can be published (`schedule_incomplete` otherwise). An activity shared by groups of several programme years is scheduled with the first part that includes any of them.
+- Convenience is optimised within each part around the fixed sessions, so an earlier part can't be improved by a later one. Put the largest or most constrained programmes first.
+- **Check inputs** looks only at the part's own activities, and adds two checks useful at university scale:
+  - `instructor_pool_overloaded` (blocker): activities that only certain instructors may teach need more hours than those instructors have in their week, after days off.
+  - `room_week_capacity` (blocker): sessions needing labs, or lecture and tutorial rooms, take more hours a week than those rooms hold.
+  - `group_week_nearly_full` (warning): a group needs over 90% of the hours its week can hold under the daily-hours and consecutive-period limits.
+- API: `POST /api/schedules` with `scope: [{programme, year}]` (year `null` = the whole programme) and optional `base_run_id`. Runs report `progress` (`scheduled_sessions`, `total_sessions`, `complete`, `remaining_programmes`).
 
 ## Large synthetic demo data
 

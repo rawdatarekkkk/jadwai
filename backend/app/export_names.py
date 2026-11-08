@@ -10,9 +10,9 @@ def part(value, limit=45):
     return re.sub(r'\s+', '-', value.strip()).rstrip('. -')[:limit] or 'Schedule'
 
 
-def report_disposition(row, extension):
+def report_disposition(row, extension, scope=None):
     filename = '_'.join(['JadwAI', part(row.snapshot['term']), part(row.snapshot['name']),
-                         'Statistics-Report', 'Full-Schedule', 'Draft', f'v{row.input_version}',
+                         'Statistics-Report', part(scope.replace(' / ', ' '), 80) if scope else 'Full-Schedule', 'Draft', f'v{row.input_version}',
                          row.created_at.date().isoformat(), row.id[:8]]) + '.' + extension
     fallback = filename.encode('ascii', 'ignore').decode('ascii')
     return f'attachment; filename="{fallback}"; filename*=UTF-8\'\'{quote(filename, safe="")}'

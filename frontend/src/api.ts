@@ -145,6 +145,10 @@ export type ScheduleAssignment = {
   start_minute: number;
   end_minute: number;
 };
+export type ScopeItem = { programme: string; year: number | null };
+export type Repair = { status: "fixable" | "data_change_needed" | "not_found"; verified?: boolean; message?: string; findings?: string[];
+  suggestions?: { kind: string; target: string | null; title: string; message: string; sessions: string[] }[] };
+export type RunProgress = { scheduled_sessions: number; total_sessions: number; complete: boolean; remaining_programmes: ScopeItem[]; scope: ScopeItem[] | null; base_run_id: string | null };
 export type ScheduleRun = {
   id: string;
   input_version: number;
@@ -163,6 +167,8 @@ export type ScheduleRun = {
   name?: string | null;
   parent_run_id?: string | null;
   published_at?: string | null;
+  /** How much of the whole timetable a run covers (runs built in parts). */
+  progress?: RunProgress | null;
   snapshot: {
     name: string;
     term: string;
@@ -171,6 +177,7 @@ export type ScheduleRun = {
     rules: Rule[];
   };
   result: {
+    repair?: Repair;
     provenance?: { snapshot: {snapshot_sha256:string; config_sha256:string} | null; validator_version:string | null; worker_elapsed_seconds:number; reproducibility_note:string };
     solver_diagnostics?: {raw_status:string; ortools_version:string; parameters_text:string; solver_seconds:number; objective_definition:string};
     preflight?: import("./RunChecks").Preparation;
@@ -187,9 +194,12 @@ export type ScheduleRun = {
 export async function downloadScheduleStatistics(
   id: string,
   format: "pdf" | "html" | "json" = "pdf",
+  scope: { group?: string; year?: string; major?: string } = {},
 ) {
+  // A report for the group, or year and programme, being viewed; none = the whole timetable.
+  const query = new URLSearchParams({ format, ...Object.fromEntries(Object.entries(scope).filter(([, v]) => v)) });
   const response = await fetch(
-    `/api/schedules/${encodeURIComponent(id)}/statistics?format=${format}`,
+    `/api/schedules/${encodeURIComponent(id)}/statistics?${query}`,
     { credentials: "same-origin" },
   );
   if (!response.ok) {
@@ -199,7 +209,7 @@ export async function downloadScheduleStatistics(
   }
   // Download the authenticated attachment directly; this also works in browsers
   // that restrict downloads from generated blob URLs.
-  const url = `/api/schedules/${encodeURIComponent(id)}/statistics?format=${format}`;
+  const url = `/api/schedules/${encodeURIComponent(id)}/statistics?${query}`;
   const link = document.createElement("a");
   link.href = url;
   // The server supplies a descriptive filename in Content-Disposition.
@@ -208,4 +218,16 @@ export async function downloadScheduleStatistics(
   link.click();
   link.remove();
 
+}
+
+
+/** The timetable as a landscape PDF built on the server, with a short descriptive file name. */
+export function downloadTimetablePdf(id: string, scope: { group?: string; year?: string; major?: string } = {}) {
+  const query = new URLSearchParams(Object.fromEntries(Object.entries(scope).filter(([, v]) => v)) as Record<string, string>);
+  const link = document.createElement("a");
+  link.href = `/api/schedules/${encodeURIComponent(id)}/timetable.pdf${query.size ? `?${query}` : ""}`;
+  link.download = "";
+  document.body.append(link);
+  link.click();
+  link.remove();
 }

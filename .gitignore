@@ -10,3 +10,4 @@ __pycache__/
 backups/
 .ruff_cache/
 data-entry/
+reports/

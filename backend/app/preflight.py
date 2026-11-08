@@ -9,7 +9,9 @@ SUPPORTED = set(rs.TYPES)
 
 def inspect_inputs(snapshot):
     records={r['id']:r for r in snapshot['records']}; cal=snapshot['calendar']
-    activities=[r for r in records.values() if r['kind']=='courses']
+    from app.partial_plan import in_scope
+    all_activities=[r for r in records.values() if r['kind']=='courses']
+    activities=in_scope(snapshot, all_activities)  # a part run checks only its own activities
     rooms=[r for r in records.values() if r['kind']=='rooms']
     approved=[r for r in snapshot['rules'] if r['status']=='approved']
     locks=[r for r in snapshot.get('assignment_locks',[]) if r['status']=='approved']
@@ -70,13 +72,25 @@ def inspect_inputs(snapshot):
             if selected and not possible:issue('lock_contradiction','An approved lock cannot fit the current calendar, resources or approved rules.',ident,[lock['id'] for lock in selected]+related)
         for g in groups:load[g]+=duration*activity['sessions']
     from app.positions import tas_without_teaching
-    valid=[a for a in activities if all(records.get(t,{}).get('kind')=='instructors' for t in a['eligible_instructors'])]
+    valid=[a for a in all_activities if all(records.get(t,{}).get('kind')=='instructors' for t in a['eligible_instructors'])]
     for ta in tas_without_teaching([r for r in records.values() if r['kind']=='instructors'],valid):
         issue('ta_without_teaching',f"{records[ta]['name']} cannot be given any session. Every TA must teach: add this TA to a course's tutorials or labs, or add more activities to the pool.",resource_id=ta)
     day_minutes=sum(p['end']-p['start'] for p in cal.get('teaching_periods',[])) or (cal['end_hour']-cal['start_hour'])*60
+    overloaded_pools(records, activities, cal, day_minutes, policy, issue)
+    room_week(rooms, activities, cal, day_minutes, issue)
+    periods=cal.get('teaching_periods') or []
+    if periods:
+        # Most periods a group can attend in a day: the daily-hours cap, and a free period
+        # after every run of max_consecutive_periods (periods taken as equal length).
+        length=day_minutes/len(periods); per_day=len(periods)
+        if policy.get('max_consecutive_periods'):per_day-=len(periods)//(policy['max_consecutive_periods']+1)
+        if policy.get('student_daily_hours') is not None:per_day=min(per_day,int(policy['student_daily_hours']*60//length))
+        tight=len(cal['days'])*per_day*length
     for g,minutes in load.items():
         cap=policy.get('student_daily_hours');available=len(cal['days'])*min(day_minutes,day_minutes if cap is None else cap*60)
         if minutes>available:issue('group_weekly_capacity','Required group teaching minutes exceed the week’s teaching capacity.',resource_id=g)
+        elif periods and minutes>0.9*tight:
+            warnings.append(dict(code='group_week_nearly_full',resource_id=g,message=f"{records[g].get('name',g)} needs {round(minutes/60,1)} of the {round(tight/60,1)} teaching hours its week can hold under the daily limits. Generation may take long or fail; consider fewer sessions or relaxing the daily or consecutive-period limits."))
     by_activity={a['id']:a for a in activities}
     for student in snapshot.get('students',[]):
         if not student['activity_ids']:
@@ -101,3 +115,46 @@ def inspect_inputs(snapshot):
             fixed.append((lock,lock_end(lock,activity),resources))
     return dict(version=VERSION,input_version=snapshot.get('input_version'),ready=not blockers,blockers=blockers,warnings=warnings,activity_domains=domains,
                 definition='Necessary local checks only; passing does not prove global feasibility. Missing optional limits are warnings. Named teaching breaks do not count as teaching capacity.')
+
+
+def overloaded_pools(records, activities, cal, day_minutes, policy, issue):
+    """Activities that only a set of instructors may teach need at most their combined week.
+
+    For each eligibility list, every activity whose instructors all come from that list
+    must be taught by them; if those minutes exceed the list's teaching week (days off
+    and an instructor daily maximum respected), no timetable exists."""
+    cap = policy.get('instructor_daily_hours')
+    per_day = day_minutes if cap is None else min(day_minutes, round(cap * 60))
+    week = lambda t: per_day * sum(1 for d in cal['days'] if records[t].get('day_off') != d)
+    valid = [a for a in activities if a['eligible_instructors'] and all(records.get(t, {}).get('kind') == 'instructors' for t in a['eligible_instructors'])]
+    reported = set()
+    for pool in sorted({frozenset(a['eligible_instructors']) for a in valid}, key=len):
+        mine = [a for a in valid if pool >= set(a['eligible_instructors'])]
+        need = sum(a['duration'] * a['sessions'] for a in mine)
+        have = sum(week(t) for t in pool)
+        if need > have and not reported & {a['id'] for a in mine}:
+            reported |= {a['id'] for a in mine}
+            names = ', '.join(sorted(records[t].get('name', t) for t in pool))
+            codes = ', '.join(sorted({(a.get('code') or a.get('name') or a['id']).split('-A')[0] for a in mine})[:5])
+            issue('instructor_pool_overloaded', f"{codes}: {round(need / 60, 1)} weekly hours can only be taught by {names}, who have {round(have / 60, 1)} teaching hours a week between them. Add instructors to these activities or reduce their sessions.",
+                  mine[0]['id'], resource_id=sorted(pool)[0])
+
+
+def room_week(rooms, activities, cal, day_minutes, issue):
+    """Weekly teaching minutes needing a lab or a lecture room against what those rooms hold.
+
+    Each session occupies one room for at least its teaching minutes; flexible rooms count
+    for both kinds, so the kinds are also checked together."""
+    usable = [r for r in rooms if r.get('capacity') and (r.get('room_types') or r.get('room_type'))]
+    kinds = lambda r: set(r.get('room_types') or [r.get('room_type')])
+    week = len(cal['days']) * day_minutes
+    need = {'lab': 0, 'lecture': 0}
+    for a in activities:
+        need['lab' if a['activity_type'] == 'lab' else 'lecture'] += a['duration'] * a['sessions']
+    for kind, label in (('lab', 'labs'), ('lecture', 'lecture and tutorial rooms')):
+        have = week * sum(1 for r in usable if kinds(r) & {kind, 'flexible'})
+        if need[kind] > have:
+            issue('room_week_capacity', f"Sessions needing {label} take {round(need[kind] / 60)} hours a week, but those rooms hold {round(have / 60)}. Add rooms or reduce sessions.")
+    have = week * sum(1 for r in usable if kinds(r) & {'lab', 'lecture', 'flexible'})
+    if need['lab'] + need['lecture'] > have and all(need[k] <= week * sum(1 for r in usable if kinds(r) & {k, 'flexible'}) for k in need):
+        issue('room_week_capacity', f"Sessions take {round((need['lab'] + need['lecture']) / 60)} room-hours a week, but the rooms hold {round(have / 60)}. Add rooms or reduce sessions.")

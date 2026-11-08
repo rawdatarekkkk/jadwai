@@ -151,6 +151,9 @@ def publish(ident: str, request: Request, user=Depends(administrator), db=Depend
         fail(409, 'invalid_transition')
     if row.input_version != ws.version:
         fail(409, 'stale_schedule')
+    from app.partial_plan import complete
+    if not complete(row.snapshot):
+        fail(409, 'schedule_incomplete')  # a part of the timetable; schedule the remaining programmes first
     current = snapshot_of(db, ws)
     report = validate_schedule(current, row.result['assignments'])
     if not report['passed']:

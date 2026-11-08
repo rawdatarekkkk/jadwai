@@ -8,7 +8,29 @@ type Comparison = { a: { name: string | null; metrics: Record<string, number> };
 const clock = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 
 /** Admin controls for one completed draft: name, publish, validated move, compare, CSV. */
-export function ScenarioActions({ ws, run, runs, lang, reload, select, notify }: { ws: Workspace; run: ScheduleRun; runs: ScheduleRun[]; lang: "en" | "ar"; reload: () => Promise<void>; select: (id: string) => void; notify: (message: string) => void }) {
+/** "INF1-G10, INF1-G11, INF1-G12" -> "INF1-G10–G12". */
+export function compactGroups(codes: string[]) {
+  const numbered = new Map<string, number[]>(), other: string[] = [];
+  for (const c of codes) {
+    const m = /^(.*?)G(\d+)$/i.exec(c);
+    if (m) numbered.set(m[1], [...(numbered.get(m[1]) || []), Number(m[2])]);
+    else if (c) other.push(c);
+  }
+  const parts: string[] = [];
+  for (const [prefix, list] of numbered) {
+    const ns = [...new Set(list)].sort((a, b) => a - b);
+    let start = ns[0], prev = ns[0];
+    for (const n of [...ns.slice(1), NaN]) {
+      if (n === prev + 1) { prev = n; continue; }
+      parts.push(prev > start + 1 ? `${prefix}G${start}–G${prev}` : prev === start + 1 ? `${prefix}G${start}, ${prefix}G${prev}` : `${prefix}G${start}`);
+      start = prev = n;
+    }
+  }
+  return [...parts, ...other].join(", ");
+}
+
+export function ScenarioActions({ ws, run, runs, lang, reload, select, notify, shows = () => true, scope = "" }: { ws: Workspace; run: ScheduleRun; runs: ScheduleRun[]; lang: "en" | "ar"; reload: () => Promise<void>; select: (id: string) => void; notify: (message: string) => void;
+  /** Whether an activity is in the year, programme or group being viewed. */ shows?: (activityId: string) => boolean; scope?: string }) {
   const t = (k: keyof typeof words.en) => words[lang][k];
   const ar = lang === "ar";
   const [name, setName] = useState(run.name || ""), [busy, setBusy] = useState(false), [message, setMessage] = useState("");
@@ -19,7 +41,7 @@ export function ScenarioActions({ ws, run, runs, lang, reload, select, notify }:
   const dayName = (d: string) => t(d as keyof typeof words.en) || d;
   const code = (id: string) => records.find(r => r.id === id)?.code || id;
   // Same-named activities differ by group, so show the groups in the session list.
-  const groupsOf = (activityId: string) => (records.find(r => r.id === activityId)?.group_ids || []).map(code).join(", ");
+  const groupsOf = (activityId: string) => compactGroups((records.find(r => r.id === activityId)?.group_ids || []).map(code));
   const draftName = (r: ScheduleRun) => `${r.name || (ar ? "مسودة" : "Draft")} · ${new Date(r.created_at).toLocaleString(ar ? "ar-EG" : "en-GB")}`;
   const others = runs.filter(r => r.id !== run.id && r.status === "completed");
   async function act(action: () => Promise<void>) {
@@ -30,7 +52,9 @@ export function ScenarioActions({ ws, run, runs, lang, reload, select, notify }:
       setMessage((errors[code]?.[ar ? 1 : 0] || code) + detail);
     } finally { setBusy(false); }
   }
-  const sessions = run.result?.assignments || [];
+  // Only the sessions being viewed, in timetable order.
+  const sessions = (run.result?.assignments || []).filter(a => shows(a.activity_id))
+    .sort((a, b) => run.snapshot.calendar.days.indexOf(a.day) - run.snapshot.calendar.days.indexOf(b.day) || a.start_minute - b.start_minute || label(a.activity_id).localeCompare(label(b.activity_id)));
   const chosen = sessions.find(a => `${a.activity_id}:${a.occurrence}` === move.session);
   const activity = chosen && records.find(r => r.id === chosen.activity_id);
   // Start options come from the saved calendar: named periods, or the grid.
@@ -51,7 +75,7 @@ export function ScenarioActions({ ws, run, runs, lang, reload, select, notify }:
     <details><summary>{t("editSession")}</summary>
       <div className="form-grid">
         <label>{ar ? "الحصة" : "Session"}<select value={move.session} onChange={e => setMove({ ...move, session: e.target.value })}>
-          <option value="">—</option>
+          <option value="">{scope ? `— ${sessions.length} ${ar ? "حصة في" : sessions.length === 1 ? "session in" : "sessions in"} ${scope}` : "—"}</option>
           {sessions.map(a => <option key={`${a.activity_id}:${a.occurrence}`} value={`${a.activity_id}:${a.occurrence}`}>{label(a.activity_id)} · {groupsOf(a.activity_id)} · {dayName(a.day)} {clock(a.start_minute)} · {label(a.room_id)}</option>)}
         </select></label>
         <label>{ar ? "اليوم" : "Day"}<select value={move.day} onChange={e => setMove({ ...move, day: e.target.value })}><option value="">{ar ? "بدون تغيير" : "Keep"}</option>{cal.days.map(d => <option key={d} value={d}>{dayName(d)}</option>)}</select></label>

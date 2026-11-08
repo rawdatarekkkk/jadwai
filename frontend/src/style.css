@@ -3719,3 +3719,11 @@ legend small {
 .scenario-actions { grid-column: 1 / -1; display: grid; gap: 12px; margin-top: 12px; }
 .choice-list { display: grid; gap: 6px; max-height: 220px; overflow: auto; }
 .exam-halls { font-size: .85em; opacity: .85; }
+.part-plan { margin: 16px 0; }
+.part-plan summary { cursor: pointer; font-weight: 600; }
+.part-programmes { list-style: none; padding: 0; margin: 8px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 4px 16px; }
+.part-programmes small { opacity: .7; }
+.repair-panel { text-align: start; margin-top: 16px; }
+.repair-panel ol { padding-inline-start: 20px; }
+.repair-panel ol > li { margin-bottom: 10px; }
+.repair-panel ol p { margin: 4px 0; }

@@ -148,3 +148,8 @@ def test_everyday_arabic_words_are_not_read_as_names():
     out = parse('عايزين الجدول يبقى أحسن', {**ENGLISH_NAMED, 'records': ENGLISH_NAMED['records'] + [
         {'id': 'hassan', 'kind': 'instructors', 'data': {'name': 'Hassan Lotfy', 'code': 'T-3', 'position': 'ta'}}]})
     assert out['decision'] == 'unsupported' and not out['clarifications']
+
+
+def test_each_day_after_named_days_means_those_days():
+    out = parse('Dr. Ahmed Hassan is unavailable Monday and Tuesday from 08:00 to 10:00 on each day', CONTEXT)
+    assert sorted(p['data']['day'] for p in out['proposals']) == ['Monday', 'Tuesday']

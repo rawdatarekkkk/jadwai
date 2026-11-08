@@ -213,12 +213,13 @@ def times(text, calendar):
 
 
 def days_in(text, calendar):
-    if any(phrase in text for phrase in EVERY_DAY):
-        return [None]
     found = []
     for word, day in DAYS.items():
         if mentions(text, normalise(word)) and day not in found:
             found.append(day)
+    # "Monday and Tuesday ... on each day" means each of those days, not every day.
+    if not found and any(phrase in text for phrase in EVERY_DAY):
+        return [None]
     return found
 
 

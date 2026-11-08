@@ -1470,12 +1470,61 @@ At the time of writing the automated suites pass: 387 backend tests, 69 frontend
 
 The evidence has the following limits. All measurements come from one machine and one random seed; repeated runs and other hardware may differ, and parallel search can produce different valid timetables from identical inputs. The university-scale run used adjusted data, so it demonstrates the mechanism rather than a timetable for the university. The demonstration workspace is derived from real course structures but uses invented names and advising students. The repair diagnosis returns a minimal rather than a minimum set of changes, depends on time budgets, and on large timetables searches locally first. The interpretation baseline uses draft labels reviewed by no human, a single development release and a parser written by the same author who wrote the corpus. Research results for RQ1--RQ3 still require the reviewed corpus, frozen configurations and the human-in-the-loop study described in Chapter~3.
 
-% References: IEEE transactions style (ieeetr), numbered in order of first citation.
-% Entries and their verification notes are in references.bib.
 \renewcommand{\bibname}{References}
 \cleardoublepage\phantomsection
 \addcontentsline{toc}{chapter}{References}
-\bibliographystyle{ieeetr}
-\bibliography{references}
+% Formatted in IEEE transactions style (as BibTeX's ieeetr would), numbered in order of
+% first citation, and embedded so no BibTeX run is needed. Source records: references.bib.
+\begin{thebibliography}{10}
+
+\bibitem{petrovic2004university}
+S.~Petrovic and E.~K. Burke, ``University timetabling,'' in {\em Handbook of Scheduling: Algorithms, Models, and Performance Analysis} (J.~Y.-T. Leung, ed.), ch.~45, Chapman \& Hall/CRC, 2004.
+\newblock Publisher and year not verified from a record.
+
+\bibitem{sobh_course_scheduler}
+T.~Sobh, R.~Cousens, and S.~Patel, ``Course {Scheduler}: An automated schedule generator.'' University of Bridgeport, n.d.
+\newblock Supplied paper; venue and year not verified.
+
+\bibitem{muller2025itc}
+T.~M{\"u}ller, H.~Rudov{\'a}, and Z.~M{\"u}llerov{\'a}, ``Real-world university course timetabling at the {International Timetabling Competition} 2019,'' {\em Journal of Scheduling}, vol.~28, pp.~247--267, 2025.
+\newblock doi: 10.1007/s10951-023-00801-w.
+
+\bibitem{abdennadher_guc_exams}
+S.~Abdennadher and M.~Edward, ``Constraint-based examination timetabling for the {German University in Cairo}.'' n.d.
+\newblock Supplied paper; venue and year not verified.
+
+\bibitem{kaya2026drl}
+M.~Kaya, ``Constraint-aware deep {Q}-network with greedy fallback for large-scale multi-campus university examination scheduling,'' {\em Array}, vol.~31, p.~101140, 2026.
+\newblock doi: 10.1016/j.array.2026.101140.
+
+\bibitem{sharma2026schedbench}
+S.~S. Sharma and A.~Sharma, ``{SCHEDBench}: A benchmark for evaluating {LLM} constraint faithfulness in natural-language combinatorial scheduling.'' arXiv preprint arXiv:2608.00991, 2026.
+\newblock \url{https://arxiv.org/abs/2608.00991}.
+
+\bibitem{sanguinetti2025preferences}
+M.~Sanguinetti, A.~Perniciano, L.~Zedda, A.~Loddo, C.~{Di Ruberto}, and M.~Atzori, ``From user preferences to optimization constraints using large language models.'' arXiv preprint arXiv:2503.21360, 2025.
+\newblock Submitted 27 March 2025; the supplied manuscript carries an ITADATA2024 header; final proceedings record not verified. \url{https://arxiv.org/abs/2503.21360}.
+
+\bibitem{michailidis2025cpbench}
+K.~Michailidis, D.~Tsouros, and T.~Guns, ``{CP-Bench} (later renamed {DCP-Bench-Open}): A benchmark of {LLMs} writing constraint models from natural-language problem descriptions.'' arXiv preprint arXiv:2506.06052, 2025.
+\newblock Version 2 dated 4 September 2025; title as recorded in the project bibliography. \url{https://arxiv.org/abs/2506.06052}.
+
+\bibitem{openai_gpt6_luna}
+{OpenAI}, ``{GPT-6 Luna} model documentation.''
+\newblock Accessed 8 October 2026.
+
+\bibitem{google_gemini38_flash}
+{Google}, ``{Gemini 3.8 Flash} model documentation.''
+\newblock Accessed 8 October 2026.
+
+\bibitem{anthropic_claude_docs}
+{Anthropic}, ``{Claude} models overview and structured outputs.''
+\newblock Accessed 8 October 2026.
+
+\bibitem{google_cpsat}
+{Google}, ``{CP-SAT} solver.'' OR-Tools documentation, \url{https://developers.google.com/optimization/cp/cp_solver}.
+\newblock Accessed 8 October 2026.
+
+\end{thebibliography}
 
 \end{document}

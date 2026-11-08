@@ -1440,25 +1440,29 @@ On timetables above 80 sessions a complete diagnosis is too slow (one feasibilit
 \section{Rule-based interpretation baseline}\label{evidence-baseline}
 Section~\ref{baselines} lists an optional rule-based extraction baseline for RQ1. JadwAI's built-in parser (deterministic patterns for English, formal Arabic and Egyptian Arabic) was run on all 144 statements of the development release (36 intent families, four language variants each) and scored with the project's offline scorer, which validates each output against the contract and the synthetic context before comparing it with the expected answer. The parser received only entity names as stored in JadwAI (English), not the context's Arabic aliases. A format adapter wrote whole hours as integers (10 rather than 10.0), which the contract requires; half-hour values were left unchanged.
 
+The parser was measured twice. The first measurement exposed that its clarification codes differed from annotation guide~v2 and that it guessed in three situations where the guide requires a question. The parser was then changed, and the second measurement is the one reported in Table~\ref{tab:baseline}. The changes were: (1)~clarification codes renamed to the guide's stable codes (for example \texttt{ambiguous\_instructor} instead of \texttt{ambiguous\_name:ahmed}, and \texttt{unknown\_instructor}); (2)~a mandatory time without a day, a statement naming no rule type (``Nour Hassan, Sunday, 08:00--10:00''), and vague times such as ``early'' now produce questions (\texttt{day\_required}, \texttt{rule\_type\_and\_strength\_required}, \texttt{undefined\_early}) instead of an assumed interpretation; (3)~common Egyptian and English negations that were missing (for example the Egyptian equivalents of ``not available'' and ``cannot'', and ``do not schedule'') were added, together with ``must fit'' and ``no other times''; and (4)~``Monday and Tuesday \ldots{} on each day'' is read as those two days rather than every day. Change~(3) mattered for safety: before it, a statement such as ``Nour Hassan [not available] Sunday 08:00--10:00'' fell through to the ``only'' interpretation and produced the opposite rule. Because these changes were made after inspecting development errors, the reported figures are optimistic for this release and are not evidence of performance on unseen statements.
+
 \begin{table}[h]
 \centering
 \small
-\begin{tabular}{@{}lrl@{}}
+\begin{tabular}{@{}lrrl@{}}
 \toprule
-Measure & Estimate & 95\% interval \\
+Measure & First run & Reported & 95\% interval (reported) \\
 \midrule
-End-to-end exact output & 0.153 (22/144) & 0.083--0.229 \\
-Decision accuracy & 0.521 & 0.389--0.653 \\
-Proposal precision / recall & 0.222 / 0.315 & \\
-Proposal F1 & 0.261 & 0.175--0.355 \\
-Field F1 & 0.451 & 0.324--0.569 \\
+End-to-end exact output & 0.153 (22/144) & 0.326 (47/144) & 0.215--0.458 \\
+Decision accuracy & 0.521 & 0.597 & 0.465--0.736 \\
+Proposal precision / recall & 0.222 / 0.315 & 0.448 / 0.361 & \\
+Proposal F1 & 0.261 & 0.400 & 0.295--0.515 \\
+Field F1 & 0.451 & 0.605 & 0.474--0.712 \\
+Clarification F1 & 0.000 & 0.351 & 0.141--0.576 \\
+Unsupported-request F1 & 0.000 & 0.000 & \\
 \bottomrule
 \end{tabular}
-\caption{Rule-based baseline on the draft development labels (intervals: percentile bootstrap over intent families, 1{,}000 replicates).}
+\caption{Rule-based baseline on the draft development labels before and after aligning the parser with annotation guide~v2 (intervals: percentile bootstrap over intent families, 1{,}000 replicates).}
 \label{tab:baseline}
 \end{table}
 
-Exact outputs by language were 13/36 (English), 7/36 (mixed), 2/36 (formal Arabic) and 0/36 (Egyptian Arabic); decision accuracy was 0.58, 0.56, 0.47 and 0.47 respectively, and 139 of 144 outputs were contract-valid. Clarification and unsupported-request F1 were zero because the parser emits its own codes (for example \texttt{ambiguous\_name:ahmed}) rather than the vocabulary of annotation guide~v2 (for example \texttt{ambiguous\_instructor}); weekly-load and lock proposals (12 expected) are outside the parser's coverage. One parser error found while inspecting development outputs was corrected before the reported run: ``Monday and Tuesday \ldots{} on each day'' had been read as every day. No other tuning to the corpus was done. Because the labels are draft and unreviewed, the families are synthetic and the release is development material, these figures describe a baseline on development data only; they are not a confirmatory result and do not compare any language model.
+In the reported run, exact outputs by language were 20/36 (English), 12/36 (mixed), 8/36 (formal Arabic) and 7/36 (Egyptian Arabic); decision accuracy was 0.69, 0.67, 0.53 and 0.50 respectively, and all 144 outputs were contract-valid. Unsupported-request F1 remains zero for two reasons: the parser has no proposals for weekly teaching loads or locks (12 expected), and it deliberately differs from guide~v2 on minute-precise times. The guide labels a closure such as 10:15--11:45 as unsupported; the application stores half hours and rounds closures outwards (10:00--12:00), which suits the 15--30-minute breaks between the institution's teaching periods. This is a recorded design difference, not an error in either. Because the labels are draft and unreviewed, the families are synthetic and the release is development material, these figures describe a baseline on development data only; they are not a confirmatory result and do not compare any language model.
 
 Testing the interpretation workflow on the demonstration workspace also found three faults that were then corrected: a closure ending at 15:15 was stored as ending at 15:00 (closures are now rounded outwards and permitted or preferred windows inwards); the review editor could not show a 10:30 interpretation (it now offers half hours); and Arabic statements could not name instructors stored in English (names are now compared by consonant sounds in both scripts, with Egyptian and classical readings, and a shared first name triggers a clarification).
 
@@ -1466,7 +1470,7 @@ Testing the interpretation workflow on the demonstration workspace also found th
 The statistics report for the published draft was recomputed independently from the saved assignments; every figure matched (448/448 sessions, sessions per day, zero overlaps, 65/65 rooms, 123/123 instructors, 22.97\% room time, no extra teaching hours). The review found that seat use ignored advising students, that unset limits were printed as ``None'', and that a report could not be limited to one group; all three were corrected. Timetable PDFs are now generated on the server as landscape A4 pages with short descriptive names (for example ``BA Y3 G7 Schedule'') because browser printing in one environment rotated the page and named the file after the application window.
 
 \section{Automated tests and limitations of this evidence}
-At the time of writing the automated suites pass: 387 backend tests, 69 frontend tests and 47 evaluation-harness tests. They include regression tests for every fault reported in this chapter.
+At the time of writing the automated suites pass: 393 backend tests, 71 frontend tests and 47 evaluation-harness tests. They include regression tests for every fault reported in this chapter.
 
 The evidence has the following limits. All measurements come from one machine and one random seed; repeated runs and other hardware may differ, and parallel search can produce different valid timetables from identical inputs. The university-scale run used adjusted data, so it demonstrates the mechanism rather than a timetable for the university. The demonstration workspace is derived from real course structures but uses invented names and advising students. The repair diagnosis returns a minimal rather than a minimum set of changes, depends on time budgets, and on large timetables searches locally first. The interpretation baseline uses draft labels reviewed by no human, a single development release and a parser written by the same author who wrote the corpus. Research results for RQ1--RQ3 still require the reviewed corpus, frozen configurations and the human-in-the-loop study described in Chapter~3.
 

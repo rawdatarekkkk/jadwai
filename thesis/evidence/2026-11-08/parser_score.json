@@ -2,9 +2,9 @@
  "result": {
   "family_consistency": {
    "family_count": 36,
-   "complete_valid_families": 34,
-   "consistent_families": 7,
-   "all_exact_families": 0,
+   "complete_valid_families": 36,
+   "consistent_families": 10,
+   "all_exact_families": 6,
    "families": [
     {
      "family_id": "design-family-001",
@@ -46,12 +46,12 @@
      "family_id": "design-family-007",
      "complete_valid": true,
      "consistent": true,
-     "all_exact": false
+     "all_exact": true
     },
     {
      "family_id": "design-family-008",
      "complete_valid": true,
-     "consistent": true,
+     "consistent": false,
      "all_exact": false
     },
     {
@@ -62,7 +62,7 @@
     },
     {
      "family_id": "design-family-010",
-     "complete_valid": false,
+     "complete_valid": true,
      "consistent": false,
      "all_exact": false
     },
@@ -135,8 +135,8 @@
     {
      "family_id": "family-012",
      "complete_valid": true,
-     "consistent": false,
-     "all_exact": false
+     "consistent": true,
+     "all_exact": true
     },
     {
      "family_id": "family-013",
@@ -146,33 +146,33 @@
     },
     {
      "family_id": "family-014",
-     "complete_valid": false,
-     "consistent": false,
-     "all_exact": false
+     "complete_valid": true,
+     "consistent": true,
+     "all_exact": true
     },
     {
      "family_id": "family-015",
      "complete_valid": true,
-     "consistent": false,
+     "consistent": true,
      "all_exact": false
     },
     {
      "family_id": "family-016",
      "complete_valid": true,
-     "consistent": true,
+     "consistent": false,
      "all_exact": false
     },
     {
      "family_id": "family-017",
      "complete_valid": true,
      "consistent": true,
-     "all_exact": false
+     "all_exact": true
     },
     {
      "family_id": "family-019",
      "complete_valid": true,
-     "consistent": false,
-     "all_exact": false
+     "consistent": true,
+     "all_exact": true
     },
     {
      "family_id": "family-020",
@@ -207,8 +207,8 @@
     {
      "family_id": "family-029",
      "complete_valid": true,
-     "consistent": false,
-     "all_exact": false
+     "consistent": true,
+     "all_exact": true
     },
     {
      "family_id": "family-030",
@@ -228,39 +228,39 @@
   "case_count": 144,
   "received_predictions": 144,
   "missing_predictions": 0,
-  "valid_outputs": 139,
-  "exact_cases": 22,
-  "end_to_end_accuracy": 0.1527777777777778,
-  "decision_accuracy": 0.5208333333333334,
+  "valid_outputs": 144,
+  "exact_cases": 47,
+  "end_to_end_accuracy": 0.3263888888888889,
+  "decision_accuracy": 0.5972222222222222,
   "cases_with_unknown_entity_reference": 0,
   "metrics": {
    "proposals": {
-    "true_positive": 34,
-    "predicted": 153,
+    "true_positive": 39,
+    "predicted": 87,
     "expected": 108,
-    "precision": 0.2222222222222222,
-    "recall": 0.3148148148148148,
-    "f1": 0.26053639846743293
+    "precision": 0.4482758620689655,
+    "recall": 0.3611111111111111,
+    "f1": 0.4
    },
    "fields": {
-    "true_positive": 339,
-    "predicted": 888,
+    "true_positive": 344,
+    "predicted": 522,
     "expected": 616,
-    "precision": 0.38175675675675674,
-    "recall": 0.5503246753246753,
-    "f1": 0.4507978723404255
+    "precision": 0.6590038314176245,
+    "recall": 0.5584415584415584,
+    "f1": 0.6045694200351494
    },
    "clarifications": {
-    "true_positive": 0,
-    "predicted": 44,
+    "true_positive": 20,
+    "predicted": 62,
     "expected": 52,
-    "precision": 0.0,
-    "recall": 0.0,
-    "f1": 0.0
+    "precision": 0.3225806451612903,
+    "recall": 0.38461538461538464,
+    "f1": 0.3508771929824561
    },
    "unsupported": {
     "true_positive": 0,
-    "predicted": 24,
+    "predicted": 17,
     "expected": 16,
     "precision": 0.0,
     "recall": 0.0,
@@ -270,23 +270,23 @@
   "by_language": {
    "en": {
     "cases": 36,
-    "exact": 13,
-    "end_to_end_accuracy": 0.3611111111111111
+    "exact": 20,
+    "end_to_end_accuracy": 0.5555555555555556
    },
    "ar": {
     "cases": 36,
-    "exact": 2,
-    "end_to_end_accuracy": 0.05555555555555555
+    "exact": 8,
+    "end_to_end_accuracy": 0.2222222222222222
    },
    "arz": {
     "cases": 36,
-    "exact": 0,
-    "end_to_end_accuracy": 0.0
+    "exact": 7,
+    "end_to_end_accuracy": 0.19444444444444445
    },
    "mixed": {
     "cases": 36,
-    "exact": 7,
-    "end_to_end_accuracy": 0.19444444444444445
+    "exact": 12,
+    "end_to_end_accuracy": 0.3333333333333333
    }
   },
   "telemetry": {
@@ -353,7 +353,7 @@
     "errors": [],
     "exact": false,
     "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
-    "observed_sha256": "077750523f338d2c8c37391accf9f0d6f48caf1e07d3e83e64c00b07919361aa"
+    "observed_sha256": "8d84963f28c0d19f7d43e5eb24ef2a00d0cba3f5d29408adff805b9b021f9c0b"
    },
    {
     "id": "jdw-001-mixed",
@@ -364,7 +364,7 @@
     "errors": [],
     "exact": false,
     "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
-    "observed_sha256": "077750523f338d2c8c37391accf9f0d6f48caf1e07d3e83e64c00b07919361aa"
+    "observed_sha256": "8d84963f28c0d19f7d43e5eb24ef2a00d0cba3f5d29408adff805b9b021f9c0b"
    },
    {
     "id": "jdw-002-en",
@@ -573,7 +573,7 @@
     "errors": [],
     "exact": false,
     "expected_sha256": "932f224e0cd2821c9f965ac5424895eae561334f0ffc515357ec321e6e618ff8",
-    "observed_sha256": "3a4ba6fac5eedab8d2321716dee7afd684929ef805f745b2f035b582cdc2f6ce"
+    "observed_sha256": "01c84a286d12f67b53f6bb738cb489cfd78901440c7e929f8b0c2b3f28311e18"
    },
    {
     "id": "jdw-007-mixed",
@@ -650,7 +650,7 @@
     "errors": [],
     "exact": false,
     "expected_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5",
-    "observed_sha256": "077750523f338d2c8c37391accf9f0d6f48caf1e07d3e83e64c00b07919361aa"
+    "observed_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e"
    },
    {
     "id": "jdw-009-arz",
@@ -747,9 +747,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "7d037c2eefc327c40bf7728302c96153372eb86e469487b0cbd08284ba4911eb",
-    "observed_sha256": "1a6eaea68fbe0dd739db4f64a40c23da8fa45ec50c58f1aaac98f342015cc2fc"
+    "observed_sha256": "648827c7427f853e88e5e8aa4d076b9220a1c314ccffd155b9f00ff104e63cf5"
    },
    {
     "id": "jdw-012-mixed",
@@ -811,28 +811,22 @@
     "language": "en",
     "family_id": "family-014",
     "received": true,
-    "valid_output": false,
-    "errors": [
-     "rule_fields",
-     "outside_calendar"
-    ],
-    "exact": false,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
     "expected_sha256": "29083a83a74260b893d8660622b4d8ff0e8e448c4058f18a239f377de7d90826",
-    "observed_sha256": "46e633281ef9aa525c7e3e069f312ef833e7596bcd040ecf9edf50a8a7aaaef1"
+    "observed_sha256": "29083a83a74260b893d8660622b4d8ff0e8e448c4058f18a239f377de7d90826"
    },
    {
     "id": "jdw-014-ar",
     "language": "ar",
     "family_id": "family-014",
     "received": true,
-    "valid_output": false,
-    "errors": [
-     "rule_fields",
-     "outside_calendar"
-    ],
-    "exact": false,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
     "expected_sha256": "29083a83a74260b893d8660622b4d8ff0e8e448c4058f18a239f377de7d90826",
-    "observed_sha256": "6da39528cd0cefe6171ae0fb120a26c3a7aa3ea8c5ccafb8bb005d7611e6392f"
+    "observed_sha256": "29083a83a74260b893d8660622b4d8ff0e8e448c4058f18a239f377de7d90826"
    },
    {
     "id": "jdw-014-arz",
@@ -841,23 +835,20 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "29083a83a74260b893d8660622b4d8ff0e8e448c4058f18a239f377de7d90826",
-    "observed_sha256": "76974cf35c168a8888ae58649eb1ffb2cd22a1d63a1035b6cd57685252825a51"
+    "observed_sha256": "29083a83a74260b893d8660622b4d8ff0e8e448c4058f18a239f377de7d90826"
    },
    {
     "id": "jdw-014-mixed",
     "language": "mixed",
     "family_id": "family-014",
     "received": true,
-    "valid_output": false,
-    "errors": [
-     "rule_fields",
-     "outside_calendar"
-    ],
-    "exact": false,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
     "expected_sha256": "29083a83a74260b893d8660622b4d8ff0e8e448c4058f18a239f377de7d90826",
-    "observed_sha256": "6da39528cd0cefe6171ae0fb120a26c3a7aa3ea8c5ccafb8bb005d7611e6392f"
+    "observed_sha256": "29083a83a74260b893d8660622b4d8ff0e8e448c4058f18a239f377de7d90826"
    },
    {
     "id": "jdw-015-en",
@@ -890,7 +881,7 @@
     "errors": [],
     "exact": false,
     "expected_sha256": "2dd08f6770b31b9e06253d04def5f4268f6f3fcc4936f980ebcc8dd41e0fff6f",
-    "observed_sha256": "077750523f338d2c8c37391accf9f0d6f48caf1e07d3e83e64c00b07919361aa"
+    "observed_sha256": "8d84963f28c0d19f7d43e5eb24ef2a00d0cba3f5d29408adff805b9b021f9c0b"
    },
    {
     "id": "jdw-015-mixed",
@@ -910,9 +901,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736",
-    "observed_sha256": "c6395373a4aca155e2c347795c335f0ca61964ee58354fc617150c62c0466a03"
+    "observed_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736"
    },
    {
     "id": "jdw-016-ar",
@@ -921,9 +912,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736",
-    "observed_sha256": "c6395373a4aca155e2c347795c335f0ca61964ee58354fc617150c62c0466a03"
+    "observed_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736"
    },
    {
     "id": "jdw-016-arz",
@@ -954,9 +945,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "05e954fc4e5ad7756cda3fd697fff02d761b770199b4a7688b40b1ae6d4b2733",
-    "observed_sha256": "aa9909b73b897c6b035dce55a92344bf1d0b09b81c20900fa560cc7b7b9b561b"
+    "observed_sha256": "05e954fc4e5ad7756cda3fd697fff02d761b770199b4a7688b40b1ae6d4b2733"
    },
    {
     "id": "jdw-017-ar",
@@ -965,9 +956,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "05e954fc4e5ad7756cda3fd697fff02d761b770199b4a7688b40b1ae6d4b2733",
-    "observed_sha256": "aa9909b73b897c6b035dce55a92344bf1d0b09b81c20900fa560cc7b7b9b561b"
+    "observed_sha256": "05e954fc4e5ad7756cda3fd697fff02d761b770199b4a7688b40b1ae6d4b2733"
    },
    {
     "id": "jdw-017-arz",
@@ -976,9 +967,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "05e954fc4e5ad7756cda3fd697fff02d761b770199b4a7688b40b1ae6d4b2733",
-    "observed_sha256": "aa9909b73b897c6b035dce55a92344bf1d0b09b81c20900fa560cc7b7b9b561b"
+    "observed_sha256": "05e954fc4e5ad7756cda3fd697fff02d761b770199b4a7688b40b1ae6d4b2733"
    },
    {
     "id": "jdw-017-mixed",
@@ -987,9 +978,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "05e954fc4e5ad7756cda3fd697fff02d761b770199b4a7688b40b1ae6d4b2733",
-    "observed_sha256": "aa9909b73b897c6b035dce55a92344bf1d0b09b81c20900fa560cc7b7b9b561b"
+    "observed_sha256": "05e954fc4e5ad7756cda3fd697fff02d761b770199b4a7688b40b1ae6d4b2733"
    },
    {
     "id": "jdw-019-en",
@@ -1020,9 +1011,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
-    "observed_sha256": "b608c13e165f09670220665b53148673388cf8078d9a52c0ba7b652b153efa20"
+    "observed_sha256": "fc6b9eb1d34a1b0c3c01eb97fedd0c89790a1a64f3a9b539fff72d8c2582df97"
    },
    {
     "id": "jdw-019-mixed",
@@ -1066,7 +1057,7 @@
     "errors": [],
     "exact": false,
     "expected_sha256": "46c07afad26ce236e6ba648d2e4b6b492790b996a5f054d69cb1875b2e048527",
-    "observed_sha256": "85009af7b5e4bc84d018dd33bbf49b9a12cf33e26139c433129467f276975308"
+    "observed_sha256": "6b51fa615105be0e6c3e5acb137b11d2e011abfce3c6bdb567b85261d58a26e9"
    },
    {
     "id": "jdw-020-mixed",
@@ -1262,9 +1253,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e",
-    "observed_sha256": "b608c13e165f09670220665b53148673388cf8078d9a52c0ba7b652b153efa20"
+    "observed_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e"
    },
    {
     "id": "jdw-029-ar",
@@ -1273,9 +1264,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e",
-    "observed_sha256": "b608c13e165f09670220665b53148673388cf8078d9a52c0ba7b652b153efa20"
+    "observed_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e"
    },
    {
     "id": "jdw-029-arz",
@@ -1284,9 +1275,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e",
-    "observed_sha256": "077750523f338d2c8c37391accf9f0d6f48caf1e07d3e83e64c00b07919361aa"
+    "observed_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e"
    },
    {
     "id": "jdw-029-mixed",
@@ -1295,9 +1286,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e",
-    "observed_sha256": "b608c13e165f09670220665b53148673388cf8078d9a52c0ba7b652b153efa20"
+    "observed_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e"
    },
    {
     "id": "jdw-030-en",
@@ -1374,7 +1365,7 @@
     "errors": [],
     "exact": false,
     "expected_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5",
-    "observed_sha256": "077750523f338d2c8c37391accf9f0d6f48caf1e07d3e83e64c00b07919361aa"
+    "observed_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e"
    },
    {
     "id": "jdw-031-mixed",
@@ -1416,9 +1407,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "2dde10394aabb66aa14cb8fc04f3bed6d383861f9ebd0b0d1895eb9fdd692ae7",
-    "observed_sha256": "afcddb835cf75fd4923491455ddec36b2a7dbabeccfab3b75604eeefefc67ed0"
+    "observed_sha256": "2dde10394aabb66aa14cb8fc04f3bed6d383861f9ebd0b0d1895eb9fdd692ae7"
    },
    {
     "id": "design-001-mixed",
@@ -1429,7 +1420,7 @@
     "errors": [],
     "exact": false,
     "expected_sha256": "2dde10394aabb66aa14cb8fc04f3bed6d383861f9ebd0b0d1895eb9fdd692ae7",
-    "observed_sha256": "909c9a9c1d9a8eeaa25517387262a97066805f9ae5ed46c17352bf9ae23f916d"
+    "observed_sha256": "535013ab55a45555f983b371422f75569822e0e30262c99eff0fc13ab628a890"
    },
    {
     "id": "design-002-en",
@@ -1473,7 +1464,7 @@
     "errors": [],
     "exact": false,
     "expected_sha256": "7c574c2fb8db540808d4d6f800502ebd3a14da68e2973ecf6415dfa05d6584f0",
-    "observed_sha256": "c6c12e72531eda3a92283d4bbf8bced277b89c7377f7523ea691d40fd21e0dfe"
+    "observed_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e"
    },
    {
     "id": "design-003-en",
@@ -1616,7 +1607,7 @@
     "errors": [],
     "exact": false,
     "expected_sha256": "5ed8ed20e0ed85c470b71e9232a9a250345ed75146c04c677682bf1c6ce7c802",
-    "observed_sha256": "c6c12e72531eda3a92283d4bbf8bced277b89c7377f7523ea691d40fd21e0dfe"
+    "observed_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e"
    },
    {
     "id": "design-006-ar",
@@ -1649,7 +1640,7 @@
     "errors": [],
     "exact": false,
     "expected_sha256": "5ed8ed20e0ed85c470b71e9232a9a250345ed75146c04c677682bf1c6ce7c802",
-    "observed_sha256": "c6c12e72531eda3a92283d4bbf8bced277b89c7377f7523ea691d40fd21e0dfe"
+    "observed_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e"
    },
    {
     "id": "design-007-en",
@@ -1658,9 +1649,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "719d9f906a37c291529f34398924ebd45a9741c7369048ce009998292fa919c6",
-    "observed_sha256": "c6c12e72531eda3a92283d4bbf8bced277b89c7377f7523ea691d40fd21e0dfe"
+    "observed_sha256": "719d9f906a37c291529f34398924ebd45a9741c7369048ce009998292fa919c6"
    },
    {
     "id": "design-007-ar",
@@ -1669,9 +1660,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "719d9f906a37c291529f34398924ebd45a9741c7369048ce009998292fa919c6",
-    "observed_sha256": "c6c12e72531eda3a92283d4bbf8bced277b89c7377f7523ea691d40fd21e0dfe"
+    "observed_sha256": "719d9f906a37c291529f34398924ebd45a9741c7369048ce009998292fa919c6"
    },
    {
     "id": "design-007-arz",
@@ -1680,9 +1671,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "719d9f906a37c291529f34398924ebd45a9741c7369048ce009998292fa919c6",
-    "observed_sha256": "c6c12e72531eda3a92283d4bbf8bced277b89c7377f7523ea691d40fd21e0dfe"
+    "observed_sha256": "719d9f906a37c291529f34398924ebd45a9741c7369048ce009998292fa919c6"
    },
    {
     "id": "design-007-mixed",
@@ -1691,9 +1682,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "719d9f906a37c291529f34398924ebd45a9741c7369048ce009998292fa919c6",
-    "observed_sha256": "c6c12e72531eda3a92283d4bbf8bced277b89c7377f7523ea691d40fd21e0dfe"
+    "observed_sha256": "719d9f906a37c291529f34398924ebd45a9741c7369048ce009998292fa919c6"
    },
    {
     "id": "design-008-en",
@@ -1702,9 +1693,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736",
-    "observed_sha256": "c6395373a4aca155e2c347795c335f0ca61964ee58354fc617150c62c0466a03"
+    "observed_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736"
    },
    {
     "id": "design-008-ar",
@@ -1713,9 +1704,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736",
-    "observed_sha256": "c6395373a4aca155e2c347795c335f0ca61964ee58354fc617150c62c0466a03"
+    "observed_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736"
    },
    {
     "id": "design-008-arz",
@@ -1799,28 +1790,22 @@
     "language": "ar",
     "family_id": "design-family-010",
     "received": true,
-    "valid_output": false,
-    "errors": [
-     "rule_fields",
-     "outside_calendar"
-    ],
+    "valid_output": true,
+    "errors": [],
     "exact": false,
     "expected_sha256": "593f02523fe4154ca6009fb9c47ac5b19e2be71d7b8173df1ea35222ae23ab03",
-    "observed_sha256": "e7b7af818d7852e95815a0e2948e5c3d11b7a3041c788ec18ca241c418d60da4"
+    "observed_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e"
    },
    {
     "id": "design-010-arz",
     "language": "arz",
     "family_id": "design-family-010",
     "received": true,
-    "valid_output": false,
-    "errors": [
-     "rule_fields",
-     "outside_calendar"
-    ],
+    "valid_output": true,
+    "errors": [],
     "exact": false,
     "expected_sha256": "593f02523fe4154ca6009fb9c47ac5b19e2be71d7b8173df1ea35222ae23ab03",
-    "observed_sha256": "578d396bdc5a08af3defa7720ef280dc4efbd43cc2f23163b8d1c3cc2dd8262f"
+    "observed_sha256": "29083a83a74260b893d8660622b4d8ff0e8e448c4058f18a239f377de7d90826"
    },
    {
     "id": "design-010-mixed",
@@ -1831,7 +1816,7 @@
     "errors": [],
     "exact": false,
     "expected_sha256": "593f02523fe4154ca6009fb9c47ac5b19e2be71d7b8173df1ea35222ae23ab03",
-    "observed_sha256": "e3e780aa6e537d4db342ba2df68294d805279141b4f2f37f9a2f81746ffe14ce"
+    "observed_sha256": "29083a83a74260b893d8660622b4d8ff0e8e448c4058f18a239f377de7d90826"
    },
    {
     "id": "design-011-en",
@@ -1840,9 +1825,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "d7813987b25d9394f3500f2ae6555bd08954bda0f4b836ba5ae6f2d3f08e5a31",
-    "observed_sha256": "a68bc98407f5755fe1911b80edecb2f1fb91505307715ec10e9652f59b64448e"
+    "observed_sha256": "d7813987b25d9394f3500f2ae6555bd08954bda0f4b836ba5ae6f2d3f08e5a31"
    },
    {
     "id": "design-011-ar",
@@ -1873,9 +1858,9 @@
     "received": true,
     "valid_output": true,
     "errors": [],
-    "exact": false,
+    "exact": true,
     "expected_sha256": "d7813987b25d9394f3500f2ae6555bd08954bda0f4b836ba5ae6f2d3f08e5a31",
-    "observed_sha256": "a68bc98407f5755fe1911b80edecb2f1fb91505307715ec10e9652f59b64448e"
+    "observed_sha256": "d7813987b25d9394f3500f2ae6555bd08954bda0f4b836ba5ae6f2d3f08e5a31"
    },
    {
     "id": "design-012-en",
@@ -1938,76 +1923,76 @@
    "family_count": 36,
    "intervals": {
     "end_to_end_accuracy": {
-     "estimate": 0.1527777777777778,
-     "lower": 0.08333333333333333,
-     "upper": 0.22916666666666666,
+     "estimate": 0.3263888888888889,
+     "lower": 0.2152777777777778,
+     "upper": 0.4583333333333333,
      "defined_replicates": 1000
     },
     "decision_accuracy": {
-     "estimate": 0.5208333333333334,
-     "lower": 0.3888888888888889,
-     "upper": 0.6527777777777778,
+     "estimate": 0.5972222222222222,
+     "lower": 0.4651041666666667,
+     "upper": 0.7361111111111112,
      "defined_replicates": 1000
     },
     "proposals.precision": {
-     "estimate": 0.2222222222222222,
-     "lower": 0.1336403662490143,
-     "upper": 0.34647948611686696,
+     "estimate": 0.4482758620689655,
+     "lower": 0.3114587948604342,
+     "upper": 0.625,
      "defined_replicates": 1000
     },
     "proposals.recall": {
-     "estimate": 0.3148148148148148,
-     "lower": 0.23748355263157894,
-     "upper": 0.40181051587301586,
+     "estimate": 0.3611111111111111,
+     "lower": 0.266640625,
+     "upper": 0.4659090909090909,
      "defined_replicates": 1000
     },
     "proposals.f1": {
-     "estimate": 0.26053639846743293,
-     "lower": 0.17540869218500796,
-     "upper": 0.35507246376811596,
+     "estimate": 0.4,
+     "lower": 0.29456970841695196,
+     "upper": 0.5145811251960826,
      "defined_replicates": 1000
     },
     "fields.precision": {
-     "estimate": 0.38175675675675674,
-     "lower": 0.2371067906452522,
-     "upper": 0.5533605442176871,
+     "estimate": 0.6590038314176245,
+     "lower": 0.49135661732311214,
+     "upper": 0.8235737065910701,
      "defined_replicates": 1000
     },
     "fields.recall": {
-     "estimate": 0.5503246753246753,
-     "lower": 0.42306743421052634,
-     "upper": 0.6690384215631929,
+     "estimate": 0.5584415584415584,
+     "lower": 0.43022537055967286,
+     "upper": 0.6790613983548767,
      "defined_replicates": 1000
     },
     "fields.f1": {
-     "estimate": 0.4507978723404255,
-     "lower": 0.323871826275378,
-     "upper": 0.5688609125540385,
+     "estimate": 0.6045694200351494,
+     "lower": 0.47437579798552987,
+     "upper": 0.7118418361234407,
      "defined_replicates": 1000
     },
     "clarifications.precision": {
-     "estimate": 0.0,
-     "lower": 0.0,
-     "upper": 0.0,
+     "estimate": 0.3225806451612903,
+     "lower": 0.11538461538461539,
+     "upper": 0.5333928571428571,
      "defined_replicates": 1000
     },
     "clarifications.recall": {
-     "estimate": 0.0,
-     "lower": 0.0,
-     "upper": 0.0,
+     "estimate": 0.38461538461538464,
+     "lower": 0.15375000000000003,
+     "upper": 0.6666666666666666,
      "defined_replicates": 1000
     },
     "clarifications.f1": {
-     "estimate": 0.0,
-     "lower": 0.0,
-     "upper": 0.0,
+     "estimate": 0.3508771929824561,
+     "lower": 0.14114356232003292,
+     "upper": 0.5757575757575758,
      "defined_replicates": 1000
     },
     "unsupported.precision": {
      "estimate": 0.0,
      "lower": 0.0,
      "upper": 0.0,
-     "defined_replicates": 1000
+     "defined_replicates": 999
     },
     "unsupported.recall": {
      "estimate": 0.0,
@@ -2077,40 +2062,7 @@
       "kind": "rule",
       "data": {
        "instructor_id": "i-nour-hassan",
-       "day": "Monday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Tuesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Thursday",
+       "day": "Sunday",
        "start_hour": 8,
        "end_hour": 18,
        "strength": "mandatory",
@@ -2131,40 +2083,7 @@
       "kind": "rule",
       "data": {
        "instructor_id": "i-nour-hassan",
-       "day": "Monday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Tuesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Thursday",
+       "day": "Sunday",
        "start_hour": 8,
        "end_hour": 18,
        "strength": "mandatory",
@@ -2505,40 +2424,7 @@
       "kind": "rule",
       "data": {
        "instructor_id": "i-nour-hassan",
-       "day": "Sunday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Tuesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Thursday",
+       "day": "Monday",
        "start_hour": 8,
        "end_hour": 18,
        "strength": "mandatory",
@@ -2671,54 +2557,11 @@
   {
    "id": "jdw-009-ar",
    "output": {
-    "decision": "ready",
-    "proposals": [
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Monday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Tuesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Thursday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     }
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "rule_type_and_strength_required"
     ],
-    "clarifications": [],
     "unsupported": []
    }
   },
@@ -2839,40 +2682,7 @@
       "kind": "rule",
       "data": {
        "instructor_id": "i-nour-hassan",
-       "day": "Sunday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Monday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Thursday",
+       "day": "Tuesday",
        "start_hour": 8,
        "end_hour": 18,
        "strength": "mandatory",
@@ -2992,40 +2802,22 @@
   {
    "id": "jdw-014-en",
    "output": {
-    "decision": "ready",
-    "proposals": [
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "start_hour": 8,
-       "end_hour": 10,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     }
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "day_required"
     ],
-    "clarifications": [],
     "unsupported": []
    }
   },
   {
    "id": "jdw-014-ar",
    "output": {
-    "decision": "ready",
-    "proposals": [
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     }
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "day_required"
     ],
-    "clarifications": [],
     "unsupported": []
    }
   },
@@ -3035,7 +2827,7 @@
     "decision": "clarify",
     "proposals": [],
     "clarifications": [
-     "nothing_left_in_the_week"
+     "day_required"
     ],
     "unsupported": []
    }
@@ -3043,20 +2835,11 @@
   {
    "id": "jdw-014-mixed",
    "output": {
-    "decision": "ready",
-    "proposals": [
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     }
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "day_required"
     ],
-    "clarifications": [],
     "unsupported": []
    }
   },
@@ -3111,40 +2894,7 @@
       "kind": "rule",
       "data": {
        "instructor_id": "i-nour-hassan",
-       "day": "Monday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Tuesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Thursday",
+       "day": "Sunday",
        "start_hour": 8,
        "end_hour": 18,
        "strength": "mandatory",
@@ -3183,7 +2933,7 @@
     "decision": "clarify",
     "proposals": [],
     "clarifications": [
-     "missing_target"
+     "unknown_instructor"
     ],
     "unsupported": []
    }
@@ -3194,7 +2944,7 @@
     "decision": "clarify",
     "proposals": [],
     "clarifications": [
-     "missing_target"
+     "unknown_instructor"
     ],
     "unsupported": []
    }
@@ -3227,7 +2977,7 @@
     "decision": "clarify",
     "proposals": [],
     "clarifications": [
-     "ambiguous_name:nour"
+     "ambiguous_instructor"
     ],
     "unsupported": []
    }
@@ -3238,7 +2988,7 @@
     "decision": "clarify",
     "proposals": [],
     "clarifications": [
-     "ambiguous_name:nour"
+     "ambiguous_instructor"
     ],
     "unsupported": []
    }
@@ -3249,7 +2999,7 @@
     "decision": "clarify",
     "proposals": [],
     "clarifications": [
-     "ambiguous_name:nour"
+     "ambiguous_instructor"
     ],
     "unsupported": []
    }
@@ -3260,7 +3010,7 @@
     "decision": "clarify",
     "proposals": [],
     "clarifications": [
-     "ambiguous_name:nour"
+     "ambiguous_instructor"
     ],
     "unsupported": []
    }
@@ -3317,52 +3067,8 @@
       "data": {
        "instructor_id": "i-nour-hassan",
        "day": "Sunday",
-       "start_hour": 10,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Monday",
        "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Tuesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Thursday",
-       "start_hour": 8,
-       "end_hour": 18,
+       "end_hour": 10,
        "strength": "mandatory",
        "type": "unavailable"
       }
@@ -3445,51 +3151,7 @@
       "data": {
        "instructor_id": "i-nour-hassan",
        "day": "Sunday",
-       "start_hour": 8,
-       "end_hour": 10,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Monday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Tuesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Thursday",
-       "start_hour": 8,
+       "start_hour": 10,
        "end_hour": 18,
        "strength": "mandatory",
        "type": "unavailable"
@@ -3766,249 +3428,44 @@
   {
    "id": "jdw-029-en",
    "output": {
-    "decision": "ready",
-    "proposals": [
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Sunday",
-       "start_hour": 10,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Monday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Tuesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Thursday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     }
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "rule_type_and_strength_required"
     ],
-    "clarifications": [],
     "unsupported": []
    }
   },
   {
    "id": "jdw-029-ar",
    "output": {
-    "decision": "ready",
-    "proposals": [
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Sunday",
-       "start_hour": 10,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Monday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Tuesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Thursday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     }
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "rule_type_and_strength_required"
     ],
-    "clarifications": [],
     "unsupported": []
    }
   },
   {
    "id": "jdw-029-arz",
    "output": {
-    "decision": "ready",
-    "proposals": [
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Monday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Tuesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Thursday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     }
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "rule_type_and_strength_required"
     ],
-    "clarifications": [],
     "unsupported": []
    }
   },
   {
    "id": "jdw-029-mixed",
    "output": {
-    "decision": "ready",
-    "proposals": [
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Sunday",
-       "start_hour": 10,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Monday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Tuesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Thursday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     }
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "rule_type_and_strength_required"
     ],
-    "clarifications": [],
     "unsupported": []
    }
   },
@@ -4208,54 +3665,11 @@
   {
    "id": "jdw-031-arz",
    "output": {
-    "decision": "ready",
-    "proposals": [
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Monday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Tuesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "i-nour-hassan",
-       "day": "Thursday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     }
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "rule_type_and_strength_required"
     ],
-    "clarifications": [],
     "unsupported": []
    }
   },
@@ -4322,74 +3736,8 @@
       "data": {
        "instructor_id": "design-salma",
        "day": "Saturday",
-       "start_hour": 8,
-       "end_hour": 10,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "design-salma",
-       "day": "Saturday",
-       "start_hour": 12,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "design-salma",
-       "day": "Sunday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "design-salma",
-       "day": "Monday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "design-salma",
-       "day": "Tuesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "design-salma",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "design-salma",
-       "day": "Thursday",
-       "start_hour": 8,
-       "end_hour": 18,
+       "start_hour": 10,
+       "end_hour": 12,
        "strength": "mandatory",
        "type": "unavailable"
       }
@@ -4409,62 +3757,7 @@
       "data": {
        "instructor_id": "design-salma",
        "day": "Saturday",
-       "start_hour": 8,
-       "end_hour": 10,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "design-salma",
-       "day": "Sunday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "design-salma",
-       "day": "Monday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "design-salma",
-       "day": "Tuesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "design-salma",
-       "day": "Wednesday",
-       "start_hour": 8,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     },
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "design-salma",
-       "day": "Thursday",
-       "start_hour": 8,
+       "start_hour": 10,
        "end_hour": 18,
        "strength": "mandatory",
        "type": "unavailable"
@@ -4521,12 +3814,12 @@
   {
    "id": "design-002-mixed",
    "output": {
-    "decision": "unsupported",
+    "decision": "clarify",
     "proposals": [],
-    "clarifications": [],
-    "unsupported": [
-     "unrecognised_request"
-    ]
+    "clarifications": [
+     "rule_type_and_strength_required"
+    ],
+    "unsupported": []
    }
   },
   {
@@ -4830,12 +4123,12 @@
   {
    "id": "design-006-en",
    "output": {
-    "decision": "unsupported",
+    "decision": "clarify",
     "proposals": [],
-    "clarifications": [],
-    "unsupported": [
-     "unrecognised_request"
-    ]
+    "clarifications": [
+     "rule_type_and_strength_required"
+    ],
+    "unsupported": []
    }
   },
   {
@@ -4863,56 +4156,56 @@
   {
    "id": "design-006-mixed",
    "output": {
-    "decision": "unsupported",
+    "decision": "clarify",
     "proposals": [],
-    "clarifications": [],
-    "unsupported": [
-     "unrecognised_request"
-    ]
+    "clarifications": [
+     "rule_type_and_strength_required"
+    ],
+    "unsupported": []
    }
   },
   {
    "id": "design-007-en",
    "output": {
-    "decision": "unsupported",
+    "decision": "clarify",
     "proposals": [],
-    "clarifications": [],
-    "unsupported": [
-     "unrecognised_request"
-    ]
+    "clarifications": [
+     "undefined_early"
+    ],
+    "unsupported": []
    }
   },
   {
    "id": "design-007-ar",
    "output": {
-    "decision": "unsupported",
+    "decision": "clarify",
     "proposals": [],
-    "clarifications": [],
-    "unsupported": [
-     "unrecognised_request"
-    ]
+    "clarifications": [
+     "undefined_early"
+    ],
+    "unsupported": []
    }
   },
   {
    "id": "design-007-arz",
    "output": {
-    "decision": "unsupported",
+    "decision": "clarify",
     "proposals": [],
-    "clarifications": [],
-    "unsupported": [
-     "unrecognised_request"
-    ]
+    "clarifications": [
+     "undefined_early"
+    ],
+    "unsupported": []
    }
   },
   {
    "id": "design-007-mixed",
    "output": {
-    "decision": "unsupported",
+    "decision": "clarify",
     "proposals": [],
-    "clarifications": [],
-    "unsupported": [
-     "unrecognised_request"
-    ]
+    "clarifications": [
+     "undefined_early"
+    ],
+    "unsupported": []
    }
   },
   {
@@ -4921,7 +4214,7 @@
     "decision": "clarify",
     "proposals": [],
     "clarifications": [
-     "missing_target"
+     "unknown_instructor"
     ],
     "unsupported": []
    }
@@ -4932,7 +4225,7 @@
     "decision": "clarify",
     "proposals": [],
     "clarifications": [
-     "missing_target"
+     "unknown_instructor"
     ],
     "unsupported": []
    }
@@ -5037,40 +4330,22 @@
   {
    "id": "design-010-ar",
    "output": {
-    "decision": "ready",
-    "proposals": [
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "design-salma",
-       "start_hour": 8,
-       "end_hour": 12,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     }
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "rule_type_and_strength_required"
     ],
-    "clarifications": [],
     "unsupported": []
    }
   },
   {
    "id": "design-010-arz",
    "output": {
-    "decision": "ready",
-    "proposals": [
-     {
-      "kind": "rule",
-      "data": {
-       "instructor_id": "design-salma",
-       "start_hour": 12,
-       "end_hour": 18,
-       "strength": "mandatory",
-       "type": "unavailable"
-      }
-     }
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "day_required"
     ],
-    "clarifications": [],
     "unsupported": []
    }
   },
@@ -5080,7 +4355,7 @@
     "decision": "clarify",
     "proposals": [],
     "clarifications": [
-     "missing_day_or_time"
+     "day_required"
     ],
     "unsupported": []
    }
@@ -5098,7 +4373,7 @@
        "start_hour": 14,
        "end_hour": 16,
        "strength": "mandatory",
-       "type": "group_allowed"
+       "type": "group_unavailable"
       }
      }
     ],
@@ -5141,7 +4416,7 @@
        "start_hour": 14,
        "end_hour": 16,
        "strength": "mandatory",
-       "type": "group_allowed"
+       "type": "group_unavailable"
       }
      }
     ],

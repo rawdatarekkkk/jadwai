@@ -22,6 +22,10 @@ POLICY_FIELDS = {
     'max_idle_periods': ('Most free periods in a day', None),
     'spread_activity_days': ('Sessions of one course on different days', False),
 }
+POLICY_AR = {'student_daily_hours': 'حد ساعات الطلاب اليومي', 'instructor_daily_hours': 'حد ساعات المدرسين اليومي',
+             'max_consecutive_periods': 'أقصى فترات متتالية', 'max_idle_periods': 'أقصى فترات فراغ في اليوم',
+             'spread_activity_days': 'حصص المقرر في أيام مختلفة'}
+AR_DAYS = {'Saturday': 'السبت', 'Sunday': 'الأحد', 'Monday': 'الإثنين', 'Tuesday': 'الثلاثاء', 'Wednesday': 'الأربعاء', 'Thursday': 'الخميس', 'Friday': 'الجمعة'}
 RELAXED_RULE_TYPES = [t for t in rs.TYPES if t != 'preferred_period']  # preferences are already soft
 
 
@@ -128,7 +132,8 @@ def diagnose(snapshot, budget=240, step=30, cancel=None, hints=()):
             return {'status': 'fixable', 'verified': validate_schedule(relax(snapshot, chosen), rows)['passed'], 'solves': found['solves'] + 1,
                     'relaxable': len(candidates(snapshot)), 'checked_sessions': sum(r['sessions'] for r in local['records'] if r['kind'] == 'courses' and r['id'] in area),
                     'suggestions': [{**describe(snapshot, kind, target, rows), 'key': key} for key, kind, target in chosen], 'assignments': rows}
-        return {**found, 'verified': False, 'note': 'Found in the affected part of the timetable; the whole timetable could not be checked in time.'}
+        return {**found, 'verified': False, 'note': 'Found in the affected part of the timetable; the whole timetable could not be checked in time.',
+                'note_ar': 'وُجد في الجزء المتأثر من الجدول؛ لم يمكن فحص الجدول كله في الوقت المتاح.'}
     left = budget - (time.monotonic() - started)
     return search(snapshot, left, step, cancel)
 
@@ -150,10 +155,13 @@ def search(snapshot, budget=240, step=30, cancel=None):
         status, value = feasible(pool)
         if status != 'feasible':
             from app.preflight import inspect_inputs
-            findings = [b['message'] for b in inspect_inputs(relax(snapshot, pool))['blockers']][:10]
-            return {'status': 'data_change_needed' if status == 'infeasible' else 'not_found', 'reason': value, 'relaxable': len(pool), 'solves': calls[0], 'findings': findings,
+            checked = inspect_inputs(relax(snapshot, pool))['blockers'][:10]
+            findings, findings_ar = [b['message'] for b in checked], [b['message_ar'] for b in checked]
+            return {'status': 'data_change_needed' if status == 'infeasible' else 'not_found', 'reason': value, 'relaxable': len(pool), 'solves': calls[0], 'findings': findings, 'findings_ar': findings_ar,
                     'message': 'Even with every rule, lock, day off and daily limit relaxed, no timetable fits: rooms, eligible instructors or sessions must change. See Check inputs.'
-                    if status == 'infeasible' else 'The search did not finish in time, so no fix was proven.'}
+                    if status == 'infeasible' else 'The search did not finish in time, so no fix was proven.',
+                    'message_ar': 'حتى مع تخفيف كل القيود والحصص المثبتة وأيام الإجازة والحدود اليومية لا يوجد جدول ممكن: يجب تغيير القاعات أو المدرسين المؤهلين أو الحصص. راجع فحص المدخلات.'
+                    if status == 'infeasible' else 'لم ينتهِ البحث في الوقت المتاح، لذلك لم يُثبت أي حل.'}
         # Put candidates back a chunk at a time, keeping each chunk unless the timetable breaks.
         needed, kept_relaxed, best = [], list(pool), value
         stack = [pool]
@@ -175,7 +183,8 @@ def search(snapshot, budget=240, step=30, cancel=None):
                 half = len(chunk) // 2
                 stack += [chunk[half:], chunk[:half]]
     except TimeoutError:
-        return {'status': 'not_found', 'solves': calls[0], 'message': 'The diagnosis ran out of time before finding a proven fix.'}
+        return {'status': 'not_found', 'solves': calls[0], 'message': 'The diagnosis ran out of time before finding a proven fix.',
+                'message_ar': 'انتهى وقت التشخيص قبل العثور على حل مثبت.'}
     from app.validation import validate_schedule
     relaxed_snapshot = relax(snapshot, kept_relaxed)
     verified = validate_schedule(relaxed_snapshot, best)['passed']
@@ -193,26 +202,42 @@ def describe(snapshot, kind, target, rows):
         from app.timetable_pdf import compact_groups
         groups = compact_groups([records.get(g, {}).get('code') or g for g in act.get('group_ids', [])])
         return f"{act.get('name') or a['activity_id']} ({groups}) {a['day']} {clock(a['start_minute'])} in {name(a['room_id'])} with {name(a['instructor_id'])}"
+    def session_ar(a):
+        act = records.get(a['activity_id'], {})
+        from app.timetable_pdf import compact_groups
+        groups = compact_groups([records.get(g, {}).get('code') or g for g in act.get('group_ids', [])])
+        return f"{act.get('name') or a['activity_id']} ({groups}) {AR_DAYS.get(a['day'], a['day'])} {clock(a['start_minute'])} في {name(a['room_id'])} مع {name(a['instructor_id'])}"
+    day_ar = lambda d: AR_DAYS.get(d, d) if d else 'كل يوم'
     groups_of = lambda a: set(records.get(a['activity_id'], {}).get('group_ids', []))
     if kind == 'lock':
         moved = next((a for a in rows if a['activity_id'] == target['activity_id'] and a['occurrence'] == target['occurrence']), None)
         was = ' '.join(x for x in [target.get('day') or '', clock(target['start_minute']) if target.get('start_minute') is not None else '',
                                    f"in {name(target['room_id'])}" if target.get('room_id') else '', f"with {name(target['instructor_id'])}" if target.get('instructor_id') else ''] if x)
+        was_ar = ' '.join(x for x in [day_ar(target.get('day')) if target.get('day') else '', clock(target['start_minute']) if target.get('start_minute') is not None else '',
+                                      f"في {name(target['room_id'])}" if target.get('room_id') else '', f"مع {name(target['instructor_id'])}" if target.get('instructor_id') else ''] if x)
         return {'kind': 'move_session', 'target': target.get('id'), 'title': f"Move {name(target['activity_id'])} (session {target['occurrence'] + 1})",
                 'message': f"It is fixed at {was}, which cannot work with the other constraints. Move it to {moved['day']} {clock(moved['start_minute'])} in {name(moved['room_id'])} with {name(moved['instructor_id'])}." if moved else 'Release this fixed session.',
-                'sessions': [session(moved)] if moved else []}
+                'sessions': [session(moved)] if moved else [],
+                'title_ar': f"انقل {name(target['activity_id'])} (الحصة {target['occurrence'] + 1})",
+                'message_ar': f"هي مثبتة في {was_ar}، وهذا لا يتوافق مع القيود الأخرى. انقلها إلى {day_ar(moved['day'])} {clock(moved['start_minute'])} في {name(moved['room_id'])} مع {name(moved['instructor_id'])}." if moved else 'ألغِ تثبيت هذه الحصة.',
+                'sessions_ar': [session_ar(moved)] if moved else []}
     if kind == 'day_off':
         hit = [a for a in rows if a['instructor_id'] == target['id'] and a['day'] == target['day_off']]
         return {'kind': 'day_off', 'target': target['id'], 'title': f"{name(target['id'])} teaches on their day off ({target['day_off']})",
                 'message': f"Ask {name(target['id'])} to teach {len(hit)} session(s) on {target['day_off']}, move their day off, or make another instructor eligible.",
-                'sessions': [session(a) for a in hit]}
+                'sessions': [session(a) for a in hit],
+                'title_ar': f"{name(target['id'])} يدرّس في يوم إجازته ({day_ar(target['day_off'])})",
+                'message_ar': f"اطلب من {name(target['id'])} تدريس {len(hit)} حصة يوم {day_ar(target['day_off'])}، أو غيّر يوم إجازته، أو اجعل مدرسًا آخر مؤهلًا.",
+                'sessions_ar': [session_ar(a) for a in hit]}
     if kind == 'policy':
         label, _ = POLICY_FIELDS[target]
         limit = (snapshot['calendar'].get('realism_policy') or {}).get(target)
         need = policy_need(snapshot, target, rows)
         return {'kind': 'policy', 'target': target, 'title': f"Relax: {label} ({limit if limit is not True else 'on'})",
                 'message': f"{label}: the timetable needs {need['value']} for {need['who']}." if need else f"{label} cannot be met; relax it.",
-                'sessions': []}
+                'sessions': [], 'sessions_ar': [],
+                'title_ar': f"خفّف: {POLICY_AR[target]} ({limit if limit is not True else 'مفعّل'})",
+                'message_ar': f"{POLICY_AR[target]}: يحتاج الجدول {need['value_ar']} لـ {need['who_ar']}." if need else f"لا يمكن تحقيق {POLICY_AR[target]}؛ خفّفه."}
     rule = target
     title = rule.get('title') or rule['type'].replace('_', ' ')
     t = rule['type']
@@ -222,14 +247,18 @@ def describe(snapshot, kind, target, rows):
                and (a['instructor_id'] == rule['instructor_id'] if t == 'unavailable' else a['room_id'] == rule['room_id'] if t == 'room_unavailable' else rule['group_id'] in groups_of(a))]
         when = f"{rule.get('day') or 'every day'} {clock(rs.bounds(rule)[0])}–{clock(rs.bounds(rule)[1])}"
         message = f"{name(rule[field])} is unavailable {when}, but {len(hit)} session(s) need that time. Shorten or lift this rule, or add another eligible instructor or room."
+        when_ar = f"{day_ar(rule.get('day'))} {clock(rs.bounds(rule)[0])}–{clock(rs.bounds(rule)[1])}"
+        message_ar = f"{name(rule[field])} غير متاح {when_ar}، لكن {len(hit)} حصة تحتاج هذا الوقت. قصّر هذا القيد أو ألغه، أو أضف مدرسًا أو قاعة مؤهلة أخرى."
     elif t in ('group_allowed', 'activity_allowed'):
         field = 'group_id' if t == 'group_allowed' else 'activity_id'
         windows = [r for r in rs.approved(snapshot, t) if r.get(field) == rule[field]]
         hit = [a for a in rows if (rule[field] in groups_of(a) if t == 'group_allowed' else a['activity_id'] == rule[field]) and not rs.within_windows(windows, a['day'], a['start_minute'], a['end_minute'])]
         message = f"{name(rule[field])} is limited to certain times, but {len(hit)} session(s) need other times. Widen the allowed times."
+        message_ar = f"{name(rule[field])} مقيد بأوقات معينة، لكن {len(hit)} حصة تحتاج أوقاتًا أخرى. وسّع الأوقات المسموح بها."
     elif t == 'activity_room':
         hit = [a for a in rows if a['activity_id'] == rule['activity_id'] and a['room_id'] not in rs.param(rule, 'room_ids')]
         message = f"{name(rule['activity_id'])} is limited to specific rooms that are not free; allow another room."
+        message_ar = f"{name(rule['activity_id'])} مقيد بقاعات محددة غير متاحة؛ اسمح بقاعة أخرى."
     elif t == 'activities_not_same_day':
         days = defaultdict(set)
         for a in rows:
@@ -237,6 +266,7 @@ def describe(snapshot, kind, target, rows):
                 days[a['day']].add(a['activity_id'])
         hit = [a for a in rows if a['activity_id'] in rs.param(rule, 'activity_ids') and len(days[a['day']]) > 1]
         message = 'These courses cannot all be on separate days; allow two of them on the same day.'
+        message_ar = 'لا يمكن وضع كل هذه المقررات في أيام مختلفة؛ اسمح باثنين منها في نفس اليوم.'
     else:  # daily hours or teaching-day limits
         who = rule.get('instructor_id') or rule.get('group_id')
         mine = [a for a in rows if (a['instructor_id'] == who if rule.get('instructor_id') else who in groups_of(a))]
@@ -245,11 +275,14 @@ def describe(snapshot, kind, target, rows):
             per_day[a['day']] += records[a['activity_id']]['duration']
         if t == 'instructor_max_days':
             message = f"{name(who)} needs {len(per_day)} teaching days; the limit is {rs.param(rule, 'days')}. Raise it to {len(per_day)}."
+            message_ar = f"يحتاج {name(who)} إلى {len(per_day)} أيام تدريس؛ والحد {rs.param(rule, 'days')}. ارفعه إلى {len(per_day)}."
         else:
             most = max(per_day.values(), default=0) / 60
             message = f"{name(who)} needs {most:g} hours on the busiest day; the limit is {rs.param(rule, 'hours')} h. Raise it to {most:g} h."
+            message_ar = f"يحتاج {name(who)} إلى {most:g} ساعة في أكثر الأيام ازدحامًا؛ والحد {rs.param(rule, 'hours')} ساعة. ارفعه إلى {most:g} ساعة."
         hit = []
-    return {'kind': 'rule', 'target': rule['id'], 'title': f'Relax rule: {title}', 'message': message, 'sessions': [session(a) for a in hit]}
+    return {'kind': 'rule', 'target': rule['id'], 'title': f'Relax rule: {title}', 'message': message, 'sessions': [session(a) for a in hit],
+            'title_ar': f'خفّف القيد: {title}', 'message_ar': message_ar, 'sessions_ar': [session_ar(a) for a in hit]}
 
 
 def policy_need(snapshot, field, rows):
@@ -266,14 +299,16 @@ def policy_need(snapshot, field, rows):
             cur = cur + 1 if prev is not None and i == prev + 1 else 1
             best, prev = max(best, cur), i
         return best
-    measure = {'student_daily_hours': ('group', lambda s: sum(slots[i][1] - slots[i][0] for i in s) / 60, 'h'),
-               'instructor_daily_hours': ('instructor', lambda s: sum(slots[i][1] - slots[i][0] for i in s) / 60, 'h'),
-               'max_consecutive_periods': ('group', runs, 'periods in a row'),
-               'max_idle_periods': ('group', gaps, 'free periods')}.get(field)
+    measure = {'student_daily_hours': ('group', lambda s: sum(slots[i][1] - slots[i][0] for i in s) / 60, 'h', 'ساعة'),
+               'instructor_daily_hours': ('instructor', lambda s: sum(slots[i][1] - slots[i][0] for i in s) / 60, 'h', 'ساعة'),
+               'max_consecutive_periods': ('group', runs, 'periods in a row', 'فترات متتالية'),
+               'max_idle_periods': ('group', gaps, 'free periods', 'فترات فراغ')}.get(field)
     if not measure:
         return None
-    kind, f, unit = measure
+    kind, f, unit, unit_ar = measure
     worst = max(((f(s), ident, day) for (k, ident, day), s in used.items() if k == kind), default=None)
     if not worst:
         return None
-    return {'value': f'{worst[0]:g} {unit}', 'who': f"{records.get(worst[1], {}).get('name', worst[1])} on {worst[2]}"}
+    who = records.get(worst[1], {}).get('name', worst[1])
+    return {'value': f'{worst[0]:g} {unit}', 'who': f"{who} on {worst[2]}",
+            'value_ar': f'{worst[0]:g} {unit_ar}', 'who_ar': f"{who} يوم {AR_DAYS.get(worst[2], worst[2])}"}

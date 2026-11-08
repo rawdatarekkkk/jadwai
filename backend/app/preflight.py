@@ -5,6 +5,22 @@ VERSION = 'manual-input-checks-v1'
 from app import rule_semantics as rs
 from app.calendar_slots import day_placements
 SUPPORTED = set(rs.TYPES)
+AR = {
+    'missing_activities': 'أضف نشاط تدريس واحدًا على الأقل.',
+    'missing_rooms': 'أضف قاعة واحدة على الأقل.',
+    'unsupported_rule': 'يوجد قيد معتمد غير مدعوم.',
+    'invalid_reference': 'نشاط يشير إلى مجموعة أو مدرس غير موجود.',
+    'instructor_position': 'المحاضرات للدكاترة؛ السكاشن والمعامل للمعيدين.',
+    'no_suitable_room': 'لا توجد قاعة تناسب سعة هذا النشاط ونوعه وتجهيزاته الخاصة وقواعد القاعات.',
+    'no_available_placement': 'لا يبقى موعد تدريس لهذا النشاط بعد النوافذ المعتمدة والإغلاقات وأهلية المدرسين وحدود العبء.',
+    'insufficient_slots': 'عدد المواعيد المتاحة أقل من عدد الحصص المطلوبة.',
+    'insufficient_distinct_days': 'سياسة الأيام المختلفة تحتاج أيامًا متاحة أكثر مما لدى هذا النشاط.',
+    'lock_contradiction': 'حصة مثبتة معتمدة لا تتوافق مع التقويم أو الموارد أو القواعد المعتمدة.',
+    'group_weekly_capacity': 'دقائق التدريس المطلوبة للمجموعة أكثر مما يتسع له أسبوع التدريس.',
+    'invalid_lock': 'حصة مثبتة تشير إلى حصة غير موجودة.',
+    'lock_teacher_conflict': 'حصص مثبتة معتمدة تطلب مدرسين مختلفين لنفس النشاط.',
+    'locked_resource_collision': 'حصتان مثبتتان تتداخلان على نفس المورد.',
+}
 
 
 def inspect_inputs(snapshot):
@@ -16,24 +32,25 @@ def inspect_inputs(snapshot):
     approved=[r for r in snapshot['rules'] if r['status']=='approved']
     locks=[r for r in snapshot.get('assignment_locks',[]) if r['status']=='approved']
     blockers=[];warnings=[];domains=[]; placements={}; load=defaultdict(int)
-    def issue(code,message,activity=None,rule_ids=None,resource_id=None):
-        blockers.append(dict(code=code,message=message,activity_id=activity,rule_ids=rule_ids or [],resource_id=resource_id))
+    def issue(code,message,activity=None,rule_ids=None,resource_id=None,ar=None):
+        # Every message is sent in English and Arabic; the page shows the interface language.
+        blockers.append(dict(code=code,message=message,message_ar=ar or AR.get(code,message),activity_id=activity,rule_ids=rule_ids or [],resource_id=resource_id))
     if not activities:issue('missing_activities','Add at least one teaching activity.')
     if not rooms:issue('missing_rooms','Add at least one room.')
     for rule in approved:
         if rule['type'] not in SUPPORTED:issue('unsupported_rule','An approved rule is unsupported.',rule_ids=[rule['id']])
     for teacher in records.values():
         if not cal.get('weekly_load_policy',{}).get('allow_overtime') and teacher['kind']=='instructors' and teacher.get('max_weekly_hours') is None:
-            warnings.append(dict(code='weekly_limit_missing',resource_id=teacher['id'],message='Weekly teaching maximum is not configured; it will not be checked.'))
+            warnings.append(dict(code='weekly_limit_missing',resource_id=teacher['id'],message='Weekly teaching maximum is not configured; it will not be checked.',message_ar='لم يُحدد الحد الأسبوعي للتدريس؛ لن يُفحص.'))
     for teacher in records.values():
         if teacher['kind']=='instructors' and not teacher.get('position') and any(teacher['id'] in a['eligible_instructors'] for a in activities):
-            warnings.append(dict(code='instructor_position_missing',resource_id=teacher['id'],message='Set doctor or TA for this instructor; until then the lecture/tutorial split is not checked.'))
+            warnings.append(dict(code='instructor_position_missing',resource_id=teacher['id'],message='Set doctor or TA for this instructor; until then the lecture/tutorial split is not checked.',message_ar='حدّد دكتور أو معيد لهذا المدرس؛ حتى ذلك لا يُفحص تقسيم المحاضرات والسكاشن.'))
     for room in rooms:
         if not room.get('capacity') or not (room.get('room_types') or room.get('room_type')):
-            warnings.append(dict(code='room_setup_missing',resource_id=room['id'],message='Room capacity/type is not configured; this room is excluded from generation.'))
+            warnings.append(dict(code='room_setup_missing',resource_id=room['id'],message='Room capacity/type is not configured; this room is excluded from generation.',message_ar='سعة القاعة أو نوعها غير محدد؛ تُستبعد هذه القاعة من الإنشاء.'))
     policy=cal.get('realism_policy',{})
     for key in ('student_daily_hours','instructor_daily_hours'):
-        if policy.get(key) is None:warnings.append(dict(code=key+'_missing',message='This optional daily maximum is not configured.'))
+        if policy.get(key) is None:warnings.append(dict(code=key+'_missing',message='This optional daily maximum is not configured.',message_ar='هذا الحد اليومي الاختياري غير محدد.'))
     for activity in activities:
         ident=activity['id'];duration=activity['duration']; groups=activity['group_ids']
         if any(records.get(g,{}).get('kind')!='groups' for g in groups) or any(records.get(t,{}).get('kind')!='instructors' for t in activity['eligible_instructors']):
@@ -74,7 +91,8 @@ def inspect_inputs(snapshot):
     from app.positions import tas_without_teaching
     valid=[a for a in all_activities if all(records.get(t,{}).get('kind')=='instructors' for t in a['eligible_instructors'])]
     for ta in tas_without_teaching([r for r in records.values() if r['kind']=='instructors'],valid):
-        issue('ta_without_teaching',f"{records[ta]['name']} cannot be given any session. Every TA must teach: add this TA to a course's tutorials or labs, or add more activities to the pool.",resource_id=ta)
+        issue('ta_without_teaching',f"{records[ta]['name']} cannot be given any session. Every TA must teach: add this TA to a course's tutorials or labs, or add more activities to the pool.",resource_id=ta,
+              ar=f"لا يمكن إعطاء {records[ta]['name']} أي حصة. يجب أن يدرّس كل معيد: أضفه إلى سكاشن أو معامل مقرر، أو أضف أنشطة أكثر.")
     day_minutes=sum(p['end']-p['start'] for p in cal.get('teaching_periods',[])) or (cal['end_hour']-cal['start_hour'])*60
     overloaded_pools(records, activities, cal, day_minutes, policy, issue)
     room_week(rooms, activities, cal, day_minutes, issue)
@@ -90,13 +108,14 @@ def inspect_inputs(snapshot):
         cap=policy.get('student_daily_hours');available=len(cal['days'])*min(day_minutes,day_minutes if cap is None else cap*60)
         if minutes>available:issue('group_weekly_capacity','Required group teaching minutes exceed the week’s teaching capacity.',resource_id=g)
         elif periods and minutes>0.9*tight:
-            warnings.append(dict(code='group_week_nearly_full',resource_id=g,message=f"{records[g].get('name',g)} needs {round(minutes/60,1)} of the {round(tight/60,1)} teaching hours its week can hold under the daily limits. Generation may take long or fail; consider fewer sessions or relaxing the daily or consecutive-period limits."))
+            warnings.append(dict(code='group_week_nearly_full',resource_id=g,message=f"{records[g].get('name',g)} needs {round(minutes/60,1)} of the {round(tight/60,1)} teaching hours its week can hold under the daily limits. Generation may take long or fail; consider fewer sessions or relaxing the daily or consecutive-period limits.",
+                message_ar=f"تحتاج {records[g].get('name',g)} إلى {round(minutes/60,1)} من {round(tight/60,1)} ساعة تدريس يتسع لها أسبوعها ضمن الحدود اليومية. قد يطول الإنشاء أو يفشل؛ قلّل الحصص أو خفّف حد الساعات اليومية أو الفترات المتتالية."))
     by_activity={a['id']:a for a in activities}
     for student in snapshot.get('students',[]):
         if not student['activity_ids']:
-            warnings.append(dict(code='advising_student_empty',resource_id=student['id'],message=f"Advising student {student['code']} attends no sessions."))
+            warnings.append(dict(code='advising_student_empty',resource_id=student['id'],message=f"Advising student {student['code']} attends no sessions.",message_ar=f"طالب الإرشاد {student['code']} لا يحضر أي حصة."))
         minutes=sum(by_activity[a]['duration']*by_activity[a]['sessions'] for a in student['activity_ids'] if a in by_activity)
-        if minutes>len(cal['days'])*day_minutes:issue('advising_student_capacity',f"Advising student {student['code']} has more teaching than the week can hold.",resource_id=student['id'])
+        if minutes>len(cal['days'])*day_minutes:issue('advising_student_capacity',f"Advising student {student['code']} has more teaching than the week can hold.",resource_id=student['id'],ar=f"لدى طالب الإرشاد {student['code']} تدريس أكثر مما يتسع له الأسبوع.")
     from app.calendar_slots import end_for
     lock_end=lambda lock,activity:end_for(cal,activity['duration'],lock['start_minute']) or lock['start_minute']+activity['duration']
     fixed=[]
@@ -137,7 +156,8 @@ def overloaded_pools(records, activities, cal, day_minutes, policy, issue):
             names = ', '.join(sorted(records[t].get('name', t) for t in pool))
             codes = ', '.join(sorted({(a.get('code') or a.get('name') or a['id']).split('-A')[0] for a in mine})[:5])
             issue('instructor_pool_overloaded', f"{codes}: {round(need / 60, 1)} weekly hours can only be taught by {names}, who have {round(have / 60, 1)} teaching hours a week between them. Add instructors to these activities or reduce their sessions.",
-                  mine[0]['id'], resource_id=sorted(pool)[0])
+                  mine[0]['id'], resource_id=sorted(pool)[0],
+                  ar=f"{codes}: {round(need / 60, 1)} ساعة أسبوعيًا لا يدرّسها إلا {names}، ومجموع وقتهم {round(have / 60, 1)} ساعة تدريس في الأسبوع. أضف مدرسين لهذه الأنشطة أو قلّل حصصها.")
 
 
 def room_week(rooms, activities, cal, day_minutes, issue):
@@ -151,10 +171,12 @@ def room_week(rooms, activities, cal, day_minutes, issue):
     need = {'lab': 0, 'lecture': 0}
     for a in activities:
         need['lab' if a['activity_type'] == 'lab' else 'lecture'] += a['duration'] * a['sessions']
-    for kind, label in (('lab', 'labs'), ('lecture', 'lecture and tutorial rooms')):
+    for kind, label, label_ar in (('lab', 'labs', 'المعامل'), ('lecture', 'lecture and tutorial rooms', 'قاعات المحاضرات والسكاشن')):
         have = week * sum(1 for r in usable if kinds(r) & {kind, 'flexible'})
         if need[kind] > have:
-            issue('room_week_capacity', f"Sessions needing {label} take {round(need[kind] / 60)} hours a week, but those rooms hold {round(have / 60)}. Add rooms or reduce sessions.")
+            issue('room_week_capacity', f"Sessions needing {label} take {round(need[kind] / 60)} hours a week, but those rooms hold {round(have / 60)}. Add rooms or reduce sessions.",
+                  ar=f"الحصص التي تحتاج {label_ar} تأخذ {round(need[kind] / 60)} ساعة أسبوعيًا، وهذه القاعات تتسع لـ {round(have / 60)} فقط. أضف قاعات أو قلّل الحصص.")
     have = week * sum(1 for r in usable if kinds(r) & {'lab', 'lecture', 'flexible'})
     if need['lab'] + need['lecture'] > have and all(need[k] <= week * sum(1 for r in usable if kinds(r) & {k, 'flexible'}) for k in need):
-        issue('room_week_capacity', f"Sessions take {round((need['lab'] + need['lecture']) / 60)} room-hours a week, but the rooms hold {round(have / 60)}. Add rooms or reduce sessions.")
+        issue('room_week_capacity', f"Sessions take {round((need['lab'] + need['lecture']) / 60)} room-hours a week, but the rooms hold {round(have / 60)}. Add rooms or reduce sessions.",
+              ar=f"تأخذ الحصص {round((need['lab'] + need['lecture']) / 60)} ساعة قاعة أسبوعيًا، والقاعات تتسع لـ {round(have / 60)} فقط. أضف قاعات أو قلّل الحصص.")

@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import {api, type Workspace} from './api';
-export type Preparation = {input_version:number;ready:boolean;blockers:{code:string;message:string;activity_id?:string;resource_id?:string;rule_ids:string[]}[];warnings:{code:string;message:string;resource_id?:string}[];activity_domains:{activity_id:string;available_slots:number;required_sessions:number}[];definition:string};
+export type Preparation = {input_version:number;ready:boolean;blockers:{code:string;message:string;message_ar?:string;activity_id?:string;resource_id?:string;rule_ids:string[]}[];warnings:{code:string;message:string;message_ar?:string;resource_id?:string}[];activity_domains:{activity_id:string;available_slots:number;required_sessions:number}[];definition:string};
 export type Settings = {profile:string;time_limit_seconds:number;random_seed:number;search_workers:number;objective_profile:string;preference_weight:number;idle_weight:number};
 export const defaultSettings:Settings={profile:'cp-sat-baseline-v1',time_limit_seconds:30,random_seed:42,search_workers:4,objective_profile:'convenience-v1',preference_weight:10,idle_weight:1};
 /** Large semesters need more search time; start from values that suit the workspace. */
@@ -11,8 +11,8 @@ export function settingsFor(ws:Workspace):Settings{
 export function PreparationReport({report,ws,ar}:{report:Preparation;ws:Workspace;ar:boolean}) {
  const name=(id?:string)=>ws.records.find(r=>r.id===id)?.name || id;
  return <section className="panel run-checks" role="status"><h3>{ar?'فحص المدخلات':'Input checks'} · {ar?(report.ready?'جاهزة للبحث':'تحتاج تصحيحًا'):(report.ready?'Ready to search':'Needs correction')}</h3><p>{ar?'فحوصات أولية فقط؛ نجاحها لا يثبت إمكانية إنشاء جدول كامل. الحدود الاختيارية غير المحددة تُعرض كتنبيهات.':report.definition}</p><p>{ar?'نسخة المدخلات':'Input version'}: {report.input_version}{report.input_version!==ws.version && <strong> · {ar?'قديمة؛ أعد الفحص':'Outdated; check again'}</strong>}</p>
- {!!report.blockers.length && <ul>{report.blockers.map((b,i)=><li key={i}><strong>{name(b.activity_id)||name(b.resource_id)||b.code}</strong>: {b.message}{!!b.rule_ids.length && <small> · {ar?'معرفات القواعد':'Rule IDs'}: {b.rule_ids.join(', ')}</small>}</li>)}</ul>}
- <details><summary>{report.warnings.length} {ar?'تنبيهات حدود غير محددة':'optional coverage warnings'}</summary><ul>{report.warnings.map((w,i)=><li key={i}>{name(w.resource_id)} · {w.message}</li>)}</ul></details>
+ {!!report.blockers.length && <ul>{report.blockers.map((b,i)=><li key={i}><strong>{name(b.activity_id)||name(b.resource_id)||b.code}</strong>: {(ar&&b.message_ar)||b.message}{!!b.rule_ids.length && <small> · {ar?'معرفات القواعد':'Rule IDs'}: {b.rule_ids.join(', ')}</small>}</li>)}</ul>}
+ <details><summary>{report.warnings.length} {ar?'تنبيهات حدود غير محددة':'optional coverage warnings'}</summary><ul>{report.warnings.map((w,i)=><li key={i}>{name(w.resource_id)} · {(ar&&w.message_ar)||w.message}</li>)}</ul></details>
  <details><summary>{ar?'النوافذ المتاحة لكل نشاط':'Available windows by activity'}</summary><ul>{report.activity_domains.map(d=><li key={d.activity_id}>{name(d.activity_id)}: {d.available_slots} {ar?'فترات متاحة':'available slots'} · {d.required_sessions} {ar?'حصص مطلوبة':'required sessions'}</li>)}</ul></details></section>;
 }
 export function RunSettings({ws,ar,settings,change,disabled}:{ws:Workspace;ar:boolean;settings:Settings;change:(v:Settings)=>void;disabled:boolean}) {

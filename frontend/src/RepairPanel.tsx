@@ -19,9 +19,9 @@ export function RepairPanel({ repair, ar }: { repair: Repair; ar: boolean }) {
           <ol>
             {repair.suggestions!.map((s, i) => (
               <li key={i}>
-                <strong>{s.title}</strong>
-                <p>{s.message}</p>
-                {!!s.sessions.length && <ul>{s.sessions.slice(0, 8).map((x) => <li key={x}><small>{x}</small></li>)}</ul>}
+                <strong>{(ar && s.title_ar) || s.title}</strong>
+                <p>{(ar && s.message_ar) || s.message}</p>
+                {!!s.sessions.length && <ul>{((ar && s.sessions_ar) || s.sessions).slice(0, 8).map((x) => <li key={x}><small>{x}</small></li>)}</ul>}
               </li>
             ))}
           </ol>
@@ -29,8 +29,8 @@ export function RepairPanel({ repair, ar }: { repair: Repair; ar: boolean }) {
         </>
       ) : (
         <>
-          <p>{repair.message}</p>
-          {!!repair.findings?.length && <ul>{repair.findings.map((f) => <li key={f}>{f}</li>)}</ul>}
+          <p>{(ar && repair.message_ar) || repair.message}</p>
+          {!!repair.findings?.length && <ul>{((ar && repair.findings_ar) || repair.findings).map((f) => <li key={f}>{f}</li>)}</ul>}
         </>
       )}
     </div>

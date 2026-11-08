@@ -119,3 +119,13 @@ def test_worker_saves_the_fix_with_an_impossible_run(environment, monkeypatch):
     repair = run['result']['repair']
     assert repair['status'] == 'fixable' and repair['verified'] and 'assignments' not in repair
     assert [s['target'] for s in repair['suggestions']] == [rule['id']]
+
+
+def test_every_suggestion_and_input_check_has_arabic_text():
+    from app.preflight import inspect_inputs
+    snap = campus()
+    snap["rules"] = [rule("t-away", "unavailable", instructor_id="t", day=None, start_hour=8, end_hour=12)]
+    for fix in proven(impossible(snap)):
+        assert fix["title_ar"] and fix["message_ar"] and len(fix["sessions_ar"]) == len(fix["sessions"])
+    report = inspect_inputs(snap)
+    assert all(b["message_ar"] for b in report["blockers"]) and all(w["message_ar"] for w in report["warnings"])

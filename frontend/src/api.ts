@@ -146,8 +146,8 @@ export type ScheduleAssignment = {
   end_minute: number;
 };
 export type ScopeItem = { programme: string; year: number | null };
-export type Repair = { status: "fixable" | "data_change_needed" | "not_found"; verified?: boolean; message?: string; findings?: string[];
-  suggestions?: { kind: string; target: string | null; title: string; message: string; sessions: string[] }[] };
+export type Repair = { status: "fixable" | "data_change_needed" | "not_found"; verified?: boolean; message?: string; message_ar?: string; findings?: string[]; findings_ar?: string[];
+  suggestions?: { kind: string; target: string | null; title: string; message: string; sessions: string[]; title_ar?: string; message_ar?: string; sessions_ar?: string[] }[] };
 export type RunProgress = { scheduled_sessions: number; total_sessions: number; complete: boolean; remaining_programmes: ScopeItem[]; scope: ScopeItem[] | null; base_run_id: string | null };
 export type ScheduleRun = {
   id: string;

@@ -18,3 +18,11 @@ test("explains when only a data change can help", () => {
   expect(screen.getByText(/Even with every rule relaxed/)).toBeTruthy();
   expect(screen.getByText(/exceed the week/)).toBeTruthy();
 });
+
+test("shows the Arabic suggestion in the Arabic interface", () => {
+  render(<RepairPanel ar repair={{ status: "fixable", verified: true, suggestions: [
+    { kind: "move_session", target: "l2", title: "Move Biology (session 1)", message: "Move it.", sessions: ["Biology Sunday"],
+      title_ar: "انقل Biology (الحصة 1)", message_ar: "انقلها إلى الأحد 09:00.", sessions_ar: ["Biology الأحد 09:00"] }] }} />);
+  expect(screen.getByText("انقل Biology (الحصة 1)")).toBeTruthy();
+  expect(screen.getByText("Biology الأحد 09:00")).toBeTruthy();
+});

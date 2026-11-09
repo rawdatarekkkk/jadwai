@@ -75,7 +75,7 @@ test("session expiry preserves a draft through reauthentication", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Academic data" }));
   fireEvent.click(screen.getByRole("button", { name: /^Rooms\s*1$/ }));
   fireEvent.click(screen.getByRole("button", { name: "Edit" }));
-  fireEvent.change(screen.getByLabelText("Name", { exact: true }), {
+  fireEvent.change(screen.getByLabelText(/^Name \(optional\)/), {
     target: { value: "Unsaved revised room" },
   });
   fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
@@ -98,7 +98,7 @@ test("session expiry preserves a draft through reauthentication", async () => {
     ).toBeNull(),
   );
   expect(
-    (screen.getByLabelText("Name", { exact: true }) as HTMLInputElement).value,
+    (screen.getByLabelText(/^Name \(optional\)/) as HTMLInputElement).value,
   ).toBe("Unsaved revised room");
   expect(expired).toBe(false);
 });

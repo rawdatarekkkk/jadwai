@@ -324,6 +324,15 @@ export function instructorCode(name: string, position: string, records: { id: st
   for (let n = 1; ; n++) { const code = n === 1 ? base : `${base}${n}`; if (!taken.has(code)) return code; }
 }
 
+/** A short unique group code: Business Administration, year 3, "... G7" -> BA3-G7, then BA3-G7-2... */
+export function groupCode(major: string, year: number, name: string, records: { id: string; kind: string; code?: string }[], self?: string) {
+  const short = major.split(/[\s,/&-]+/).filter(w => w && !["and", "of", "the", "&"].includes(w.toLowerCase())).map(w => w[0].toUpperCase()).join("") || "G";
+  const number = name.match(/\bG\s*(\d+)\b/i)?.[1] ?? name.match(/(\d+)\s*$/)?.[1];
+  const base = `${short}${year || ""}-G${number ?? "1"}`.slice(0, 17);
+  const taken = new Set(records.filter(r => r.kind === "groups" && r.id !== self).map(r => (r.code || "").toUpperCase()));
+  for (let n = 1; ; n++) { const code = n === 1 ? base : `${base}-${n}`; if (!taken.has(code.toUpperCase())) return code; }
+}
+
 export function RecordForm({
   kind,
   record,
@@ -397,9 +406,13 @@ export function RecordForm({
         if (kind === "groups") {
           body.size = Number(f.get("size"));
           body.year = Number(f.get("year"));
-          body.major = f.get("major");
+          body.major = String(f.get("major") || "").trim();
+          body.code = String(f.get("code") || "").trim() || groupCode(String(body.major), Number(body.year), String(f.get("name") || ""), ws.records, record?.id);
         }
         if (kind === "rooms") {
+          // A room is usually known by its code (A3.128); the name is optional.
+          body.code = String(f.get("code") || "").trim();
+          body.name = String(f.get("name") || "").trim() || body.code;
           body.capacity = Number(f.get("capacity"));
           body.room_types = f.getAll("room_types");
           body.equipment = String(f.get("equipment") || "")
@@ -437,8 +450,8 @@ export function RecordForm({
             <option value="" disabled>{record && !record.course_id ? record.name : t("chooseCourse")}</option>
             {(ws.course_catalog || []).map(c => <option key={c.id} value={c.id}>{c.name} · {c.code}</option>)}
           </select><small>{t("courseSelectionHelp")}</small>
-        </label> : input("name", "name", record?.name)}
-        {kind !== "courses" && kind !== "instructors" && input("code", "code", record?.code)}
+        </label> : kind === "groups" || kind === "rooms" ? null : input("name", "name", record?.name)}
+        {kind !== "courses" && kind !== "instructors" && kind !== "groups" && kind !== "rooms" && input("code", "code", record?.code)}
         {kind === "instructors" && <>
           {/* What an instructor needs: who they are and what they may teach; the rest is optional. */}
           <label>{t("position")}<select name="position" required defaultValue={record?.position || ""}>
@@ -458,21 +471,21 @@ export function RecordForm({
         {kind === "instructors" && <div className="meaning-preview" style={{gridColumn:"1 / -1"}}><strong>{t("standardWeeklyHours")}: 12</strong><p>{t("overtimeHelp")}</p></div>}
         {kind === "groups" && (
           <>
-            {input("year", "studyYear", record?.year ?? "", "number", 1, 12)}
-            {input("major", "major", record?.major ?? "")}
-            {input("size", "size", record?.size || 30, "number", 1, 2000)}
+            {/* Major and year place the group in filters, parts and exam cohorts; size drives room capacity. */}
+            <label>{t("major")}<input name="major" required maxLength={100} pattern=".*\S.*" list="known-majors" defaultValue={record?.major ?? ""} />
+              <datalist id="known-majors">{[...new Set(ws.records.filter(r => r.kind === "groups" && r.major).map(r => r.major as string))].sort().map(m => <option key={m} value={m} />)}</datalist>
+              <small>{t("majorHelp")}</small></label>
+            <label>{t("studyYear")}<input name="year" type="number" required min={1} max={12} defaultValue={record?.year ?? ""} /><small>{t("studyYearHelp")}</small></label>
+            <label>{t("groupName")}<input name="name" required maxLength={100} pattern=".*\S.*" defaultValue={record?.name ?? ""} /><small>{t("groupNameHelp")}</small></label>
+            <label>{t("size")}<input name="size" type="number" required min={1} max={2000} defaultValue={record?.size ?? ""} /><small>{t("sizeHelp")}</small></label>
+            <label>{t("codeOptional")}<input name="code" maxLength={20} defaultValue={record?.code ?? ""} /><small>{t("groupCodeHelp")}</small></label>
           </>
         )}
         {kind === "rooms" && (
           <>
-            {input(
-              "capacity",
-              "capacity",
-              record ? (record.capacity ?? "") : 40,
-              "number",
-              1,
-              2000,
-            )}
+            <label>{t("roomCode")}<input name="code" required maxLength={20} pattern=".*\S.*" defaultValue={record?.code ?? ""} /><small>{t("roomCodeHelp")}</small></label>
+            <label>{t("roomNameOptional")}<input name="name" maxLength={100} defaultValue={record && record.name !== record.code ? record.name : ""} /><small>{t("roomNameHelp")}</small></label>
+            <label>{t("capacity")}<input name="capacity" type="number" required min={1} max={2000} defaultValue={record?.capacity ?? ""} /><small>{t("capacityHelp")}</small></label>
             <fieldset className="room-type-field">
               <legend>{t("roomtype")}</legend>
               <p className="room-type-help">{t("roomTypesHelp")}</p>

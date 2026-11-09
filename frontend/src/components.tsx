@@ -315,6 +315,15 @@ export function Modal({
     </div>
   );
 }
+/** A short unique code from position and initials: Dr. Sara Saleh (doctor) -> D-SS, then D-SS2... */
+export function instructorCode(name: string, position: string, records: { id: string; kind: string; code?: string }[], self?: string) {
+  const words = name.replace(/^(dr|prof|eng|mr|ms|mrs)\.?\s+/i, "").split(/\s+/).filter(Boolean);
+  const initials = words.map(w => w[0]).join("").toUpperCase().replace(/[^A-Z0-9\u0600-\u06FF]/g, "").slice(0, 6) || "X";
+  const base = `${position === "ta" ? "T" : "D"}-${initials}`;
+  const taken = new Set(records.filter(r => r.kind === "instructors" && r.id !== self).map(r => (r.code || "").toUpperCase()));
+  for (let n = 1; ; n++) { const code = n === 1 ? base : `${base}${n}`; if (!taken.has(code)) return code; }
+}
+
 export function RecordForm({
   kind,
   record,
@@ -379,9 +388,10 @@ export function RecordForm({
           code: f.get("code"),
         };
         if (kind === "instructors") {
-          body.department = f.get("department");
-          body.day_off = f.get("day_off");
+          body.department = String(f.get("department") || "").trim();
+          body.day_off = f.get("day_off") || null;
           body.position = f.get("position");
+          body.code = String(f.get("code") || "").trim() || instructorCode(String(f.get("name") || ""), String(f.get("position") || ""), ws.records, record?.id);
           body.max_weekly_hours = record?.max_weekly_hours ?? null;
         }
         if (kind === "groups") {
@@ -428,22 +438,23 @@ export function RecordForm({
             {(ws.course_catalog || []).map(c => <option key={c.id} value={c.id}>{c.name} · {c.code}</option>)}
           </select><small>{t("courseSelectionHelp")}</small>
         </label> : input("name", "name", record?.name)}
-        {kind !== "courses" && input("code", "code", record?.code)}
-        {kind === "instructors" &&
-          input(
-            "department",
-            "department",
-            record?.department || "Computer Science",
-          )}
-        {kind === "instructors" && <label>{t("dayOff")}<select name="day_off" required defaultValue={record?.day_off || ""}>
-          <option value="" disabled>{t("chooseDayOff")}</option>
-          {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map(day => <option key={day} value={day}>{t(day as Word)}</option>)}
-        </select><small>{t("dayOffHelp")}</small></label>}
-        {kind === "instructors" && <label>{t("position")}<select name="position" required defaultValue={record?.position || ""}>
-          <option value="" disabled>{t("position")}</option>
-          <option value="doctor">{t("doctor")}</option>
-          <option value="ta">{t("ta")}</option>
-        </select><small>{t("positionHelp")}</small></label>}
+        {kind !== "courses" && kind !== "instructors" && input("code", "code", record?.code)}
+        {kind === "instructors" && <>
+          {/* What an instructor needs: who they are and what they may teach; the rest is optional. */}
+          <label>{t("position")}<select name="position" required defaultValue={record?.position || ""}>
+            <option value="" disabled>{t("choosePosition")}</option>
+            <option value="doctor">{t("doctor")}</option>
+            <option value="ta">{t("ta")}</option>
+          </select><small>{t("positionHelp")}</small></label>
+          <label>{t("departmentField")}<input name="department" required maxLength={100} pattern=".*\S.*" list="known-departments" defaultValue={record?.department || ""} />
+            <datalist id="known-departments">{[...new Set(ws.records.filter(r => r.kind === "instructors" && r.department).map(r => r.department as string))].sort().map(d => <option key={d} value={d} />)}</datalist>
+            <small>{t("departmentHelp")}</small></label>
+          <label>{t("dayOff")}<select name="day_off" defaultValue={record?.day_off || ""}>
+            <option value="">{t("noDayOff")}</option>
+            {(ws.calendar?.days || ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]).map(day => <option key={day} value={day}>{t(day as Word)}</option>)}
+          </select><small>{t("dayOffHelp")}</small></label>
+          <label>{t("codeOptional")}<input name="code" maxLength={20} defaultValue={record?.code || ""} /><small>{t("codeHelp")}</small></label>
+        </>}
         {kind === "instructors" && <div className="meaning-preview" style={{gridColumn:"1 / -1"}}><strong>{t("standardWeeklyHours")}: 12</strong><p>{t("overtimeHelp")}</p></div>}
         {kind === "groups" && (
           <>

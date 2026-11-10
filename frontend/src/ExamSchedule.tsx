@@ -24,6 +24,17 @@ function ExamDateBreakdown({start,end,eligible,ar,saved=false}:{start:string;end
  {saved&&<p>{ar?"التوصيات مبنية على هذه الأيام المتاحة، لا على عدد الأيام التقويمية أو التعديلات غير المحفوظة في النموذج.":"Recommendations use these eligible days, rather than calendar days or unsaved changes to the form."}</p>}
  </div>;
 }
+/** Same short name as the server PDF: "Midterm Exams 20-31 Oct 2026", plus the search if any. */
+export function examScheduleName(start: string, end: string, query = "") {
+  const d = (v: string) => new Date(v + "T12:00:00Z"), m = (v: string, y = false) => d(v).toLocaleString("en-GB", { month: "short", ...(y ? { year: "numeric" } : {}), timeZone: "UTC" });
+  const [s, e] = [d(start), d(end)];
+  const span = s.getUTCFullYear() === e.getUTCFullYear() && s.getUTCMonth() === e.getUTCMonth() ? `${s.getUTCDate()}-${e.getUTCDate()} ${m(end, true)}`
+    : s.getUTCFullYear() === e.getUTCFullYear() ? `${s.getUTCDate()} ${m(start)}-${e.getUTCDate()} ${m(end, true)}`
+    : `${String(s.getUTCDate()).padStart(2, "0")} ${m(start, true)}-${String(e.getUTCDate()).padStart(2, "0")} ${m(end, true)}`;
+  const clean = query.replace(/[^\p{L}\p{N} -]/gu, "").slice(0, 30).trim();
+  return `Midterm Exams ${span}${clean ? ` - ${clean}` : ""}`;
+}
+
 export function ExamSchedule({ws,lang}:{ws:Workspace;lang:"en"|"ar"}){
  const [testCases,setTestCases]=useState<{id:string;title:string;description:string;before:Run["result"];adjustment:string;after:Run["result"];verified:boolean}[]>([]);
  const [testing,setTesting]=useState(false);
@@ -45,7 +56,7 @@ export function ExamSchedule({ws,lang}:{ws:Workspace;lang:"en"|"ar"}){
  const savePdf=()=>{
   if(!run||run.result.status!=="completed")return;
   originalTitle.current??=document.title;
-  document.title=`JadwAI-Midterms-${run.snapshot.settings.start_date}-${run.id.slice(0,8)}`;
+  document.title=examScheduleName(run.snapshot.settings.start_date,run.snapshot.settings.end_date,query);
   flushSync(()=>setPrinting(true));
   try{window.print();}catch{document.title=originalTitle.current!;originalTitle.current=null;setPrinting(false);setError(ar?"تعذر فتح الطباعة. حاول مرة أخرى.":"Could not open printing. Please try again.");}
  };
@@ -69,7 +80,7 @@ export function ExamSchedule({ws,lang}:{ws:Workspace;lang:"en"|"ar"}){
  <button className="btn primary" disabled={busy||!ws.course_catalog?.length}><Icon name="spark" size={16}/>{busy?(ar?"جارٍ الإنشاء…":"Generating…"):(ar?"إنشاء جدول الامتحانات":"Generate exam schedule")}</button>
  </form></section>
  {error&&<div className="error" role="alert">{error}</div>}{notice&&<p role="status" className="panel">{notice}</p>}
- {!!runs.length&&<section className="panel"><div className="exam-result-toolbar"><label>{ar?"المسودة المحفوظة":"Saved draft"}<select value={run?.id} onChange={e=>setSelected(e.target.value)}>{runs.map(r=><option key={r.id} value={r.id}>{r.name?`${r.name} · `:""}{r.snapshot.settings.start_date} – {r.snapshot.settings.end_date} · {r.result.status}{r.published_at?" ✓":""} · {r.id.slice(0,8)}</option>)}</select></label>{run?.result.status==="completed"&&<><button type="button" className="btn primary" onClick={savePdf}>{ar?"حفظ PDF":"Save as PDF"}</button><a className="btn white" href={`/api/exam-schedules/${run.id}/export`} download>{ar?"تحميل CSV":"Download CSV"}</a>
+ {!!runs.length&&<section className="panel"><div className="exam-result-toolbar"><label>{ar?"المسودة المحفوظة":"Saved draft"}<select value={run?.id} onChange={e=>setSelected(e.target.value)}>{runs.map(r=><option key={r.id} value={r.id}>{r.name?`${r.name} · `:""}{r.snapshot.settings.start_date} – {r.snapshot.settings.end_date} · {r.result.status}{r.published_at?" ✓":""} · {r.id.slice(0,8)}</option>)}</select></label>{run?.result.status==="completed"&&<><button type="button" className="btn primary" onClick={()=>{if(!run)return;const link=document.createElement("a");link.href=`/api/exam-schedules/${encodeURIComponent(run.id)}/exams.pdf${query?`?q=${encodeURIComponent(query)}`:""}`;link.download="";document.body.append(link);link.click();link.remove();}}>{ar?"حفظ PDF":"Save as PDF"}</button><button type="button" className="btn white" onClick={savePdf}>{ar?"طباعة":"Print"}</button><a className="btn white" href={`/api/exam-schedules/${run.id}/export`} download>{ar?"تحميل CSV":"Download CSV"}</a>
  <button type="button" className="btn white" onClick={()=>{const name=window.prompt(ar?"اسم المسودة":"Draft name",run.name||"");if(name?.trim())void act(async()=>{await api(`/exam-schedules/${run.id}/name`,"PUT",{name:name.trim()});});}}>{ar?"إعادة تسمية":"Rename"}</button>
  {run.published_at?<button type="button" className="btn white" onClick={()=>void act(async()=>{await api(`/exam-schedules/${run.id}/unpublish`,"POST",undefined,ws.version);})}>{ar?"إلغاء النشر":"Unpublish"}</button>
  :<button type="button" className="btn primary" disabled={run.input_version!==ws.version} onClick={()=>void act(async()=>{await api(`/exam-schedules/${run.id}/publish`,"POST",undefined,ws.version);setNotice(ar?"تم النشر. يرى الطلاب امتحاناتهم والمعيدون مهام المراقبة.":"Published. Students see their exams and TAs their invigilation duties.");})}>{ar?"انشر":"Publish"}</button>}</>}</div>

@@ -20,7 +20,11 @@ test('exam generation uses the source period and two-hour slots',async()=>{
  expect(calls[0]).toEqual({start_date:'2026-10-20',end_date:'2026-10-31',exclude_fridays:true,max_exams_per_cohort_day:1,use_halls:true,assign_invigilators:true});
  expect(screen.getByText('Independent checks passed')).toBeTruthy();
  expect(screen.getByRole('link',{name:'Download CSV'})).toBeTruthy();
+ const click=vi.spyOn(HTMLAnchorElement.prototype,'click').mockImplementation(()=>{});
  fireEvent.click(screen.getByRole('button',{name:'Save as PDF'}));
+ expect(click).toHaveBeenCalledOnce();
+ expect(print).not.toHaveBeenCalled();
+ fireEvent.click(screen.getByRole('button',{name:'Print'}));
  expect(print).toHaveBeenCalledOnce();
  const printable=screen.getByRole('region',{name:'Printable exam schedule'});
  expect(printable.textContent).toContain('9:00-11:00');
@@ -28,8 +32,8 @@ test('exam generation uses the source period and two-hour slots',async()=>{
  expect(printable.textContent).toContain('INFORMATICS');
  expect(printable.textContent).toContain('GIU-Cairo.Computer Science');
  expect(printable.querySelector('.exam-print-date')?.getAttribute('rowspan')).toBe('2');
- expect(printable.textContent).toContain('Rooms, invigilators');
- expect(document.title).toContain('JadwAI-Midterms-2026-10-20');
+ expect(printable.textContent).toMatch(/Halls and invigilators as assigned|Rooms and invigilators are not covered/);
+ expect(document.title).toBe('Midterm Exams 20-31 Oct 2026');
  fireEvent(window,new Event('afterprint'));
  expect(screen.queryByRole('region',{name:'Printable exam schedule'})).toBeNull();
  expect(document.title).toBe(title);

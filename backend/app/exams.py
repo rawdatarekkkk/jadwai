@@ -75,6 +75,22 @@ def export_exam(ident:str,user=Depends(administrator),db=Depends(db_session)):
     return Response('\ufeff'+stream.getvalue(),media_type='text/csv; charset=utf-8',headers={'Content-Disposition':f'attachment; filename="JadwAI-midterms-{row.snapshot["settings"]["start_date"]}.csv"'})
 
 
+@router.get('/{ident}/exams.pdf')
+def exam_timetable_pdf(ident:str,q:str='',user=Depends(administrator),db=Depends(db_session)):
+    """Landscape PDF of the exam timetable (optionally only exams matching the page's search)."""
+    from urllib.parse import quote
+    from fastapi import Response
+    from app.dependencies import fail
+    from app.exam_pdf import exam_pdf
+    from app.models import Workspace
+    row=db.get(ExamRun,ident)
+    if not row:fail(404,'not_found')
+    if row.result['status']!='completed':fail(409,'invalid_transition')
+    content,name=exam_pdf(row,q[:100],published=bool(row.published_at),stale=row.input_version!=db.get(Workspace,1).version)
+    fallback=name.encode('ascii','ignore').decode('ascii') or 'Exam Schedule'
+    return Response(content,media_type='application/pdf',headers={'Content-Disposition':f"attachment; filename=\"{fallback}.pdf\"; filename*=UTF-8''{quote(name+'.pdf',safe='')}"})
+
+
 class CohortRules(Strict):
     broad_programs: list[str]=Field(max_length=100)
     tracks: dict[str,list[str]]

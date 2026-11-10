@@ -41,7 +41,9 @@ export function ExamSchedulePrint({run, assignments, lang, query, stale}: {
             })}</tr>)
           ])}
         </tbody></table>
-        <footer><b>{ar ? "مسودة تواريخ وأوقات فقط." : "Draft: dates and times only."}</b> {ar ? "القاعات والمراقبون وتسجيل الطلاب الفردي غير مشمولين." : "Rooms, invigilators and individual student enrolments are not covered."}<br/>{stale && <b>{ar ? "تغيرت المدخلات. " : "Inputs have changed. "}</b>}{query && <span>{ar ? "البحث" : "Filter"}: {query} · </span>}{ar ? "إصدار المدخلات" : "Input version"}: {run.input_version} · {run.id.slice(0,8)}</footer>
+        <footer>{assignments.some(a => a.halls?.length)
+          ? <b>{ar ? "القاعات والمراقبون كما في هذه المسودة." : "Halls and invigilators as assigned in this draft."}</b>
+          : <><b>{ar ? "مسودة تواريخ وأوقات فقط." : "Draft: dates and times only."}</b> {ar ? "القاعات والمراقبون غير مشمولين." : "Rooms and invigilators are not covered."}</>}<br/>{stale && <b>{ar ? "تغيرت المدخلات. " : "Inputs have changed. "}</b>}{query && <span>{ar ? "البحث" : "Filter"}: {query} · </span>}{ar ? "إصدار المدخلات" : "Input version"}: {run.input_version} · {run.id.slice(0,8)}</footer>
       </section>;
     })}
   </section>;

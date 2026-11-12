@@ -11,6 +11,7 @@ from ortools.sat.python import cp_model
 from app.provenance import CONFIG
 from app.calendar_slots import day_placements
 from app import rule_semantics as rs
+from app.room_access import room_allows
 
 MAX_SESSIONS = 600
 MAX_CANDIDATES = 3000000
@@ -170,7 +171,7 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
             return {'status':'cancelled','assignments':[]}
         size = sum(by_id[g]['size'] for g in activity['group_ids']) + seats[activity['id']]
         room_type = 'lab' if activity['activity_type']=='lab' else 'lecture'
-        suitable = [r for r in rooms if (r.get('capacity') or 0)>=size and bool(set(r.get('room_types') or [r.get('room_type')]) & {room_type,'flexible'}) and set(activity.get('required_equipment',[]))<=set(r.get('equipment',[]))]
+        suitable = [r for r in rooms if (r.get('capacity') or 0)>=size and bool(set(r.get('room_types') or [r.get('room_type')]) & {room_type,'flexible'}) and set(activity.get('required_equipment',[]))<=set(r.get('equipment',[])) and room_allows(r, activity, by_id)]
         for allowed_rooms in [room_limits[activity['id']]] if activity['id'] in room_limits else []:
             suitable = [r for r in suitable if r['id'] in allowed_rooms]
         if not suitable:

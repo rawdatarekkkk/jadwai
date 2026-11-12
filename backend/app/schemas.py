@@ -90,6 +90,9 @@ class Room(Strict):
             str, StringConstraints(strip_whitespace=True, min_length=1, max_length=60)
         ]
     ] = Field(default_factory=list, max_length=30)
+    # Who may use the room: programmes and/or catalogue courses. Empty = everyone.
+    reserved_majors: list[Name] = Field(default_factory=list, max_length=50)
+    reserved_course_ids: list[str] = Field(default_factory=list, max_length=200)
 
 
 class Group(Strict):

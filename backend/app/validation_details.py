@@ -2,6 +2,7 @@
 from collections import Counter
 from app import rule_semantics as rs
 from app.calendar_slots import placement_for
+from app.room_access import room_allows
 
 
 def details(snapshot, rows, report):
@@ -28,7 +29,7 @@ def details(snapshot, rows, report):
         for r in rules:
             if r['type']=='activity_room' and r['activity_id']==activity['id'] and a['room_id'] not in rs.param(r,'room_ids'):add('approved_room_rules',[a],[a['room_id']],[r.get('id','legacy-rule')])
         size=sum(records.get(g,{}).get('size',10**9) for g in groups)
-        if room.get('kind')!='rooms' or (room.get('capacity') or 0)<size or not set(room.get('room_types') or [room.get('room_type')]) & {'flexible','lab' if activity['activity_type']=='lab' else 'lecture'} or not set(activity.get('required_equipment',[]))<=set(room.get('equipment',[])):add('room_suitability',[a],[a['room_id']])
+        if room.get('kind')!='rooms' or (room.get('capacity') or 0)<size or not set(room.get('room_types') or [room.get('room_type')]) & {'flexible','lab' if activity['activity_type']=='lab' else 'lecture'} or not set(activity.get('required_equipment',[]))<=set(room.get('equipment',[])) or not room_allows(room,activity,records):add('room_suitability',[a],[a['room_id']])
         for b in rows[:n]:
             if b['day']!=day or start>=b['end_minute'] or b['start_minute']>=end:continue
             other=records.get(b['activity_id'],{})

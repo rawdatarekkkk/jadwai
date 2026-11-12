@@ -18,6 +18,8 @@ export type DataRecord = {
   room_type?: string;
   room_types?: string[];
   equipment?: string[];
+  reserved_majors?: string[];
+  reserved_course_ids?: string[];
   required_equipment?: string[];
   activity_type?: string;
   sessions?: number;

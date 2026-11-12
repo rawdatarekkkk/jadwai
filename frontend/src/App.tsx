@@ -754,6 +754,10 @@ export default function App() {
                                       ? `${r.capacity == null ? t("capacityNotSet") : `${r.capacity} ${t("people")}`} · ${r.room_types?.length || r.room_type ? (r.room_types?.length ? r.room_types : [r.room_type]).map((type) => t(type as Word)).join(" / ") : t("roomTypeNotSet")}`
                                       : `${r.size} ${t("people")}`}
                               </p>
+                              {kind === "rooms" && (r.reserved_majors?.length || r.reserved_course_ids?.length) ? (
+                                <p className="room-reserved"><strong>{t("reservedFor")}:</strong>{" "}
+                                  {[...(r.reserved_majors || []), ...(r.reserved_course_ids || []).map(id => ws?.course_catalog?.find(c => c.id === id)?.code || id)].join(", ")}</p>
+                              ) : null}
                               {kind === "courses" && (
                                 <div className="course-links">
                                   <Icon name="people" size={14} />

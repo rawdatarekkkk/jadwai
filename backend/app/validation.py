@@ -2,6 +2,7 @@
 from collections import Counter, defaultdict
 from app import rule_semantics as rs
 from app.calendar_slots import placement_for
+from app.room_access import room_allows
 
 CHECKS = ["complete_assignment", "calendar", "instructor_eligibility", "instructor_position", "ta_teaching", "instructor_day_off", "instructor_continuity", "room_suitability", "resource_conflicts", "approved_unavailability", "approved_room_unavailability", "approved_group_unavailability", "configured_weekly_workload", "approved_assignment_locks", "approved_allowed_windows", "approved_room_rules", "approved_daily_limits", "approved_teaching_days", "approved_separate_days", "advising_student_conflicts"]
 
@@ -60,7 +61,7 @@ def validate_schedule(snapshot, assignments):
         room = records.get(row.get("room_id"), {})
         size = sum(records.get(g, {}).get("size", 10**9) for g in activity["group_ids"]) + joining[activity["id"]]
         required_type = "lab" if activity["activity_type"] == "lab" else "lecture"
-        if room.get("kind") != "rooms" or (room.get("capacity") or 0) < size or not set(room.get("room_types") or [room.get("room_type")]) & {required_type, "flexible"} or not set(activity.get("required_equipment", [])) <= set(room.get("equipment", [])):
+        if room.get("kind") != "rooms" or (room.get("capacity") or 0) < size or not set(room.get("room_types") or [room.get("room_type")]) & {required_type, "flexible"} or not set(activity.get("required_equipment", [])) <= set(room.get("equipment", [])) or not room_allows(room, activity, records):
             errors.add("room_suitability")
         targets = [('activity_allowed', 'activity_id', activity['id'])] + [('group_allowed', 'group_id', g) for g in activity['group_ids']]
         for typ, field, ident in targets:

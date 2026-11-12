@@ -122,6 +122,8 @@ class Record(Base):
                 room_type=self.room.room_type,
                 room_types=self.room.room_types,
                 equipment=self.room.equipment,
+                reserved_majors=self.room.reserved_majors or [],
+                reserved_course_ids=self.room.reserved_course_ids or [],
             )
         elif self.kind == "groups":
             result.update(size=self.group.size, year=self.group.year, major=self.group.major)
@@ -159,6 +161,8 @@ class Record(Base):
                 body["room_type"],
                 body.get("equipment", []),
             )
+            self.room.reserved_majors = body.get("reserved_majors") or []
+            self.room.reserved_course_ids = body.get("reserved_course_ids") or []
         elif self.kind == "groups":
             if self.group is None:
                 self.group = GroupDetail()
@@ -214,6 +218,9 @@ class RoomDetail(Base):
     room_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
     room_types: Mapped[list[str]] = mapped_column(ARRAY(String(20)))
     equipment: Mapped[list[str]] = mapped_column(ARRAY(String(60)), default=list)
+    # Special rooms: only these programmes / catalogue courses may use the room (empty = everyone).
+    reserved_majors: Mapped[list[str]] = mapped_column(ARRAY(String(100)), default=list, server_default="{}")
+    reserved_course_ids: Mapped[list[str]] = mapped_column(ARRAY(String(36)), default=list, server_default="{}")
 
 
 class GroupDetail(Base):

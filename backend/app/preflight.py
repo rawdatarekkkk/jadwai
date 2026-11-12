@@ -3,6 +3,7 @@ from collections import defaultdict
 
 VERSION = 'manual-input-checks-v1'
 from app import rule_semantics as rs
+from app.room_access import room_allows
 from app.calendar_slots import day_placements
 SUPPORTED = set(rs.TYPES)
 AR = {
@@ -59,7 +60,7 @@ def inspect_inputs(snapshot):
         wrong=[t for t in activity['eligible_instructors'] if position_conflict(activity['activity_type'],records[t])]
         if wrong:issue('instructor_position','Lectures need doctors; tutorials and labs need TAs.',ident,resource_id=wrong[0])
         size=sum(records[g]['size'] for g in groups)
-        suitable=[r for r in rooms if (r.get('capacity') or 0)>=size and bool(set(r.get('room_types') or [r.get('room_type')]) & {'flexible','lab' if activity['activity_type']=='lab' else 'lecture'}) and set(activity.get('required_equipment',[]))<=set(r.get('equipment',[]))]
+        suitable=[r for r in rooms if (r.get('capacity') or 0)>=size and bool(set(r.get('room_types') or [r.get('room_type')]) & {'flexible','lab' if activity['activity_type']=='lab' else 'lecture'}) and set(activity.get('required_equipment',[]))<=set(r.get('equipment',[])) and room_allows(r,activity,records)]
         for rule in approved:
             if rule['type']=='activity_room' and rule['activity_id']==ident:suitable=[r for r in suitable if r['id'] in rs.param(rule,'room_ids')]
         if not suitable:issue('no_suitable_room','No room matches this activity’s capacity, type, special-room features and room rules.',ident)

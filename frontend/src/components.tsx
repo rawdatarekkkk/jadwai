@@ -356,6 +356,11 @@ export function RecordForm({
     [groups, setGroups] = useState<string[]>(record?.group_ids || []);
   const [courseId, setCourseId] = useState(record?.course_id || "");
   const [activityType, setActivityType] = useState(record?.activity_type || "lecture");
+  // Special rooms: who may use the room (programmes and/or catalogue courses).
+  const [restricted, setRestricted] = useState(!!(record?.reserved_majors?.length || record?.reserved_course_ids?.length));
+  const [majors, setMajors] = useState<string[]>(record?.reserved_majors || []);
+  const [roomCourses, setRoomCourses] = useState<string[]>(record?.reserved_course_ids || []);
+  const [courseSearch, setCourseSearch] = useState("");
   const course = ws.course_catalog?.find(c => c.id === courseId);
   const eligible = ws.records.filter((r) => r.kind === "instructors" && (kind !== "courses" || (!course && !!record && !record.course_id) || course?.eligibility[activityType]?.includes(r.id))),
     groupOptions = ws.records.filter((r) => r.kind === "groups" && (kind !== "courses" || (!course && !!record && !record.course_id) || course?.group_ids.includes(r.id)));
@@ -415,6 +420,8 @@ export function RecordForm({
           body.name = String(f.get("name") || "").trim() || body.code;
           body.capacity = Number(f.get("capacity"));
           body.room_types = f.getAll("room_types");
+          body.reserved_majors = restricted ? majors : [];
+          body.reserved_course_ids = restricted ? roomCourses : [];
           body.equipment = String(f.get("equipment") || "")
             .split("|")
             .map((x) => x.trim())
@@ -434,6 +441,12 @@ export function RecordForm({
               .map((x) => x.trim())
               .filter(Boolean),
           });
+        }
+        if (kind === "rooms" && restricted && !majors.length && !roomCourses.length) {
+          const choice = e.currentTarget.querySelector<HTMLInputElement>('input[name="room_access"][value="only"]');
+          choice?.setCustomValidity(t("chooseSomeone"));
+          choice?.reportValidity();
+          return;
         }
         if (kind === "rooms" && f.getAll("room_types").length === 0) {
           const checkbox = e.currentTarget.querySelector<HTMLInputElement>('input[name="room_types"]');
@@ -581,6 +594,29 @@ export function RecordForm({
           />
           <small>{t("roomFeaturesHelp")}</small>
         </label>
+      )}
+      {kind === "rooms" && (
+        <fieldset className="room-access-field">
+          <legend>{t("whoUsesRoom")}</legend>
+          <p className="room-type-help">{t("roomAccessHelp")}</p>
+          <label className="check-label"><input type="radio" name="room_access" value="everyone" checked={!restricted} onChange={() => setRestricted(false)} />{t("roomEveryone")}</label>
+          <label className="check-label"><input type="radio" name="room_access" value="only" checked={restricted} onChange={e => { e.currentTarget.setCustomValidity(""); setRestricted(true); }} />{t("roomOnly")}</label>
+          {restricted && <div className="room-access-choices">
+            <div>
+              <strong>{t("roomProgrammes")}</strong>
+              {[...new Set(ws.records.filter(r => r.kind === "groups" && r.major).map(r => r.major as string))].sort().map(m =>
+                <label key={m} className="check-label"><input type="checkbox" checked={majors.includes(m)} onChange={() => toggle(m, majors, setMajors)} />{m}</label>)}
+            </div>
+            <div>
+              <strong>{t("roomCourses")}</strong>
+              <input type="search" aria-label={t("searchCourses")} placeholder={t("searchCourses")} value={courseSearch} onChange={e => setCourseSearch(e.target.value)} />
+              <div className="room-course-list">
+                {(ws.course_catalog || []).filter(c => roomCourses.includes(c.id) || `${c.code} ${c.name}`.toLowerCase().includes(courseSearch.toLowerCase())).slice(0, 60).map(c =>
+                  <label key={c.id} className="check-label"><input type="checkbox" checked={roomCourses.includes(c.id)} onChange={() => toggle(c.id, roomCourses, setRoomCourses)} />{c.code} · {c.name}</label>)}
+              </div>
+            </div>
+          </div>}
+        </fieldset>
       )}
       {kind === "courses" && (
         <label>

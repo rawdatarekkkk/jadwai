@@ -27,6 +27,7 @@ class NewLock(Strict):
 
 
 def validate_lock(row,db):
+    from app.room_access import room_allows
     activity=db.get(Record,row.activity_id)
     if not activity or activity.kind!='courses' or row.occurrence>=activity.data['sessions']:
         fail(422,'invalid_lock')
@@ -37,7 +38,7 @@ def validate_lock(row,db):
         room=db.get(Record,row.room_id)
         size=sum(db.get(Record,g).data['size'] for g in data['group_ids'])
         typ='lab' if data['activity_type']=='lab' else 'lecture'
-        if not room or room.kind!='rooms' or (room.data.get('capacity') or 0)<size or not set(room.data.get('room_types') or [room.data.get('room_type')]) & {typ,'flexible'} or not set(data.get('required_equipment',[]))<=set(room.data.get('equipment',[])):
+        if not room or room.kind!='rooms' or (room.data.get('capacity') or 0)<size or not set(room.data.get('room_types') or [room.data.get('room_type')]) & {typ,'flexible'} or not set(data.get('required_equipment',[]))<=set(room.data.get('equipment',[])) or not room_allows(room.data,data,{g:db.get(Record,g).data for g in data['group_ids']}):
             fail(422,'invalid_lock')
     if row.day is not None:
         from app.calendar_slots import end_for

@@ -28,6 +28,17 @@ def validate_record(kind, data, db, record_id=None):
         canonical = next((r.data["major"] for r in others if r.id != record_id and r.data.get("year") == body["year"] and r.data.get("major") and r.data["major"].casefold() == body["major"].casefold()), None)
         if canonical:
             body["major"] = canonical
+    if kind == "rooms" and (body.get("reserved_majors") or body.get("reserved_course_ids")):
+        # A special room is reserved for programmes that exist and catalogue courses that exist.
+        from app.models import CourseCatalog
+        majors = {r.data.get("major") for r in db.scalars(select(Record).where(Record.kind == "groups")) if r.data.get("major")}
+        canonical = {m.casefold(): m for m in majors}
+        if any(m.casefold() not in canonical for m in body["reserved_majors"]):
+            fail(422, "unknown_programme")
+        body["reserved_majors"] = sorted({canonical[m.casefold()] for m in body["reserved_majors"]})
+        if any(not db.get(CourseCatalog, c) for c in body["reserved_course_ids"]):
+            fail(422, "invalid_reference")
+        body["reserved_course_ids"] = sorted(set(body["reserved_course_ids"]))
     if kind == "courses" and body.get("course_id"):
         from app.models import CourseCatalog
         course = db.get(CourseCatalog, body["course_id"])

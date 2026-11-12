@@ -243,6 +243,9 @@ class CourseCatalog(Base):
     eligibility: Mapped[dict] = mapped_column(JSON)
     group_ids: Mapped[list] = mapped_column(JSON)
     expected_students: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Exam plan: quizzes in the semester, and whether a second-chance midterm is offered.
+    quiz_count: Mapped[int] = mapped_column(Integer, default=3, server_default="3")
+    second_chance: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
 
 
 class ActivityDetail(Base):

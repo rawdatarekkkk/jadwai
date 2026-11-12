@@ -1,5 +1,5 @@
 export type RecordKind = "courses" | "instructors" | "rooms" | "groups";
-export type CatalogCourse = {expected_students?: number | null; source_info?: {program_semesters?: {faculty_section:string; program_or_cohort:string|null;semester:number|null}[];name_variants?:string[];source_pages?:number[];source_document?:string}; id: string; name: string; code: string; eligibility: Record<string, string[]>; group_ids: string[]};
+export type CatalogCourse = {expected_students?: number | null; quiz_count?: number; second_chance?: boolean; source_info?: {program_semesters?: {faculty_section:string; program_or_cohort:string|null;semester:number|null}[];name_variants?:string[];source_pages?:number[];source_document?:string}; id: string; name: string; code: string; eligibility: Record<string, string[]>; group_ids: string[]};
 export type DataRecord = {
   course_id?: string | null;
   id: string;

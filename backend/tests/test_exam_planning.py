@@ -17,7 +17,7 @@ def test_two_hours_and_cohort_daily_limit():
  rows=deepcopy(result['assignments']);rows[1]['date']=rows[0]['date']
  assert 'cohort_daily_limit' in validate_exam_draft(snap,rows)['errors']
  rows[0]['duration_minutes']=90
- assert 'two_hour_slots' in validate_exam_draft(snap,rows)['errors']
+ assert 'exam_times' in validate_exam_draft(snap,rows)['errors']
  assert not validate_exam_draft(snap,rows[:1])['passed']
 
 def test_infeasible_and_missing_cohorts():

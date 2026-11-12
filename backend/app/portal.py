@@ -60,17 +60,17 @@ def personal(db, user):
         # Courses this instructor teaches, from the current course setup.
         teaches = {c.id for c in db.scalars(select(CourseCatalog)) if any(owner.id in ids for ids in c.eligibility.values())} if kind == 'instructors' else set()
         for a in exam_run.result['assignments']:
-            course = next((c for c in exam_run.snapshot['courses'] if c['id'] == a['course_id']), {})
+            course = next((c for c in exam_run.snapshot['courses'] if c['id'] == a.get('exam_id', a['course_id'])), {})
             halls = a.get('halls') or []
             cohort = 'student:' + advising.code if advising else 'group:' + owner.id
             if kind == 'groups' and cohort in course.get('participants', []):
-                exams.append({**{k: a[k] for k in ('course_code', 'course_name', 'date', 'start_time', 'end_time')}, 'halls': [h['room_code'] for h in halls], 'role': 'student'})
+                exams.append({**{k: a[k] for k in ('course_code', 'course_name', 'date', 'start_time', 'end_time')}, 'label': a.get('label') or 'Midterm', 'halls': [h['room_code'] for h in halls], 'role': 'student'})
             if kind == 'instructors' and a['course_id'] in teaches:
-                exams.append({**{k: a[k] for k in ('course_code', 'course_name', 'date', 'start_time', 'end_time')}, 'halls': [h['room_code'] for h in halls], 'role': 'course'})
+                exams.append({**{k: a[k] for k in ('course_code', 'course_name', 'date', 'start_time', 'end_time')}, 'label': a.get('label') or 'Midterm', 'halls': [h['room_code'] for h in halls], 'role': 'course'})
             if kind == 'instructors':
                 duties = [h['room_code'] for h in halls if h.get('invigilator_id') == owner.id]
                 if duties:
-                    exams.append({**{k: a[k] for k in ('course_code', 'course_name', 'date', 'start_time', 'end_time')}, 'halls': duties, 'role': 'invigilator'})
+                    exams.append({**{k: a[k] for k in ('course_code', 'course_name', 'date', 'start_time', 'end_time')}, 'label': a.get('label') or 'Midterm', 'halls': duties, 'role': 'invigilator'})
     return owner, teaching, sorted(exams, key=lambda e: (e['date'], e['start_time']))
 
 

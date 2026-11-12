@@ -16,6 +16,9 @@ class CourseSetup(Strict):
     # Imported catalogue courses may have no groups yet; then expected_students sizes their exam.
     group_ids: list[str] = Field(max_length=200)
     expected_students: int | None = Field(default=None, ge=1, le=5000, strict=True)
+    # Exam plan: quizzes in the semester (0-10) and whether a second-chance midterm is offered.
+    quiz_count: int = Field(default=3, ge=0, le=10, strict=True)
+    second_chance: bool = True
 
     @field_validator('eligibility')
     @classmethod
@@ -53,6 +56,7 @@ def save_course(body: CourseSetup, request: Request, ident: str | None = None,
         fail(409, 'course_eligibility_in_use')
     row.name, row.code, row.eligibility, row.group_ids = body.name, body.code, body.eligibility, body.group_ids
     row.expected_students = body.expected_students
+    row.quiz_count, row.second_chance = body.quiz_count, body.second_chance
     for activity in linked: activity.name = body.name
     db.add(row)
     audit(db, ws, user, f'Updated course {body.code}' if ident else f'Added course {body.code}')

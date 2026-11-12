@@ -2,25 +2,71 @@ from datetime import date,timedelta
 from uuid import uuid4
 from fastapi import APIRouter,Depends,Request
 from sqlalchemy import select
+from typing import Annotated,Literal
+from pydantic import StringConstraints
+import re
 from pydantic import Field,model_validator
 from app.schemas import Strict
 from app.models import ExamRun,CourseCatalog,Record,Rule,Workspace
 from app.dependencies import administrator,db_session,lock_workspace,event
-from app.exam_planning import course_inputs,generate_exam_draft,SLOTS,feasibility_test_cases,DEFAULT_COHORT_RULES
+from app.exam_planning import course_inputs,generate_exam_draft,SLOTS,EXAM_TYPES,DEFAULT_STARTS,feasibility_test_cases,DEFAULT_COHORT_RULES,minutes
 
 router=APIRouter(prefix='/api/exam-schedules')
+TIME=r'^([01]\d|2[0-3]):[0-5]\d$'
+StartTime=Annotated[str,StringConstraints(pattern=TIME)]
+LABELS={'quiz':'Quiz','midterm':'Midterm','makeup':'Second-chance midterm','final':'Final'}
+
+
 class ExamInput(Strict):
+    """One exam timetable: a quiz round, the midterms, or the finals (with second-chance midterms)."""
     start_date: date=date(2026,10,20)
     end_date: date=date(2026,10,31)
     exclude_fridays: bool=True
-    max_exams_per_cohort_day: int=Field(default=1,ge=1,le=3,strict=True)
+    max_exams_per_cohort_day: int=Field(default=1,ge=1,le=6,strict=True)
+    kind: Literal['quiz','midterm','final']='midterm'
+    quiz_number: int=Field(default=1,ge=1,le=10,strict=True)
+    quiz_minutes: int=Field(default=30,ge=15,le=60,multiple_of=15,strict=True)
+    # Start times per exam type; omitted types use DEFAULT_STARTS.
+    starts: dict[Literal['quiz','midterm','makeup','final'],list[StartTime]]=Field(default_factory=dict)
+    # Exams left out of this timetable, as "<course id>:<type>".
+    skip: list[str]=Field(default_factory=list,max_length=5000)
+    # Students expected at a course's second-chance midterm (default: 10% of the course, at least 1).
+    makeup_students: dict[str,int]=Field(default_factory=dict,max_length=2000)
     use_halls: bool=True
     assign_invigilators: bool=True
     time_limit_seconds: int=Field(default=20,ge=1,le=300,strict=True)
     @model_validator(mode='after')
     def valid_period(self):
         if not 0<=(self.end_date-self.start_date).days<=60:raise ValueError('Exam period must be between 1 and 61 days')
+        if any(not 1<=n<=5000 for n in self.makeup_students.values()):raise ValueError('Invalid student count')
+        if any(len(v)>12 or len(set(v))!=len(v) for v in self.starts.values()):raise ValueError('Invalid start times')
         return self
+
+    def start_times(self):
+        types={'quiz':['quiz'],'midterm':['midterm'],'final':['final','makeup']}[self.kind]
+        return {t:sorted(self.starts.get(t) or DEFAULT_STARTS[t]) for t in types}
+
+
+def exam_items(body,courses):
+    """The exams of this timetable, one row each, from every course's exam plan."""
+    items=[]
+    def add(row,kind,minutes,label,students=None):
+        key=f"{row['id']}:{kind}" if kind!='quiz' else f"{row['id']}:quiz{body.quiz_number}"
+        if f"{row['id']}:{kind}" in body.skip or key in body.skip:return
+        items.append({**row,'id':key,'course_id':row['id'],'exam_type':kind,'duration_minutes':minutes,'label':label,
+                      'students':students if students is not None else row['students']})
+    for row in courses:
+        if body.kind=='quiz' and row.get('quiz_count',3)>=body.quiz_number:
+            add(row,'quiz',body.quiz_minutes,f'Quiz {body.quiz_number}')
+        elif body.kind=='midterm':
+            add(row,'midterm',120,'Midterm')
+        elif body.kind=='final':
+            add(row,'final',180,'Final')
+            if row.get('second_chance',True):
+                expected=body.makeup_students.get(row['id']) or (max(1,-(-row['students']//10)) if row['students'] else None)
+                add(row,'makeup',120,'Second-chance midterm',expected)
+    return items
+
 
 def representation(row):return dict(id=row.id,input_version=row.input_version,created_at=row.created_at,snapshot=row.snapshot,result=row.result,name=row.name,published_at=row.published_at)
 @router.get('')
@@ -40,8 +86,16 @@ def create_exam(body:ExamInput,request:Request,user=Depends(administrator),db=De
             if row['id'] in student['course_ids']:
                 row['participants']=sorted(set(row['participants'])|{'student:'+student['code']})
                 if row['id'] in added and row['students']:row['students']+=1
+    starts=body.start_times()
+    if body.kind=='final':
+        # The first slot is reserved for second-chance midterms: no final may overlap it.
+        from app.dependencies import fail
+        windows=[(minutes(t),minutes(t)+120) for t in starts['makeup']]
+        if any(minutes(f)<b and a<minutes(f)+180 for f in starts['final'] for a,b in windows):fail(422,'final_overlaps_second_chance')
+    courses=exam_items(body,courses)
+    missing=sorted({c['code'] for c in courses if c['code'] in missing})
     days=[body.start_date+timedelta(days=i) for i in range((body.end_date-body.start_date).days+1)]
-    snapshot={'courses':courses,'missing_cohort_codes':missing,'dates':[d.isoformat() for d in days if not body.exclude_fridays or d.weekday()!=4],'slots':SLOTS,'max_exams_per_cohort_day':body.max_exams_per_cohort_day,'timezone':ws.timezone,'settings':body.model_dump(mode='json'),'time_limit_seconds':body.time_limit_seconds}
+    snapshot={'courses':courses,'missing_cohort_codes':missing,'dates':[d.isoformat() for d in days if not body.exclude_fridays or d.weekday()!=4],'starts':starts,'max_exams_per_cohort_day':body.max_exams_per_cohort_day,'timezone':ws.timezone,'settings':body.model_dump(mode='json'),'time_limit_seconds':body.time_limit_seconds}
     if body.use_halls:
         snapshot['halls']=[{'id':r.id,'code':r.code,'name':r.name,'capacity':r.data['capacity']} for r in sorted(records,key=lambda r:r.code) if r.kind=='rooms' and 'exam_hall' in (r.data.get('room_types') or []) and r.data.get('capacity')]
         if body.assign_invigilators:
@@ -67,11 +121,11 @@ def export_exam(ident:str,user=Depends(administrator),db=Depends(db_session)):
     def safe(value):
         value=str(value)
         return "'"+value if value.startswith(('=','+','-','@','\t','\r')) else value
-    writer.writerow(['Date','Start','End','Course code','Course name','Programs','Students','Halls','Invigilators','Status'])
+    writer.writerow(['Date','Start','End','Type','Minutes','Course code','Course name','Programs','Students','Halls','Invigilators','Status'])
     for a in row.result['assignments']:
         halls=a.get('halls')
         status='Published' if row.published_at else 'Draft' if halls is not None else 'Draft: dates and times only'
-        writer.writerow([safe(v) for v in [a['date'],a['start_time'],a['end_time'],a['course_code'],a['course_name'],'; '.join(f'{p["program_or_cohort"]} / semester {p["semester"] or "unknown"}' for p in a['programs']),a.get('students') or '','; '.join(h['room_code'] for h in halls or []),'; '.join(h.get('invigilator_name') or '' for h in halls or []),status]])
+        writer.writerow([safe(v) for v in [a['date'],a['start_time'],a['end_time'],a.get('exam_type','midterm'),a.get('duration_minutes',120),a['course_code'],a['course_name'],'; '.join(f'{p["program_or_cohort"]} / semester {p["semester"] or "unknown"}' for p in a['programs']),a.get('students') or '','; '.join(h['room_code'] for h in halls or []),'; '.join(h.get('invigilator_name') or '' for h in halls or []),status]])
     return Response('\ufeff'+stream.getvalue(),media_type='text/csv; charset=utf-8',headers={'Content-Disposition':f'attachment; filename="JadwAI-midterms-{row.snapshot["settings"]["start_date"]}.csv"'})
 
 

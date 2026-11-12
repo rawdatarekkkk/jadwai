@@ -3602,7 +3602,7 @@ legend small {
 .exam-draft-summary { display:flex; gap:18px; flex-wrap:wrap; padding:18px 0; font-size:12px; color:#527347; }
 .exam-day { margin-top:28px; }
 .exam-day > h3 { padding-bottom:12px; border-bottom:1px solid #dfe6d8; }
-.exam-day-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.exam-day-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr)); gap:14px; }
 .exam-period h4 { color:#6d8063; font-size:12px; }
 .exam-course { border:1px solid #e0e7d8; background:#f8faf4; padding:12px; border-radius:9px; margin-bottom:8px; }
 .exam-course small { display:block; color:#7f906f; font-size:9px; margin-bottom:6px; }
@@ -3732,3 +3732,21 @@ legend small {
 .room-access-choices > div { display: flex; flex-direction: column; gap: 4px; }
 .room-course-list { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
 .room-reserved { font-size: 12px; color: #6b5a2c; background: #fbf3dc; border-radius: 8px; padding: 4px 8px; display: inline-block; margin-top: 4px; }
+
+.exam-plan-setup { display:flex; flex-direction:column; gap:14px; margin:16px 0; }
+.exam-kind-choice { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr)); gap:10px; border:0; padding:0; }
+.exam-kind-choice legend { font-weight:700; margin-bottom:8px; }
+.exam-kind { display:flex; flex-direction:column; gap:4px; border:1px solid #dce5d6; border-radius:12px; padding:12px 14px; cursor:pointer; background:#fbfcf8; }
+.exam-kind.selected { border-color:#39745c; background:#eef5ec; box-shadow:0 0 0 1px #39745c inset; }
+.exam-kind input { position:absolute; opacity:0; pointer-events:none; }
+.exam-kind small { color:#5f6f63; }
+.exam-plan-toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:8px; }
+.exam-plan-toolbar span { color:#507044; font-size:13px; }
+.exam-plan-list { max-height:340px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; border:1px solid #dce5d6; border-radius:12px; padding:8px 12px; }
+.exam-plan-row { display:flex; flex-wrap:wrap; gap:6px 16px; align-items:center; padding:4px 0; border-bottom:1px solid #eef2e8; font-size:13px; }
+.exam-plan-row > span { flex:1 1 220px; }
+.makeup-students { width:84px; margin-inline-start:6px; }
+.exam-times summary { cursor:pointer; font-weight:600; }
+.exam-times-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0; }
+.exam-time-chip { display:inline-flex; gap:6px; align-items:center; border:1px solid #dce5d6; background:#f5f8ef; border-radius:999px; padding:4px 10px; font-size:12px; }
+.exam-time-chip button { border:0; background:none; cursor:pointer; font-size:14px; line-height:1; }

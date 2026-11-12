@@ -42,3 +42,15 @@ def test_a_long_day_continues_on_the_next_page():
 def test_names_across_months():
     assert short_name({'start_date': '2026-12-27', 'end_date': '2027-01-07'}) == 'Midterm Exams 27 Dec 2026-07 Jan 2027'
     assert short_name({'start_date': '2026-10-28', 'end_date': '2026-11-06'}) == 'Midterm Exams 28 Oct-6 Nov 2026'
+
+
+def test_finals_with_second_chance_midterms_and_quiz_rounds_are_titled_by_what_they_hold():
+    makeup = {**exam('C1'), 'exam_type': 'makeup', 'label': 'Second-chance midterm', 'duration_minutes': 120, 'start_time': '09:00', 'end_time': '11:00'}
+    final = {**exam('C1', start='11:30'), 'exam_type': 'final', 'label': 'Final', 'duration_minutes': 180, 'end_time': '14:30'}
+    pdf, name = exam_pdf(run([makeup, final]))
+    assert name == 'Final Exams 20-31 Oct 2026'
+    text = pypdf.PdfReader(io.BytesIO(pdf)).pages[0].extract_text()
+    assert '2026 Final Exams Schedule' in text and '09:00-11:00' in text and 'Second-chance midterm' in text and '11:30-14:30' in text
+    assert text.index('09:00-11:00') < text.index('11:30-14:30')  # in time order
+    quiz = {**exam('Q1'), 'exam_type': 'quiz', 'label': 'Quiz 2', 'duration_minutes': 30, 'end_time': '09:30'}
+    assert exam_pdf(run([quiz]))[1] == 'Quiz 2 20-31 Oct 2026'

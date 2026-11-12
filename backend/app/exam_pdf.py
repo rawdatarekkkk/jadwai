@@ -35,7 +35,22 @@ def matches(exam, query):
     return query.lower() in text.lower()
 
 
-def short_name(settings, query=''):
+KIND_TITLES = {'quiz': 'Quizzes', 'midterm': 'Midterm Exams', 'final': 'Final Exams', 'makeup': 'Second-chance Midterms'}
+TYPE_LABELS = {'quiz': 'Quiz', 'midterm': 'Midterm', 'makeup': 'Second-chance midterm', 'final': 'Final'}
+
+
+def kind_title(exams):
+    """'Quiz 2', 'Midterm Exams', 'Final Exams' (finals with second-chance midterms), or 'Exams' for a mix."""
+    kinds = {a.get('exam_type', 'midterm') for a in exams}
+    labels = {a.get('label') for a in exams}
+    if kinds == {'quiz'} and len(labels) == 1 and None not in labels:
+        return labels.pop()
+    if 'final' in kinds and kinds <= {'final', 'makeup'}:
+        return 'Final Exams'
+    return KIND_TITLES[kinds.pop()] if len(kinds) == 1 else 'Exams'
+
+
+def short_name(settings, query='', title='Midterm Exams'):
     """'Midterm Exams 20-31 Oct 2026', or with a search: 'Midterm Exams 20-31 Oct 2026 - INCS'."""
     start, end = date.fromisoformat(settings['start_date']), date.fromisoformat(settings['end_date'])
     if (start.year, start.month) == (end.year, end.month):
@@ -44,15 +59,16 @@ def short_name(settings, query=''):
         span = f"{start.day} {start:%b}-{end.day} {end:%b %Y}"
     else:
         span = f"{start:%d %b %Y}-{end:%d %b %Y}"
-    name = f'Midterm Exams {span}'
+    name = f'{title} {span}'
     clean = ''.join(ch for ch in query if ch.isalnum() or ch in ' -')[:30].strip()
     return f'{name} - {clean}' if clean else name
 
 
 def exam_pdf(run, query='', published=False, stale=False):
     snapshot, exams = run.snapshot, [a for a in run.result['assignments'] if matches(a, query)]
-    slots = [tuple(s) for s in snapshot.get('slots') or [('09:00', '11:00'), ('11:15', '13:15'), ('13:30', '15:30')]]
-    title = short_name(snapshot['settings'], query)
+    kinds = kind_title(run.result['assignments'])
+    mixed = kinds == 'Exams'
+    title = short_name(snapshot['settings'], query, kinds)
     out = BytesIO()
     page = landscape(A4)
     doc = SimpleDocTemplate(out, pagesize=page, leftMargin=12 * mm, rightMargin=12 * mm, topMargin=10 * mm, bottomMargin=12 * mm,
@@ -67,7 +83,6 @@ def exam_pdf(run, query='', published=False, stale=False):
         story.append(Paragraph(escape(title), head))
         story.append(Paragraph('No exams match this search.', note))
     usable = page[0] - 24 * mm
-    slot_w = usable / len(slots)
     for n, day in enumerate(days):
         todays = [a for a in exams if a['date'] == day]
         faculty = lambda p: p.get('faculty_section') or 'OTHER'
@@ -75,47 +90,31 @@ def exam_pdf(run, query='', published=False, stale=False):
                           key=lambda f: (FACULTY_ORDER.index(f) if f in FACULTY_ORDER else 99, f))
         logo = Image(str(LOGO), width=34 * mm, height=12 * mm, kind='proportional') if LOGO.exists() else Spacer(1, 1)
         weekday = date.fromisoformat(day).strftime('%A, %B %-d, %Y')
-        heading = Table([[logo, Paragraph(f'{escape(day[:4])} Mid Term Exams Schedule <font color="#627469" size="11">({status})</font>'
+        heading = Table([[logo, Paragraph(f'{escape(day[:4])} {kinds} Schedule <font color="#627469" size="11">({status})</font>'
                                           f'<br/><font size="11">{escape(weekday)}</font>', head)]],
                         colWidths=[40 * mm, usable - 40 * mm])
         heading.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'MIDDLE'), ('LEFTPADDING', (0, 0), (-1, -1), 0)]))
         story += [heading, Spacer(1, 3 * mm)]
-        rows = [[Paragraph(f'<b>{s}-{e}</b>', small) for s, e in slots]]
+        # A time-ordered list: when, which exam, the course, its programmes, students and halls.
+        show_programs = any(a['programs'] for a in todays)  # leave the column out when no exam that day has programmes
+        rows = [[Paragraph(f'<b>{h}</b>', small) for h in ('Time', 'Exam', 'Course', 'Programmes', 'Students and halls') if show_programs or h != 'Programmes']]
         style = [('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#cbd3c5')), ('BACKGROUND', (0, 0), (-1, 0), HEAD),
                  ('VALIGN', (0, 0), (-1, -1), 'TOP'), ('FONTSIZE', (0, 0), (-1, -1), 7)]
-        for section in sections:
-            rows.append([Paragraph(f'<b>{escape(section)}</b>', small)] + [''] * (len(slots) - 1))
-            style += [('SPAN', (0, len(rows) - 1), (-1, len(rows) - 1)), ('BACKGROUND', (0, len(rows) - 1), (-1, len(rows) - 1), colors.HexColor('#f4f6ef'))]
-            per_slot = []
-            for s, _ in slots:
-                entries = []
-                for a in (x for x in todays if x['start_time'] == s):
-                    progs = [p for p in a['programs'] if faculty(p) == section]
-                    if not a['programs'] and section == 'OTHER':
-                        progs = [None]
-                    for p in progs:
-                        entries.append((a, p))
-                per_slot.append(entries)
-            for i in range(max((len(e) for e in per_slot), default=0)):
-                row = []
-                for j, entries in enumerate(per_slot):
-                    if i >= len(entries):
-                        row.append('')
-                        continue
-                    a, p = entries[i]
-                    program = (p or {}).get('program_or_cohort') or ''
-                    semester = (p or {}).get('semester')
-                    halls = a.get('halls') or []
-                    text = (f"GIU-Cairo.{escape(program)} {semester or ''}{' Semester' if semester else ''} - " if program else '') + \
-                           f"<b>{escape(a['course_name'])}</b> {escape(a['course_code'])}"
-                    if halls:
-                        text += '<br/><font color="#4a5d52">' + escape(f"{a.get('students') or ''} students · " + ', '.join(
-                            f"{h['room_code']}" + (f" ({h['invigilator_name']})" if h.get('invigilator_name') else '') for h in halls)) + '</font>'
-                    row.append(Paragraph(text, small))
-                    if program:
-                        style.append(('BACKGROUND', (j, len(rows)), (j, len(rows)), colour(program)))
-                rows.append(row)
-        table = Table(rows, colWidths=[slot_w] * len(slots), repeatRows=1)
+        for a in sorted(todays, key=lambda x: (x['start_time'], x.get('end_time', ''), x['course_code'])):
+            programs = sorted({(f"{p.get('program_or_cohort') or ''} {p.get('semester') or ''}".strip()
+                                + (f" ({p['faculty_section']})" if p.get('faculty_section') else '')).strip() for p in a['programs']})
+            halls = a.get('halls') or []
+            seats = (f"{a.get('students') or ''} students · " if a.get('students') else '') + ', '.join(
+                h['room_code'] + (f" ({h['invigilator_name']})" if h.get('invigilator_name') else '') for h in halls)
+            cells = [Paragraph(f"<b>{escape(a['start_time'])}-{escape(a.get('end_time', ''))}</b>", small),
+                     Paragraph(escape(a.get('label') or TYPE_LABELS.get(a.get('exam_type', 'midterm'), 'Exam')), small),
+                     Paragraph(f"<b>{escape(a['course_name'])}</b> {escape(a['course_code'])}", small),
+                     Paragraph(escape(', '.join(programs)), small), Paragraph(escape(seats), small)]
+            rows.append(cells if show_programs else cells[:3] + cells[4:])
+            if programs:
+                style.append(('BACKGROUND', (3, len(rows) - 1), (3, len(rows) - 1), colour(a['programs'][0].get('program_or_cohort') or '')))
+        widths = (0.1, 0.13, 0.3, 0.2, 0.27) if show_programs else (0.1, 0.16, 0.38, 0.36)
+        table = Table(rows, colWidths=[usable * w for w in widths], repeatRows=1)
         table.setStyle(TableStyle(style))
         story += [table, Spacer(1, 3 * mm)]
         footer = ('Published exam timetable.' if published else 'Draft: not yet published.') + \

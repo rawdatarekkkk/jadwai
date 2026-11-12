@@ -123,6 +123,15 @@ Generation uses OR-Tools CP-SAT and a separate validator for supported constrain
 
 The built-in parser finds instructors stored with English names when the request is written in Arabic or Egyptian Arabic: "د. سارة صالح لا تستطيع التدريس يوم الإثنين بعد 2 الظهر" becomes Dr. Sara Saleh unavailable on Monday from 14:00. Names are compared by their consonant sounds in both scripts, with Egyptian and classical readings (عثمان = Osman or Othman, ج = g). A full name must match word for word; a first name alone counts only when exactly one instructor has it, otherwise the parser asks which one. Request words and everyday words (من، بعد، أحسن) are never read as names. Egyptian day names (الحد، الاتنين، التلات) are recognised. Closures with quarter hours are rounded outwards (until 15:15 blocks to 15:30); allowed and preferred windows inwards.
 
+### Exam timetables: quizzes, midterms and finals
+
+Each course has an exam plan in Course setup: a number of **quizzes** (3 by default, 0-10), one **midterm**, an optional **second-chance midterm** for students who missed it, and one **final**. On the Exam timetable page, first choose what the timetable is for:
+- **Quizzes**: one quiz round (Quiz 1, 2, 3...) of 15, 30, 45 or 60 minutes, for every course that has that many quizzes.
+- **Midterms**: every course's 2-hour midterm.
+- **Finals**: every course's 3-hour final and, for courses that offer one, the 2-hour second-chance midterm. **The first slot of each day (09:00) is reserved for second-chance midterms**; finals start after it (11:30 and 15:00 by default) and may not overlap it. Enter how many students missed a midterm, or leave it to 10% of the course.
+
+A table lists the courses with their exams ticked; untick any, search, or tick/untick everything shown. Each exam type has its own start times (change them under "Change exam times"); an exam occupies exactly its start plus its length. No cohort, hall or invigilator gets overlapping exams, so a course's final and its second-chance midterm (the same students) never clash, and with one exam a day they fall on different days. The independent validator checks real times, and the page, PDF and print view list each day's exams in time order with their type. Older drafts keep their three 2-hour slots.
+
 ### When a timetable is impossible
 
 If generation proves the inputs cannot all hold (or the input checks block it), the run explains how to fix it under **How to fix it**:

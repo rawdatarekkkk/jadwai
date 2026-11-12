@@ -95,7 +95,7 @@ def workspace(
                 "end_date",
             ]
         },
-        "course_catalog": [dict(id=c.id, name=c.name, code=c.code, source_info=c.source_info, eligibility=c.eligibility, group_ids=c.group_ids, expected_students=c.expected_students) for c in db.scalars(select(CourseCatalog).order_by(CourseCatalog.name))],
+        "course_catalog": [dict(id=c.id, name=c.name, code=c.code, source_info=c.source_info, eligibility=c.eligibility, group_ids=c.group_ids, expected_students=c.expected_students, quiz_count=c.quiz_count, second_chance=c.second_chance) for c in db.scalars(select(CourseCatalog).order_by(CourseCatalog.name))],
         "records": [{"id": r.id, "kind": r.kind, **r.data} for r in records],
         "assignment_locks": [row.data for row in db.scalars(select(AssignmentLock).order_by(AssignmentLock.created_at,AssignmentLock.id))],
         "rules": [

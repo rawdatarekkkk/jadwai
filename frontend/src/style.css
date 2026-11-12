@@ -3742,6 +3742,7 @@ legend small {
 .exam-kind small { color:#5f6f63; }
 .exam-plan-toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:8px; }
 .exam-plan-toolbar span { color:#507044; font-size:13px; }
+.exam-plan-toolbar .exam-plan-tick { display:inline-flex; gap:6px; flex-wrap:wrap; }
 .exam-plan-list { max-height:340px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; border:1px solid #dce5d6; border-radius:12px; padding:8px 12px; }
 .exam-plan-row { display:flex; flex-wrap:wrap; gap:6px 16px; align-items:center; padding:4px 0; border-bottom:1px solid #eef2e8; font-size:13px; }
 .exam-plan-row > span { flex:1 1 220px; }

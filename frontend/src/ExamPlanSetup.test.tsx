@@ -21,7 +21,13 @@ test("each timetable lists the exams from the course plans", () => {
 test("finals: untick an exam, set second-chance students, and see the reserved first slot", () => {
   render(<Harness />);
   fireEvent.click(screen.getByLabelText(/Finals/));
+  expect(screen.getByText("2 exams")).toBeTruthy();                                   // second chances start unticked
+  expect(screen.queryByLabelText("Students expected")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Tick all second chances" }));
   expect(screen.getByText("3 exams")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Untick all finals" }));
+  expect(screen.getByText("1 exams")).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Tick all finals" }));
   const cs = screen.getByText("Programming").closest(".exam-plan-row") as HTMLElement;
   fireEvent.change(within(cs).getByLabelText("Students expected"), { target: { value: "12" } });
   fireEvent.click(within(screen.getByText("Math").closest(".exam-plan-row") as HTMLElement).getByRole("checkbox"));

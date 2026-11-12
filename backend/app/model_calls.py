@@ -12,12 +12,27 @@ from app.provenance import fingerprint
 from app.extraction import ExtractionRequest, extract_candidate
 from app.extraction_completion import persist_completion
 from app.openai_provider import OpenAIProvider, MODEL, PROMPT_VERSION
+from app.local_provider import LocalProvider, DEFAULT_MODEL as LOCAL_MODEL
+import os
 
 router=APIRouter(prefix='/api/model-calls')
 
 
+def local():
+    return os.environ.get('JADWAI_AI_PROVIDER','openai').lower()=='local'
+
+
+def configured():
+    """The provider chosen in .env: JADWAI_AI_PROVIDER=local uses Ollama on this machine, otherwise OpenAI."""
+    return LocalProvider.configured() if local() else OpenAIProvider.configured()
+
+
+def model_name():
+    return os.environ.get('JADWAI_LOCAL_MODEL',LOCAL_MODEL) if local() else MODEL
+
+
 def provider():
-    try:return OpenAIProvider.configured()
+    try:return configured()
     except ValueError:fail(503,'ai_not_configured')
 
 
@@ -27,14 +42,14 @@ class ModelInput(Strict):
 
 
 def job_data(row):
-    return {'id':row.id,'status':row.status,'proposal_id':row.proposal_id,'model':MODEL}
+    return {'id':row.id,'status':row.status,'proposal_id':row.proposal_id,'model':model_name()}
 
 
 @router.get('/configuration')
 def configuration(user=Depends(administrator)):
-    try:OpenAIProvider.configured();enabled=True
+    try:configured();enabled=True
     except ValueError:enabled=False
-    return {'model':MODEL,'enabled':enabled,'prompt_version':PROMPT_VERSION}
+    return {'model':model_name(),'provider':'local' if local() else 'openai','enabled':enabled,'prompt_version':PROMPT_VERSION}
 
 
 @router.get('/by-key/{key}')
@@ -75,7 +90,7 @@ async def create(body:ModelInput,request:Request,user=Depends(administrator),db=
     event(db,ws,user,'model_call.started',ident)
     db.commit()  # Release account/workspace lock BEFORE awaiting network.
     try:
-        result=await extract_candidate(adapter,original,timeout_seconds=25,retry_limit=0)
+        result=await extract_candidate(adapter,original,timeout_seconds=adapter.timeout_seconds+5 if isinstance(adapter,LocalProvider) else 25,retry_limit=0)
     except asyncio.CancelledError:
         db.rollback();workspace_lock(db)
         current=db.get(ExtractionJob,ident,populate_existing=True)

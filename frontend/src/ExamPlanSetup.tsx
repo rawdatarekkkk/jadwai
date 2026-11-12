@@ -28,6 +28,11 @@ export function plannedExams(plan: ExamPlan, courses: CatalogCourse[]) {
   return out;
 }
 
+/** Second-chance midterms start unticked: the admin adds the courses that need one. */
+export function makeupKeys(courses: CatalogCourse[]) {
+  return courses.filter(c => c.second_chance ?? true).map(c => `${c.id}:makeup`);
+}
+
 export function examPlanBody(p: ExamPlan) {
   return { kind: p.kind, quiz_number: p.quizNumber, quiz_minutes: p.quizMinutes, starts: p.starts, skip: p.skip, makeup_students: p.makeupStudents };
 }
@@ -58,7 +63,7 @@ export function ExamPlanSetup({ ws, ar, value, change }: { ws: Workspace; ar: bo
         <legend>{say("What is this timetable for?", "لماذا هذا الجدول؟")}</legend>
         {kinds.map(([k, title, help]) => (
           <label key={k} className={`exam-kind ${value.kind === k ? "selected" : ""}`}>
-            <input type="radio" name="exam_kind" value={k} checked={value.kind === k} onChange={() => change({ ...value, kind: k, skip: [] })} />
+            <input type="radio" name="exam_kind" value={k} checked={value.kind === k} onChange={() => change({ ...value, kind: k, skip: k === "final" ? makeupKeys(courses) : [] })} />
             <strong>{title}</strong><small>{help}</small>
           </label>
         ))}
@@ -78,8 +83,14 @@ export function ExamPlanSetup({ ws, ar, value, change }: { ws: Workspace; ar: bo
           <strong>{say(`${chosen.length} exams`, `${chosen.length} امتحان`)}</strong>
           <span>{(["quiz", "midterm", "final", "makeup"] as const).map(t => { const n = chosen.filter(x => x.type === t).length; return n ? `${n} × ${label(t)}` : ""; }).filter(Boolean).join(" · ")}</span>
           <input type="search" aria-label={say("Search courses", "ابحث عن مقرر")} placeholder={say("Search courses…", "ابحث عن مقرر…")} value={search} onChange={e => setSearch(e.target.value)} />
-          <button type="button" className="btn white" onClick={() => setOn(shown.map(x => x.key), true)}>{say("Tick all shown", "تحديد الكل")}</button>
-          <button type="button" className="btn white" onClick={() => setOn(shown.map(x => x.key), false)}>{say("Untick all shown", "إلغاء الكل")}</button>
+          {(value.kind === "final" ? (["final", "makeup"] as const) : [null]).map(t => {
+            const keys = shown.filter(x => !t || x.type === t).map(x => x.key);
+            const what = t === "final" ? say(" finals", " النهائي") : t === "makeup" ? say(" second chances", " الفرص الثانية") : "";
+            return <span key={t ?? "all"} className="exam-plan-tick">
+              <button type="button" className="btn white" disabled={!keys.length} onClick={() => setOn(keys, true)}>{say(`Tick all${what}`, `تحديد كل${what || " المعروض"}`)}</button>
+              <button type="button" className="btn white" disabled={!keys.length} onClick={() => setOn(keys, false)}>{say(`Untick all${what}`, `إلغاء كل${what || " المعروض"}`)}</button>
+            </span>;
+          })}
         </div>
         <div className="exam-plan-list">
           {[...byCourse.entries()].map(([id, rows]) => (
@@ -101,7 +112,7 @@ export function ExamPlanSetup({ ws, ar, value, change }: { ws: Workspace; ar: bo
           ))}
           {!exams.length && <p className="room-type-help">{say("No course has this exam. Check the quiz count in Course setup.", "لا يوجد مقرر بهذا الامتحان. راجع عدد الاختبارات في إعداد المقررات.")}</p>}
         </div>
-        {value.kind === "final" && <p className="room-type-help">{say("Second-chance midterms seat the students who missed the midterm. Leave the number empty to use 10% of the course.", "الفرصة الثانية لمن فاتهم امتحان منتصف الفصل. اترك العدد فارغًا لاستخدام 10% من طلاب المقرر.")}</p>}
+        {value.kind === "final" && <p className="room-type-help">{say("Second-chance midterms start unticked: tick the courses that need one. They seat the students who missed the midterm; leave the number empty to use 10% of the course.", "الفرص الثانية غير محددة في البداية: حدد المقررات التي تحتاجها. هي لمن فاتهم امتحان منتصف الفصل؛ اترك العدد فارغًا لاستخدام 10% من طلاب المقرر.")}</p>}
       </section>
       <details className="exam-times">
         <summary>{say("Change exam times", "تغيير مواعيد الامتحانات")}</summary>

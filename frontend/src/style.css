@@ -3779,3 +3779,7 @@ legend small {
 .jai-input { display: flex; gap: 8px; padding: 10px; border-top: 1px solid #e6ebdc; align-items: flex-end; }
 .jai-input textarea { flex: 1; resize: none; border: 1px solid #cfd9c3; border-radius: 12px; padding: 8px 10px; font: inherit; font-size: 13px; min-height: 40px; }
 @media (max-width: 520px) { .jai-chat { inset-inline-end: 8px; bottom: 8px; height: calc(100vh - 16px); } }
+.jai-choices { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+.jai-choices .jai-source { flex-basis: 100%; margin-top: 2px; }
+.jai-choices button { border: 1px solid #b9cba8; background: #fff; color: #28523e; border-radius: 999px; padding: 5px 11px; font-size: 12.5px; cursor: pointer; }
+.jai-choices button:hover:not(:disabled) { background: #e3ecd6; }

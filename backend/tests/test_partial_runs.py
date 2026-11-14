@@ -74,6 +74,14 @@ def test_scope_can_name_one_year_of_a_programme():
     assert scope_activities(records, [{"programme": "A", "year": None}], {"a1"}) == ["a2"]
 
 
+def test_scope_can_name_one_group():
+    records = campus()["records"] + [{"id": "ga2", "kind": "groups", "size": 20, "major": "A", "year": 2},
+        {"id": "a2", "kind": "courses", "sessions": 1, "duration": 60, "activity_type": "lecture", "eligible_instructors": ["t"], "group_ids": ["ga2"]},
+        {"id": "both", "kind": "courses", "sessions": 1, "duration": 60, "activity_type": "lecture", "eligible_instructors": ["t"], "group_ids": ["ga", "ga2"]}]
+    assert scope_activities(records, [{"programme": "A", "year": 2, "group": "ga2"}], set()) == ["a2", "both"]  # a shared lecture comes along
+    assert scope_activities(records, [{"programme": "A", "year": 1, "group": "ga2"}], set()) == []  # the group must belong to that year
+
+
 def test_a_part_must_use_a_ta_that_later_parts_could_not_cover():
     snapshot = campus()
     # Two TAs both able to teach A's and B's tutorial: one must teach in part A, or part B

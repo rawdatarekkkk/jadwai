@@ -1,7 +1,7 @@
 """Building one timetable in parts (for example one faculty or programme at a time).
 
 A part run's snapshot carries a `plan`:
-    {"scope": [{"programme": name, "year": n | None}, ...], "base_run_id": id | None,
+    {"scope": [{"programme": name, "year": n | None, "group": id (optional)}, ...], "base_run_id": id | None,
      "activity_ids": [activities this run places],
      "fixed": [assignments carried over unchanged from the base run]}
 
@@ -57,8 +57,9 @@ def complete(snapshot):
 
 
 def matches(group, scope):
-    """Whether a group belongs to a scope item (a programme, or one year of it)."""
-    return any(group.get('major') == s['programme'] and s.get('year') in (None, group.get('year')) for s in scope)
+    """Whether a group belongs to a scope item (a programme, one year of it, or one group)."""
+    return any(group.get('major') == s['programme'] and s.get('year') in (None, group.get('year'))
+               and s.get('group') in (None, group.get('id')) for s in scope)
 
 
 def scope_activities(records, scope, done):

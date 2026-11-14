@@ -18,6 +18,8 @@ router = APIRouter(prefix="/api/schedules")
 class ScopeItem(Strict):
     programme: Name
     year: int | None = Field(default=None, ge=1, le=10, strict=True)
+    # One student group of that programme (its record id): only that group's courses are placed.
+    group: str | None = Field(default=None, min_length=1, max_length=64)
 
 
 class GenerateInput(Strict):
@@ -68,7 +70,8 @@ def with_plan(db, ws, snapshot, body):
 
 
 def scope_key(items):
-    return sorted(({"programme": i.programme, "year": i.year} for i in items or []), key=lambda i: (i["programme"], i["year"] or 0))
+    return sorted(({"programme": i.programme, "year": i.year, **({"group": i.group} if i.group else {})} for i in items or []),
+                  key=lambda i: (i["programme"], i["year"] or 0, i.get("group") or ""))
 
 
 def representation(row, current_version):

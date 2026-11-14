@@ -1,21 +1,24 @@
 import { useEffect, useRef, useState } from "react";
-import { api, ApiError, type Workspace } from "./api";
+import { api, ApiError, type RecordKind, type Workspace } from "./api";
+import { showTimetableFilter } from "./Timetable";
 
 export type JaiAction =
-  | { type: "generate"; scope: { programme: string; year: number | null }[] | null; label: string }
+  | { type: "generate"; scope: { programme: string; year: number | null; group?: string }[] | null; label: string; filter?: { group?: string; year?: string; major?: string } }
   | { type: "exam"; body: Record<string, unknown>; label: string }
   | { type: "download"; url: string; label: string }
-  | { type: "open"; page: string; label: string };
+  | { type: "open"; page: string; kind?: RecordKind; label: string }
+  | { type: "create_record"; kind: RecordKind; body: Record<string, unknown>; label: string };
 export type JaiReply = {
   text: string[];
   action: JaiAction | null;
   retry_with_model: boolean;
+  choices?: { label: string; text: string }[];
   meaning: { intent: string; slots: Record<string, unknown> } | null;
   source: "built-in" | "local-model";
 };
 type Message =
   | { id: number; from: "you"; text: string }
-  | { id: number; from: "jai"; text: string[]; action?: JaiAction | null; done?: boolean; source?: string; pending?: boolean; error?: boolean };
+  | { id: number; from: "jai"; text: string[]; action?: JaiAction | null; choices?: { label: string; text: string }[]; done?: boolean; source?: string; pending?: boolean; error?: boolean };
 type NewMessage = Message extends infer M ? (M extends Message ? Omit<M, "id"> : never) : never;
 export type JaiTarget = "timetable" | "exams" | "constraints" | "data";
 
@@ -25,7 +28,7 @@ let nextId = 1;
 /** Ask JAI: a chat about the current timetable that also starts website work after you confirm it. */
 export function JaiChat({ ws, lang, hidden, close, go, refresh }: {
   ws: Workspace; lang: "en" | "ar"; hidden: boolean; close: () => void;
-  go: (target: JaiTarget) => void; refresh: () => Promise<unknown>;
+  go: (target: JaiTarget, kind?: RecordKind) => void; refresh: () => Promise<unknown>;
 }) {
   const ar = lang === "ar";
   const say = (en: string, arText: string) => (ar ? arText : en);
@@ -62,12 +65,12 @@ export function JaiChat({ ws, lang, hidden, close, go, refresh }: {
         const waiting = add({ from: "jai", text: reply.text, pending: true });
         try {
           reply = await api<JaiReply>("/assistant", "POST", { text: q, previous: previous.current, use_model: true });
-          update(waiting, { text: reply.text, action: reply.action, source: reply.source, pending: false });
+          update(waiting, { text: reply.text, action: reply.action, choices: reply.choices, source: reply.source, pending: false });
         } catch {
           update(waiting, { text: [say("The local model did not answer. Is Ollama running?", "لم يرد النموذج المحلي. هل Ollama يعمل؟")], pending: false, error: true });
         }
       } else {
-        add({ from: "jai", text: reply.text, action: reply.action, source: reply.source });
+        add({ from: "jai", text: reply.text, action: reply.action, choices: reply.choices, source: reply.source });
       }
       previous.current = reply.meaning;
     } catch (e) {
@@ -83,6 +86,8 @@ export function JaiChat({ ws, lang, hidden, close, go, refresh }: {
     stale_edit: say("The data changed meanwhile. Ask again so I use the latest data.", "تغيرت البيانات في الأثناء. اسأل مرة أخرى."),
     scope_empty: say("Everything in that scope is already scheduled.", "كل ما في هذا النطاق مجدول بالفعل."),
     invalid_scope: say("That programme or year has no student groups.", "هذا البرنامج أو السنة بدون مجموعات طلاب."),
+    duplicate_code: say("A record with that code already exists. Ask me again with a different name or number.", "يوجد سجل بنفس الرمز. اطلب مرة أخرى باسم أو رقم مختلف."),
+    invalid_input: say("Some details were not accepted. Check them on the Academic data page.", "بعض البيانات غير مقبولة. راجعها في صفحة البيانات الأكاديمية."),
     schedule_missing_data: say("Courses or rooms are missing, so a timetable can't be generated.", "المقررات أو القاعات ناقصة، لذلك لا يمكن إنشاء جدول."),
   } as Record<string, string>)[code] || say("It could not be done: ", "تعذر التنفيذ: ") + code;
 
@@ -92,14 +97,24 @@ export function JaiChat({ ws, lang, hidden, close, go, refresh }: {
       link.href = action.url; link.rel = "noopener"; document.body.appendChild(link); link.click(); link.remove();
       return;
     }
-    if (action.type === "open") { go(action.page === "exams" ? "exams" : "timetable"); return; }
+    if (action.type === "open") { go(action.page === "exams" ? "exams" : action.page === "data" ? "data" : "timetable", action.kind); return; }
     setBusy(true);
     try {
+      if (action.type === "create_record") {
+        await api(`/records/${action.kind}`, "POST", action.body, ws.version);
+        update(id, { done: true });
+        const what = { instructors: say("instructor", "المحاضر"), rooms: say("room", "القاعة"), groups: say("group", "المجموعة"), courses: say("course", "المقرر") }[action.kind];
+        add({ from: "jai", text: [say(`Added the ${what} ${String(action.body.code)}. It is on the Academic data page now.`, `تمت إضافة ${what} ${String(action.body.code)}. تجده الآن في صفحة البيانات الأكاديمية.`)] });
+        await refresh().catch(() => {});
+        go("data", action.kind);
+        return;
+      }
       if (action.type === "generate") {
         await api("/schedules", "POST", { request_key: crypto.randomUUID(), ...(action.scope ? { scope: action.scope } : {}) }, ws.version);
         update(id, { done: true });
         add({ from: "jai", text: [say("Started. The solver is working on the draft; the Timetable page shows its progress.", "بدأ العمل. المحلل يعمل على المسودة؛ تعرض صفحة الجدول التقدم.")] });
         go("timetable");
+        if (action.filter) showTimetableFilter(action.filter);
       } else {
         await api("/exams", "POST", action.body, ws.version);
         update(id, { done: true });
@@ -138,7 +153,7 @@ export function JaiChat({ ws, lang, hidden, close, go, refresh }: {
             <div className="jai-examples">{examples.map(x => <button type="button" key={x} onClick={() => void send(x)}>{x}</button>)}</div>
           </div>
         )}
-        {messages.map(m => m.from === "you"
+        {messages.map((m, i) => m.from === "you"
           ? <div key={m.id} className="jai-msg you" dir={ARABIC.test(m.text) ? "rtl" : "ltr"}>{m.text}</div>
           : <div key={m.id} className={`jai-msg jai ${m.error ? "error" : ""} ${m.pending ? "pending" : ""}`} dir={m.text.some(l => ARABIC.test(l)) ? "rtl" : "ltr"}>
               {m.text.map((line, i) => <p key={i}>{line}</p>)}
@@ -151,10 +166,17 @@ export function JaiChat({ ws, lang, hidden, close, go, refresh }: {
                 </div>
               )}
               {m.done && <small className="jai-source">✓ {say("Done", "تم")}</small>}
+              {!!m.choices?.length && i === messages.length - 1 && (
+                <div className="jai-choices" role="group" aria-label={say("Possible answers", "إجابات مقترحة")}>
+                  {m.choices.map(c => <button type="button" key={c.text} disabled={busy} onClick={() => void send(c.text)}>{c.label}</button>)}
+                  <small className="jai-source">{say("…or type your own answer below.", "…أو اكتب إجابتك بالأسفل.")}</small>
+                </div>
+              )}
             </div>)}
       </div>
       <form className="jai-input" onSubmit={e => { e.preventDefault(); void send(text); }}>
-        <textarea ref={input} rows={2} value={text} maxLength={2000} placeholder={say("Ask JAI…", "اسأل JAI…")} aria-label={say("Message to JAI", "رسالة إلى JAI")}
+        <textarea ref={input} rows={2} value={text} maxLength={2000} placeholder={messages.at(-1)?.from === "jai" && (messages.at(-1) as { choices?: unknown[] }).choices?.length
+          ? say("Pick an answer above, or type your own…", "اختر إجابة بالأعلى أو اكتب إجابتك…") : say("Ask JAI…", "اسأل JAI…")} aria-label={say("Message to JAI", "رسالة إلى JAI")}
           onChange={e => setText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(text); } }} />
         <button className="btn primary" disabled={busy || !text.trim()}>{busy ? "…" : say("Send", "إرسال")}</button>
       </form>

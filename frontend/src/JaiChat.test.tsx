@@ -57,3 +57,37 @@ test("unrecognised text goes to the local model and says so", async () => {
   expect(screen.getByText("Understood by the local model")).toBeTruthy();
   expect(calls.filter(c => c.path === "/api/assistant").map(c => c.body?.use_model)).toEqual([undefined, true]);
 });
+
+test("JAI asks when it is unclear, and an answer button replies with the request still in mind", async () => {
+  const asking = { intent: "generate_timetable", slots: { programmes: ["Business Administration"], year: 3 }, asking: true };
+  const { calls } = setup([
+    reply(["All 10 groups of Business Administration year 3, or one group?"], { meaning: asking, choices: [{ label: "All of year 3", text: "all of them" }, { label: "BA5-G7", text: "BA5-G7" }] }),
+    reply(["I will generate a draft timetable for BA5-G7 only."], { action: { type: "generate", scope: [{ programme: "Business Administration", year: 3, group: "g7" }], label: "Generate" } }),
+  ]);
+  fireEvent.change(await screen.findByLabelText("Message to JAI"), { target: { value: "i want a schedule for ba year 3" } });
+  fireEvent.click(screen.getByRole("button", { name: "Send" }));
+  await screen.findByRole("button", { name: "BA5-G7" });
+  expect(screen.getByPlaceholderText("Pick an answer above, or type your own…")).toBeTruthy();  // typing stays open
+  fireEvent.click(screen.getByRole("button", { name: "BA5-G7" }));
+  expect(await screen.findByText("I will generate a draft timetable for BA5-G7 only.")).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "All of year 3" })).toBeNull();  // old answers go once answered
+  expect(calls.filter(c => c.path === "/api/assistant")[1].body).toEqual({ text: "BA5-G7", previous: asking });
+});
+
+test("adding a record is asked step by step, then saved through the records endpoint after confirming", async () => {
+  const body = { name: "Sara Ali", code: "T-SA", department: "Informatics", position: "ta", day_off: null, max_weekly_hours: null };
+  const { calls, go } = setup([
+    reply(["Sure, let us add an instructor.", "What is the instructor's full name?"], { meaning: { intent: "create_record", slots: { kind: "instructors", form: {}, field: "name" }, asking: true } }),
+    reply(["Add Sara Ali (TA, Informatics, no fixed day off) with code T-SA?"], { action: { type: "create_record", kind: "instructors", body, label: "Add it" } }),
+  ]);
+  fireEvent.change(await screen.findByLabelText("Message to JAI"), { target: { value: "create an instructor" } });
+  fireEvent.click(screen.getByRole("button", { name: "Send" }));
+  await screen.findByText("What is the instructor's full name?");
+  fireEvent.change(screen.getByLabelText("Message to JAI"), { target: { value: "Sara Ali" } });
+  fireEvent.click(screen.getByRole("button", { name: "Send" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Add it" }));
+  await waitFor(() => expect(go).toHaveBeenCalledWith("data", "instructors"));
+  const post = calls.find(c => c.path === "/api/records/instructors")!;
+  expect(post.body).toEqual(body);
+  expect(screen.getByText(/Added the instructor T-SA/)).toBeTruthy();
+});

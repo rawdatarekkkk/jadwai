@@ -3,6 +3,12 @@ import { shortScheduleName } from "./exportNames";
 import { LockSessionButton } from "./AssignmentLocks";
 import { RunSettings, PreparationReport, settingsFor } from "./RunChecks";
 import { PartPlan, unitLabel, type Parts } from "./PartPlan";
+export const TIMETABLE_FILTER = "jadwai-timetable-filter";
+/** Show the Timetable page filtered to one group (or year / programme), mounted or not. */
+export function showTimetableFilter(filter: { group?: string; year?: string; major?: string }) {
+  try { sessionStorage.setItem(TIMETABLE_FILTER, JSON.stringify(filter)); } catch { /* storage unavailable */ }
+  window.dispatchEvent(new CustomEvent(TIMETABLE_FILTER, { detail: filter }));
+}
 import { RepairPanel } from "./RepairPanel";
 import { errors } from "./i18n";
 import { SchedulePrint } from "./SchedulePrint";
@@ -203,6 +209,17 @@ export function Timetable({
   const [group, setGroup] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [majorFilter, setMajorFilter] = useState("");
+  // Ask JAI can open this page on one group, year or programme (for example after generating it).
+  useEffect(() => {
+    const apply = (f: { group?: string; year?: string; major?: string } | null) => {
+      if (!f) return;
+      setGroup(f.group || ""); setYearFilter(f.year || ""); setMajorFilter(f.major || "");
+    };
+    try { const saved = sessionStorage.getItem(TIMETABLE_FILTER); sessionStorage.removeItem(TIMETABLE_FILTER); apply(saved ? JSON.parse(saved) : null); } catch { /* storage unavailable */ }
+    const listen = (e: Event) => apply((e as CustomEvent).detail);
+    window.addEventListener(TIMETABLE_FILTER, listen);
+    return () => window.removeEventListener(TIMETABLE_FILTER, listen);
+  }, []);
   const [layout, setLayout] = useState<"rows" | "columns">(() => {
     try {
       return localStorage.getItem("jadwai-schedule-layout") === "columns"

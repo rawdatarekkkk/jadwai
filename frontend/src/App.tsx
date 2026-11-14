@@ -1018,11 +1018,11 @@ export default function App() {
           hidden={!jaiOpen}
           close={() => setJaiOpen(false)}
           refresh={refresh}
-          go={(target) => {
+          go={(target, recordKind) => {
             if (target === "exams" || target === "timetable") {
               setScheduleMode(target === "exams" ? "exams" : "teaching");
               navigate("timetable");
-            } else navigate(target);
+            } else navigate(target, recordKind);
           }}
         />
       )}

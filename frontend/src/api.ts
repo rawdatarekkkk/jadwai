@@ -147,7 +147,7 @@ export type ScheduleAssignment = {
   start_minute: number;
   end_minute: number;
 };
-export type ScopeItem = { programme: string; year: number | null };
+export type ScopeItem = { programme: string; year: number | null; group?: string };
 export type Repair = { status: "fixable" | "data_change_needed" | "not_found"; verified?: boolean; message?: string; message_ar?: string; findings?: string[]; findings_ar?: string[];
   suggestions?: { kind: string; target: string | null; title: string; message: string; sessions: string[]; title_ar?: string; message_ar?: string; sessions_ar?: string[] }[] };
 export type RunProgress = { scheduled_sessions: number; total_sessions: number; complete: boolean; remaining_programmes: ScopeItem[]; scope: ScopeItem[] | null; base_run_id: string | null };

@@ -15,9 +15,32 @@ import os
 import httpx
 from app.extraction import ExtractionRequest, IncompleteResponse, ProviderResponse, RetryableProviderError
 from app.openai_provider import INSTRUCTIONS, PROMPT_VERSION, output_schema
+from app.rule_parser import find_records, mentions, normalise, plain
 
 DEFAULT_MODEL = 'qwen2.5:7b-instruct'
 DEFAULT_URL = 'http://127.0.0.1:11434'
+SMALL = 60          # contexts up to this many records are sent whole
+MAX_RECORDS = 40    # otherwise, at most this many records the text mentions
+KEEP = ('name', 'code', 'activity_type', 'position')
+
+
+def relevant_context(text, context):
+    """A small model cannot read a whole university (hundreds of records, ~100k tokens), so send
+    only the records the text names, plus every record sharing an ambiguous name part, so the model
+    can still ask which one is meant. Small contexts are sent whole."""
+    records = context.get('records') or []
+    slim = lambda r: {'id': r['id'], 'kind': r['kind'], 'data': {k: v for k, v in (r.get('data') or {}).items() if k in KEEP}}
+    if len(records) <= SMALL:
+        return {**context, 'records': [slim(r) for r in records]}
+    said, chosen = normalise(text), {}
+    for kind in sorted({r['kind'] for r in records}):
+        found, ambiguous = find_records(said, records, kind)
+        chosen.update({r['id']: r for r in found})
+        for r in records:
+            if r['kind'] == kind and any(mentions(plain((r.get('data') or {}).get('name', '')), part) for part in ambiguous):
+                chosen[r['id']] = r
+    return {**context, 'records': [slim(r) for r in list(chosen.values())[:MAX_RECORDS]],
+            'note': f'Only the records this requirement mentions are listed (of {len(records)}). If a named record is not listed, ask a clarification.'}
 
 
 class LocalProvider:
@@ -49,9 +72,9 @@ class LocalProvider:
             raise ValueError('Unsupported prompt/schema version')
         payload = {'model': self.model, 'stream': False, 'keep_alive': '30m',
                    'format': output_schema(),  # Ollama constrains decoding to this JSON schema
-                   'options': {'temperature': 0, 'seed': 42},
+                   'options': {'temperature': 0, 'seed': 42, 'num_ctx': 8192},
                    'messages': [{'role': 'system', 'content': INSTRUCTIONS},
-                                {'role': 'user', 'content': json.dumps({'requirement': request.text, 'context': json.loads(request.context_json)}, ensure_ascii=False)}]}
+                                {'role': 'user', 'content': json.dumps({'requirement': request.text, 'context': relevant_context(request.text, json.loads(request.context_json))}, ensure_ascii=False)}]}
         try:
             async with httpx.AsyncClient(transport=self._transport, timeout=self.timeout_seconds, follow_redirects=False, trust_env=False) as client:
                 response = await client.post(self.url + '/api/chat', json=payload)

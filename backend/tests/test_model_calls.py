@@ -14,7 +14,7 @@ def output(client):
 
 
 def test_configuration_disabled_and_permissions(environment,monkeypatch):
-    client,_=environment;monkeypatch.delenv('JADWAI_AI_ENABLED',raising=False)
+    client,_=environment;monkeypatch.delenv('JADWAI_AI_ENABLED',raising=False);monkeypatch.delenv('JADWAI_AI_PROVIDER',raising=False)
     assert client.get('/api/model-calls/configuration').status_code==401
     login(client)
     assert client.get('/api/model-calls/configuration').json()=={'model':'gpt-5.4-mini','provider':'openai','enabled':False,'prompt_version':'jai-rules-v2'}

@@ -248,6 +248,17 @@ The administrator will provide the human annotation review. The Evaluation page 
 
 The administrator Proposal review page can send a requirement to the selected GPT-5.4 mini adapter and retain the result as an unapproved proposal. Calls default to disabled. Configure `OPENAI_API_KEY` in the server environment and set `JADWAI_AI_ENABLED=true` only when ready to use the API account; restart the backend afterward. Never use a `VITE_` credential variable. Local development removes the key from the frontend and schedule-worker environments. The configuration endpoint reports whether configuration is present; it does not validate credit, model access or API connectivity.
 
+### Ask JAI (chat)
+
+The *Ask JAI* button opens a chat that stays open while you move between pages. It answers questions about the published timetable (or, if none is published, the newest valid draft) and prepares work for you:
+
+- Availability and timetables: “Is room A3.128 free on Sunday at 10:00?”, “Free labs on Monday 11:30 for 30 students”, “Dr. Mohamed Fawzy's schedule on Tuesday”, “What does BA Y3 G7 have on Wednesday?”, “When is Math I?”. Follow-ups such as “and on Monday?” keep the subject.
+- Commands: “Generate the timetable for BA year 3” (or “for the whole university”), “Create the finals timetable from 20 Dec to 31 Dec”, “Quiz 2 timetable, 45 minutes, 5–8 Jan”, “Download the PDF for INF1-G7”, “Status of the latest run”.
+
+Commands are shown first and run only when you press the button; they call the same endpoints as the pages (with the same checks), and nothing is published. Finals created from the chat leave second-chance midterms unticked, as on the Exams page.
+
+Everything runs on this server. Built-in patterns (English, Arabic, Egyptian Arabic) handle the messages above instantly. Anything they don't recognise goes to the local model when `JADWAI_AI_PROVIDER=local` is set; it only maps the message to one of the same intents (the names it returns are matched to records by JadwAI), so it cannot change data by itself. On a CPU-only laptop that takes about a minute.
+
 ### A locally hosted model (Ollama)
 
 To keep requirements on your own machine, run the model with [Ollama](https://ollama.com) instead of OpenAI. It receives the same instructions and JSON schema (Ollama constrains the answer to that schema), and its output goes through the same validation, review and approval steps.

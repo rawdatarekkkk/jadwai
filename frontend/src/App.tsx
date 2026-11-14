@@ -42,6 +42,7 @@ import type {BrowserReviewSnapshot} from "./BrowserAnnotationReview";
 import {Proposals} from "./Proposals";
 import { Evaluation } from "./Evaluation";
 import { ExamSchedule } from "./ExamSchedule";
+import { JaiChat } from "./JaiChat";
 import { SourceTimetables } from "./SourceTimetables";
 import { CourseSetup } from "./CourseSetup";
 import { AdvisingStudents } from "./AdvisingStudents";
@@ -62,6 +63,7 @@ export default function App() {
     [toast, setToast] = useState(""),
     [busy, setBusy] = useState(false);
   const [jaiOpen, setJaiOpen] = useState(false);
+  const [jaiUsed, setJaiUsed] = useState(false);  // keep the chat (and its messages) once opened
   const [accountOpen, setAccountOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
@@ -996,8 +998,8 @@ export default function App() {
         !sessionExpired && (
           <button
             className="jai-launcher"
-            onClick={() => setJaiOpen(true)}
-            aria-haspopup="dialog"
+            onClick={() => { setJaiUsed(true); setJaiOpen(true); }}
+            aria-expanded={false}
           >
             <span className="jai-avatar" aria-hidden="true">
               J<span>✦</span>
@@ -1009,67 +1011,20 @@ export default function App() {
             <Icon name="spark" size={16} />
           </button>
         )}
-      {jaiOpen && (
-        <Modal title={BRAND.assistant} close={() => setJaiOpen(false)} t={t}>
-          <div className="jai-intro">
-            <span className="jai-avatar large" aria-hidden="true">
-              J<span>✦</span>
-            </span>
-            <div>
-              <div className="eyebrow">{t("jaiRole")}</div>
-              <h3>{t("jaiGreeting")}</h3>
-              <p>{t("jaiIntro")}</p>
-            </div>
-          </div>
-          <div className="jai-status">
-            <Icon name="spark" size={15} />
-            {t("jaiStatus")}
-          </div>
-          <div className="jai-actions">
-            <button
-              onClick={() => {
-                setJaiOpen(false);
-                navigate("data");
-              }}
-            >
-              <Icon name="book" />
-              <span>
-                {t("jaiData")}
-                <small>{t("jaiDataHelp")}</small>
-              </span>
-              <Icon name="arrow" size={16} />
-            </button>
-            <button
-              onClick={() => {
-                setJaiOpen(false);
-                setPage("constraints");
-                setModal({ type: "rule" });
-                setError("");
-              }}
-            >
-              <Icon name="sliders" />
-              <span>
-                {t("jaiRule")}
-                <small>{t("jaiRuleHelp")}</small>
-              </span>
-              <Icon name="arrow" size={16} />
-            </button>
-            <button
-              onClick={() => {
-                setJaiOpen(false);
-                navigate("timetable");
-              }}
-            >
-              <Icon name="calendar" />
-              <span>
-                {t("jaiSchedule")}
-                <small>{t("jaiScheduleHelp")}</small>
-              </span>
-              <Icon name="arrow" size={16} />
-            </button>
-          </div>
-          <p className="jai-signoff">{t("jaiSignoff")}</p>
-        </Modal>
+      {jaiUsed && ws && (
+        <JaiChat
+          ws={ws}
+          lang={lang}
+          hidden={!jaiOpen}
+          close={() => setJaiOpen(false)}
+          refresh={refresh}
+          go={(target) => {
+            if (target === "exams" || target === "timetable") {
+              setScheduleMode(target === "exams" ? "exams" : "teaching");
+              navigate("timetable");
+            } else navigate(target);
+          }}
+        />
       )}
       {importOpen && (
         <ImportData

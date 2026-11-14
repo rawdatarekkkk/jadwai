@@ -91,3 +91,18 @@ def test_configuration_reports_the_local_model(monkeypatch):
     monkeypatch.delenv('JADWAI_AI_PROVIDER')
     monkeypatch.delenv('OPENAI_API_KEY', raising=False)
     assert model_calls.configuration(user=None)['provider'] == 'openai'
+
+
+def test_large_workspace_sends_only_the_records_the_text_names():
+    from app.local_provider import relevant_context
+    many = [{'id': f'i{n}', 'kind': 'instructors', 'data': {'name': f'Dr. Person{n} Example', 'code': f'P{n}', 'email': 'x@y'}} for n in range(200)]
+    many += [{'id': 'a1', 'kind': 'instructors', 'data': {'name': 'Dr. Ahmed Hassan', 'code': 'AH'}},
+             {'id': 'a2', 'kind': 'instructors', 'data': {'name': 'Dr. Ahmed Fawzy', 'code': 'AF'}},
+             {'id': 'r1', 'kind': 'rooms', 'data': {'name': 'Data Science Lab', 'code': 'C7.201'}}]
+    ctx = {'records': many, 'calendar': {'days': ['Sunday']}}
+    exact = relevant_context('Dr. Ahmed Hassan cannot use C7.201 on Sunday', ctx)
+    assert {r['id'] for r in exact['records']} == {'a1', 'r1'} and exact['calendar'] == ctx['calendar']
+    unsure = relevant_context('Ahmed cannot teach on Sunday', ctx)
+    assert {r['id'] for r in unsure['records']} == {'a1', 'a2'}  # both, so the model can ask which
+    small = relevant_context('anything', {'records': many[:3], 'calendar': {}})
+    assert len(small['records']) == 3 and 'email' not in small['records'][0]['data']

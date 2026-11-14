@@ -119,8 +119,8 @@ export const words = {
       "Forgot your password? Ask a workspace administrator for a one-time reset link.",
 
     tagline: "Your semester, intelligently arranged.",
-    askJai: "Meet JAI",
-    jaiRole: "Your timetabling companion",
+    askJai: "Ask JAI",
+    jaiRole: "Questions and tasks, on this server",
     jaiGreeting: "Hi, I’m JAI. Let’s plan a clearer week.",
     jaiIntro:
       "I’m your guide to JadwAI. Start with your teaching data, make your requirements clear, and keep every approval in your hands.",
@@ -495,8 +495,8 @@ export const words = {
       "نسيت كلمة المرور؟ اطلب رابطاً لمرة واحدة من مسؤول مساحة العمل.",
 
     tagline: "فصلك الدراسي، بترتيب أذكى.",
-    askJai: "تعرّف على JAI",
-    jaiRole: "رفيقك في تنظيم الجدول",
+    askJai: "اسأل JAI",
+    jaiRole: "أسئلة ومهام، على هذا الخادم",
     jaiGreeting: "أهلاً، أنا JAI. لنخطط لأسبوع أوضح.",
     jaiIntro:
       "أنا دليلك في JadwAI. ابدأ ببيانات التدريس، ووضّح متطلباتك، واحتفظ دائماً بقرار الاعتماد.",

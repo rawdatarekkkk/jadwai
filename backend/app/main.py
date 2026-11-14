@@ -34,6 +34,8 @@ def root():
     return RedirectResponse(os.environ.get("JADWAI_WEB_URL", "http://127.0.0.1:5180"))
 
 app.include_router(accounts_router)
+from app.assistant import router as assistant_router
+app.include_router(assistant_router)
 app.include_router(import_router)
 app.include_router(locks_router)
 app.include_router(schedules_router)

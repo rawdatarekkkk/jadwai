@@ -303,9 +303,9 @@ class Rule(Base):
     __tablename__ = "rule"
     __table_args__ = (
         CheckConstraint("status IN ('draft','approved')", name="valid_rule_status"),
-        CheckConstraint("((type IN ('unavailable','preferred_period') AND instructor_id IS NOT NULL AND room_id IS NULL AND group_id IS NULL AND activity_id IS NULL) OR (type='room_unavailable' AND room_id IS NOT NULL AND instructor_id IS NULL AND group_id IS NULL AND activity_id IS NULL) OR (type IN ('group_unavailable','group_allowed') AND group_id IS NOT NULL AND instructor_id IS NULL AND room_id IS NULL AND activity_id IS NULL) OR (type='activity_allowed' AND activity_id IS NOT NULL AND instructor_id IS NULL AND room_id IS NULL AND group_id IS NULL) OR (type='activity_room' AND activity_id IS NOT NULL AND instructor_id IS NULL AND room_id IS NULL AND group_id IS NULL) OR (type='activities_not_same_day' AND instructor_id IS NULL AND room_id IS NULL AND group_id IS NULL AND activity_id IS NULL) OR (type IN ('instructor_max_daily_hours','instructor_max_days') AND instructor_id IS NOT NULL AND room_id IS NULL AND group_id IS NULL AND activity_id IS NULL) OR (type='group_max_daily_hours' AND group_id IS NOT NULL AND instructor_id IS NULL AND room_id IS NULL AND activity_id IS NULL))", name="rule_target"),
-        CheckConstraint("type IN ('unavailable','preferred_period','room_unavailable','group_unavailable','group_allowed','activity_allowed','activity_room','activities_not_same_day','instructor_max_daily_hours','group_max_daily_hours','instructor_max_days') AND ((type!='preferred_period' AND strength='mandatory') OR (type='preferred_period' AND strength='preferred'))", name="rule_strength"),
-        CheckConstraint("(type IN ('activity_room','activities_not_same_day','instructor_max_daily_hours','group_max_daily_hours','instructor_max_days') AND start_hour IS NULL AND end_hour IS NULL AND day IS NULL) OR (type IN ('unavailable','preferred_period','room_unavailable','group_unavailable','group_allowed','activity_allowed') AND start_hour IS NOT NULL AND end_hour IS NOT NULL AND start_hour >= 0 AND end_hour <= 24 AND start_hour < end_hour AND start_hour * 2 = floor(start_hour * 2) AND end_hour * 2 = floor(end_hour * 2))", name="rule_hours"),
+        CheckConstraint("((type IN ('unavailable','preferred_period') AND instructor_id IS NOT NULL AND room_id IS NULL AND group_id IS NULL AND activity_id IS NULL) OR (type='room_unavailable' AND room_id IS NOT NULL AND instructor_id IS NULL AND group_id IS NULL AND activity_id IS NULL) OR (type IN ('group_unavailable','group_allowed') AND group_id IS NOT NULL AND instructor_id IS NULL AND room_id IS NULL AND activity_id IS NULL) OR (type='activity_allowed' AND activity_id IS NOT NULL AND instructor_id IS NULL AND room_id IS NULL AND group_id IS NULL) OR (type='activity_room' AND activity_id IS NOT NULL AND instructor_id IS NULL AND room_id IS NULL AND group_id IS NULL) OR (type IN ('activities_not_same_day','lecture_before_tutorial','teaching_allowed','teaching_preferred') AND instructor_id IS NULL AND room_id IS NULL AND group_id IS NULL AND activity_id IS NULL) OR (type IN ('instructor_max_daily_hours','instructor_max_days') AND instructor_id IS NOT NULL AND room_id IS NULL AND group_id IS NULL AND activity_id IS NULL) OR (type='group_max_daily_hours' AND group_id IS NOT NULL AND instructor_id IS NULL AND room_id IS NULL AND activity_id IS NULL))", name="rule_target"),
+        CheckConstraint("type IN ('unavailable','preferred_period','room_unavailable','group_unavailable','group_allowed','activity_allowed','lecture_before_tutorial','activity_room','activities_not_same_day','instructor_max_daily_hours','group_max_daily_hours','instructor_max_days','teaching_allowed','teaching_preferred') AND ((type NOT IN ('preferred_period','teaching_preferred') AND strength='mandatory') OR (type IN ('preferred_period','teaching_preferred') AND strength='preferred'))", name="rule_strength"),
+        CheckConstraint("(type IN ('lecture_before_tutorial','activity_room','activities_not_same_day','instructor_max_daily_hours','group_max_daily_hours','instructor_max_days') AND start_hour IS NULL AND end_hour IS NULL AND day IS NULL) OR (type IN ('teaching_allowed','teaching_preferred','unavailable','preferred_period','room_unavailable','group_unavailable','group_allowed','activity_allowed') AND start_hour IS NOT NULL AND end_hour IS NOT NULL AND start_hour >= 0 AND end_hour <= 24 AND start_hour < end_hour AND start_hour * 2 = floor(start_hour * 2) AND end_hour * 2 = floor(end_hour * 2))", name="rule_hours"),
     )
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     title: Mapped[str] = mapped_column(String(100))
@@ -540,3 +540,23 @@ class AdvisingChange(Base):
     course_id: Mapped[str] = mapped_column(ForeignKey("course_catalog.id", ondelete="CASCADE"), primary_key=True)
     action: Mapped[str] = mapped_column(String(10), primary_key=True)
     group_id: Mapped[str | None] = mapped_column(ForeignKey("student_group.id", ondelete="CASCADE"), nullable=True)
+
+
+class AssistantChat(Base):
+    """One Ask JAI conversation of one admin; `state` is what the chat remembers (last request, people, rooms, groups)."""
+    __tablename__ = "assistant_chat"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("app_user.id", ondelete="CASCADE"))
+    title: Mapped[str] = mapped_column(String(120))
+    state: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class AssistantMessage(Base):
+    __tablename__ = "assistant_message"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    chat_id: Mapped[str] = mapped_column(ForeignKey("assistant_chat.id", ondelete="CASCADE"))
+    role: Mapped[str] = mapped_column(String(10))
+    body: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

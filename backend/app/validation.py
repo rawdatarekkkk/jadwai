@@ -4,7 +4,7 @@ from app import rule_semantics as rs
 from app.calendar_slots import placement_for
 from app.room_access import room_allows
 
-CHECKS = ["complete_assignment", "calendar", "instructor_eligibility", "instructor_position", "ta_teaching", "instructor_day_off", "instructor_continuity", "room_suitability", "resource_conflicts", "approved_unavailability", "approved_room_unavailability", "approved_group_unavailability", "configured_weekly_workload", "approved_assignment_locks", "approved_allowed_windows", "approved_room_rules", "approved_daily_limits", "approved_teaching_days", "approved_separate_days", "advising_student_conflicts"]
+CHECKS = ["complete_assignment", "calendar", "instructor_eligibility", "instructor_position", "ta_teaching", "instructor_day_off", "instructor_continuity", "room_suitability", "resource_conflicts", "approved_unavailability", "approved_room_unavailability", "approved_group_unavailability", "configured_weekly_workload", "approved_assignment_locks", "approved_allowed_windows", "approved_room_rules", "approved_daily_limits", "approved_teaching_days", "approved_separate_days", "approved_lecture_before_tutorial", "approved_teaching_windows", "advising_student_conflicts"]
 
 
 def validate_schedule(snapshot, assignments):
@@ -86,6 +86,21 @@ def validate_schedule(snapshot, assignments):
                 errors.add("approved_unavailability")
     errors |= limit_rule_errors(snapshot, activities, assignments)
     errors |= advising_errors(snapshot, activities, assignments)
+    for row in assignments:
+        activity = activities.get(row['activity_id'])
+        if activity:
+            families = rs.teaching_window_sets(snapshot, activity, 'teaching_allowed')
+            if any(not rs.within_windows(windows, row['day'], row['start_minute'], row['end_minute']) for windows in families):
+                errors.add('approved_teaching_windows')
+    if rs.approved(snapshot, 'lecture_before_tutorial'):
+        by_activity = defaultdict(list)
+        for row in assignments:
+            if row['day'] in calendar['days']:
+                offset = calendar['days'].index(row['day']) * 1440
+                by_activity[row['activity_id']].append((offset + row['start_minute'], offset + row['end_minute']))
+        for lecture, tutorial in rs.lecture_tutorial_pairs(list(records.values())):
+            if any(end > start for _, end in by_activity[lecture] for start, _ in by_activity[tutorial]):
+                errors.add('approved_lecture_before_tutorial')
     teaching = {a["instructor_id"] for a in assignments}
     if any(r["id"] not in teaching for r in tas_that_must_teach(snapshot, records.values())):
         errors.add("ta_teaching")

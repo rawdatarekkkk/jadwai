@@ -2,9 +2,10 @@
 import React from "react";
 import {test,expect,vi,afterEach} from "vitest";
 import {render,screen,fireEvent,cleanup} from "@testing-library/react";
+import {rememberExamRun} from "./examSelection";
 import {ExamSchedule} from "./ExamSchedule";
 import type {Workspace} from "./api";
-afterEach(()=>{cleanup();vi.unstubAllGlobals();});
+afterEach(()=>{cleanup();rememberExamRun(undefined);vi.unstubAllGlobals();});
 test('exam generation uses the source period and two-hour slots',async()=>{
  const ws={version:23,course_catalog:[{id:'c',name:'Algorithms',code:'ALG',eligibility:{lecture:[],tutorial:[],lab:[]},group_ids:[]}]} as unknown as Workspace;
  const print=vi.spyOn(window,'print').mockImplementation(()=>{});
@@ -66,4 +67,17 @@ test('nine calendar days show seven eligible days when Fridays are excluded',asy
  expect(breakdown.textContent).toContain('2026-10-23 (Friday), 2026-10-30 (Friday)');
  fireEvent.click(screen.getByRole('checkbox',{name:'Exclude Fridays'}));
  expect(breakdown.textContent).toContain('9 calendar days − 0 excluded days = 9 eligible exam days');
+});
+
+test('chat selection opens the requested exam instead of the newest draft',async()=>{
+ const {selectExamRun,examOnScreen}=await import('./examSelection');
+ const ws={version:23,course_catalog:[]} as unknown as Workspace;
+ const row=(id:string,code:string)=>({id,input_version:23,snapshot:{dates:['2026-12-20'],settings:{start_date:'2026-12-20',end_date:'2026-12-31'}},result:{status:'completed',validation:{passed:true},assignments:[{course_id:id,course_name:code,course_code:code,date:'2026-12-20',start_time:'09:00',end_time:'11:00',duration_minutes:120,programs:[]}]}});
+ vi.stubGlobal('fetch',vi.fn(async(path:string)=>({ok:true,status:200,json:async()=>path.endsWith('/selected')?row('selected','BA-selected'):[row('newest','Other-newest')]})));
+ render(<ExamSchedule ws={ws} lang='en'/>);
+ await screen.findByText('Other-newest');
+ selectExamRun('selected');
+ await screen.findByText('BA-selected');
+ expect(screen.queryByText('Other-newest')).toBeNull();
+ expect(examOnScreen.run_id).toBe('selected');
 });

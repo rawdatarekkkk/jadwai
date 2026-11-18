@@ -4,8 +4,10 @@ import { LockSessionButton } from "./AssignmentLocks";
 import { RunSettings, PreparationReport, settingsFor } from "./RunChecks";
 import { PartPlan, unitLabel, type Parts } from "./PartPlan";
 export const TIMETABLE_FILTER = "jadwai-timetable-filter";
+/** What the Timetable page shows right now (the draft and its filters), for Ask JAI's "this timetable". */
+export const timetableOnScreen: { run_id?: string; group?: string; year?: string; major?: string } = {};
 /** Show the Timetable page filtered to one group (or year / programme), mounted or not. */
-export function showTimetableFilter(filter: { group?: string; year?: string; major?: string }) {
+export function showTimetableFilter(filter: { group?: string; year?: string; major?: string; run_id?: string }) {
   try { sessionStorage.setItem(TIMETABLE_FILTER, JSON.stringify(filter)); } catch { /* storage unavailable */ }
   window.dispatchEvent(new CustomEvent(TIMETABLE_FILTER, { detail: filter }));
 }
@@ -211,8 +213,9 @@ export function Timetable({
   const [majorFilter, setMajorFilter] = useState("");
   // Ask JAI can open this page on one group, year or programme (for example after generating it).
   useEffect(() => {
-    const apply = (f: { group?: string; year?: string; major?: string } | null) => {
+    const apply = (f: { group?: string; year?: string; major?: string; run_id?: string } | null) => {
       if (!f) return;
+      if (f.run_id) { setSelected(f.run_id); requestKey.current = null; }
       setGroup(f.group || ""); setYearFilter(f.year || ""); setMajorFilter(f.major || "");
     };
     try { const saved = sessionStorage.getItem(TIMETABLE_FILTER); sessionStorage.removeItem(TIMETABLE_FILTER); apply(saved ? JSON.parse(saved) : null); } catch { /* storage unavailable */ }
@@ -266,6 +269,17 @@ export function Timetable({
     }
   };
   const selectedRun = runs.find((r) => r.id === selected) ?? runs[0];
+  useEffect(() => {
+    Object.assign(timetableOnScreen, { run_id: selectedRun?.id, group: group || undefined, year: yearFilter || undefined, major: majorFilter || undefined });
+    return () => { for (const k of Object.keys(timetableOnScreen)) delete (timetableOnScreen as Record<string, unknown>)[k]; };
+  }, [selectedRun?.id, group, yearFilter, majorFilter]);
+  // A chosen group shows its own study year and major in the other two filters.
+  useEffect(() => {
+    const g = group ? selectedRun?.snapshot.records.find((r) => r.id === group) : undefined;
+    if (!g) return;
+    setYearFilter(g.year ? String(g.year) : "unassigned");
+    setMajorFilter(g.major || "__unassigned");
+  }, [group, selectedRun?.id]);
   const pending = runs.find((r) => activeRun(r));
   useEffect(() => {
     if (!administrator) {

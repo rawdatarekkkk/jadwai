@@ -9,6 +9,7 @@ from pydantic import (
     StringConstraints,
     field_validator,
     model_validator,
+    model_serializer,
 )
 from typing_extensions import Annotated
 
@@ -104,6 +105,15 @@ class Group(Strict):
 
 
 class RuleParams(Strict):
+    activity_types: list[Literal['lecture', 'tutorial', 'lab']] | None = Field(default=None, min_length=1, max_length=3)
+
+    @model_serializer(mode='wrap')
+    def serialize(self, handler):
+        values = handler(self)
+        if values.get('activity_types') is None:
+            values.pop('activity_types', None)
+        return values
+
     room_ids: list[str] | None = Field(default=None, min_length=1, max_length=20)
     activity_ids: list[str] | None = Field(default=None, min_length=2, max_length=10)
     hours: float | None = Field(default=None, gt=0, le=24, multiple_of=0.5, allow_inf_nan=False)
@@ -116,8 +126,8 @@ class RuleInput(Strict):
     instructor_id: str | None = None
     room_id: str | None = None
     group_id: str | None = None
-    type: Literal["unavailable", "preferred_period", "room_unavailable", "group_unavailable", "group_allowed", "activity_allowed",
-                  "activity_room", "activities_not_same_day", "instructor_max_daily_hours", "group_max_daily_hours", "instructor_max_days"]
+    type: Literal["teaching_allowed", "teaching_preferred", "unavailable", "preferred_period", "room_unavailable", "group_unavailable", "group_allowed", "activity_allowed",
+                  "lecture_before_tutorial", "activity_room", "activities_not_same_day", "instructor_max_daily_hours", "group_max_daily_hours", "instructor_max_days"]
     # None means every teaching day; limit rules have no day or hours.
     day: Literal[
         "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"

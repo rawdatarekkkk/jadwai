@@ -24,7 +24,25 @@ from app.models import (
 from app.schemas import CalendarInput, RuleInput
 from app.schedules import router as schedules_router
 
-app = FastAPI(title="JadwAI API", version="0.2.0")
+from contextlib import asynccontextmanager
+from app.chain_coordinator import coordinate
+import asyncio
+
+
+@asynccontextmanager
+async def lifespan(app):
+    stop = asyncio.Event()
+    from app.models import SessionLocal
+    task = asyncio.create_task(coordinate(stop, factory=getattr(app.state, "chain_factory", SessionLocal))) if getattr(app.state, "chain_enabled", True) else None
+    try:
+        yield
+    finally:
+        stop.set()
+        if task is not None:
+            await task
+
+
+app = FastAPI(title="JadwAI API", version="0.2.0", lifespan=lifespan)
 
 
 @app.get("/", include_in_schema=False)

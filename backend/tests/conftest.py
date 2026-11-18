@@ -59,12 +59,16 @@ def environment():
             yield db
 
     app.dependency_overrides[db_session] = dependency
+    app.state.chain_factory = factory
+    app.state.chain_enabled = False
     try:
         with TestClient(app) as client:
             client.headers["X-Jadwai-Request"] = "1"
             yield client, factory
     finally:
         app.dependency_overrides.clear()
+        del app.state.chain_factory
+        del app.state.chain_enabled
         engine.dispose()
         with owner.begin() as connection:
             connection.execute(text(f"DROP SCHEMA {schema} CASCADE"))

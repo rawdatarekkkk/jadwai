@@ -30,7 +30,7 @@ class ReviewProposal(Strict):
 def context(db, ws):
     rows = db.scalars(select(Record).order_by(Record.id)).all()
     return {'records': [{'id': r.id, 'kind': r.kind, 'data': r.data} for r in rows],
-            'calendar': {'days': ws.days, 'start_hour': ws.start_hour, 'end_hour': ws.end_hour}}
+            'calendar': {'days': ws.days, 'start_hour': ws.start_hour, 'end_hour': ws.end_hour, 'period_minutes': ws.period_minutes, 'teaching_periods': ws.teaching_periods, 'timezone': ws.timezone}}
 
 
 def submitted_fingerprint(payload):

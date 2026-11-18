@@ -59,7 +59,7 @@ def provision():
                 .set(username=role, password=password)
                 .render_as_string(hide_password=False)
             )
-        app_tables = "workspace,app_user,session,record,rule,password_reset,login_bucket,instructor,room,student_group,teaching_activity,activity_instructor,activity_group,schedule_run,assignment_lock,course_catalog,exam_run,source_timetable,extraction_job,advising_student,advising_change"
+        app_tables = "workspace,app_user,session,record,rule,password_reset,login_bucket,instructor,room,student_group,teaching_activity,activity_instructor,activity_group,schedule_run,assignment_lock,course_catalog,exam_run,source_timetable,extraction_job,advising_student,advising_change,assistant_chat,assistant_message"
         conn.exec_driver_sql(
             f"GRANT SELECT,INSERT,UPDATE,DELETE ON {app_tables} TO jadwai_app"
         )

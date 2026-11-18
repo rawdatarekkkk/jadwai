@@ -221,7 +221,8 @@ def times(text, calendar):
 def days_in(text, calendar):
     found = []
     for word, day in DAYS.items():
-        if mentions(text, normalise(word)) and day not in found:
+        # "Sundays" means Sunday too (English plural); Arabic names have no such ending.
+        if (mentions(text, normalise(word)) or (word.isascii() and len(word) > 3 and mentions(text, normalise(word) + 's'))) and day not in found:
             found.append(day)
     # "Monday and Tuesday ... on each day" means each of those days, not every day.
     if not found and any(phrase in text for phrase in EVERY_DAY):
@@ -271,6 +272,12 @@ def parse(text, context):
                 'params': {'room_ids': None, 'activity_ids': None, 'hours': None, 'days': None}}
         body.update(fields)
         proposals.append({'kind': 'rule', 'data': body})
+
+    order = re.fullmatch(r"(?:in (?:any|every|all) (?:schedule|schedules|timetable|timetables)[:,]? )?(?:(?:a|the|all|every) )?lectures? (?:should |must |shall |has to |have to )?(?:be |come |finish |end |occur |take place )?before (?:(?:a|the|all|every) )?tutorials?(?: in (?:any|every|all) (?:schedule|schedules|timetable|timetables))?[.!]?", text)
+    arabic_order = re.fullmatch(r'(?:لازم |يجب ان )?(?:المحاضرة|المحاضرات) (?:تكون |تيجي )?قبل (?:السكاشن|التمارين|السكشن)(?: في كل الجداول)?[.!]?', text)
+    if order or arabic_order:
+        rule(type='lecture_before_tutorial')
+        return {'decision': 'ready', 'proposals': proposals, 'clarifications': [], 'unsupported': []}
 
     instructors, amb_i = find_records(text, records, 'instructors')
     groups, amb_g = find_records(text, records, 'groups')

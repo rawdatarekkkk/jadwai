@@ -161,6 +161,74 @@ def publish(ident: str, request: Request, user=Depends(administrator), db=Depend
     return publish_row(db, ws, user, ScheduleRun, row, 'schedule')
 
 
+class MergeInput(Strict):
+    request_key: UUID
+    # Publish only these groups' sessions from the draft (a whole timetable or a part); everyone else keeps the published week.
+    groups: list[str] = Field(default_factory=list, max_length=50)
+
+
+@router.post('/api/schedules/{ident}/publish-merged', status_code=201)
+def publish_merged(ident: str, body: MergeInput, request: Request, user=Depends(administrator), db=Depends(db_session)):
+    """Publish a part (a programme, year or group) into the published timetable.
+
+    The part's sessions replace those same activities in the published timetable; the combined
+    week is checked against the current inputs (rooms, instructors, students, rules, coverage)
+    and published as a new version only if it passes. Other groups keep their published week."""
+    from app.provenance import CONFIG, seal_snapshot
+    from app.schedules import snapshot_of
+    from app.statistics import build_statistics
+    from app.validation import validate_schedule
+    existing = db.query(ScheduleRun).filter(ScheduleRun.request_key == str(body.request_key)).one_or_none()
+    if existing:
+        if (existing.result or {}).get('merge', {}).get('part_run_id') != ident:
+            fail(409, 'request_conflict')
+        return {'id': existing.id, 'published_at': existing.published_at}
+    ws = lock_workspace(request, db)
+    part = schedule(db, ident)
+    if not completed(part):
+        fail(409, 'invalid_transition')
+    plan = (part.snapshot or {}).get('plan')
+    if not plan and not body.groups:
+        fail(409, 'not_a_part')  # a complete timetable: publish it directly
+    if part.input_version != ws.version:
+        fail(409, 'stale_schedule')
+    published = db.query(ScheduleRun).filter(ScheduleRun.published_at.isnot(None)).one_or_none()
+    if not completed(published):
+        fail(409, 'nothing_published')
+    if body.groups:
+        # The groups' own sessions (lectures they share move for the other groups too), and sessions the published
+        # timetable does not have yet (added since it was published): without them it would be incomplete.
+        acts = {r['id']: r for r in part.snapshot['records'] if r['kind'] == 'courses'}
+        chosen = set(body.groups)
+        if not chosen & {r['id'] for r in part.snapshot['records'] if r['kind'] == 'groups'}:
+            fail(422, 'invalid_scope')
+        have = {a['activity_id'] for a in published.result['assignments']}
+        placed = {a['activity_id'] for a in part.result['assignments']
+                  if chosen & set(acts.get(a['activity_id'], {}).get('group_ids') or []) or a['activity_id'] not in have}
+        scope = [{'group': g} for g in body.groups]
+    else:
+        placed, scope = set(plan['activity_ids']), plan.get('scope')
+    merged = [dict(a) for a in published.result['assignments'] if a['activity_id'] not in placed] + \
+             [dict(a) for a in part.result['assignments'] if a['activity_id'] in placed]
+    config = ((published.snapshot or {}).get('provenance') or {}).get('solver_config') or CONFIG
+    snapshot = seal_snapshot(snapshot_of(db, ws), config)
+    report = validate_schedule(snapshot, merged)
+    if not report['passed']:
+        fail(409, {'code': 'merge_validation_failed', 'errors': report['errors'], 'violations': report.get('violations', [])[:20]})
+    result = {'status': 'completed', 'assignments': merged, 'validation': report,
+              'merge': {'published_run_id': published.id, 'part_run_id': part.id, 'scope': scope, 'replaced_activities': len(placed), 'merged_by': user.id},
+              'objective_definition': 'merged-part', 'provenance': (published.result or {}).get('provenance'),
+              'lifecycle': {'queued_at': utcnow().isoformat(), 'finished_at': utcnow().isoformat()}}
+    result['statistics'] = build_statistics(snapshot, result)
+    row = ScheduleRun(id=str(uuid4()), workspace_id=1, created_by=user.id, input_version=ws.version, request_key=str(body.request_key),
+                      snapshot=snapshot, status='completed', result=result, parent_run_id=published.id,
+                      name=f"{published.name or 'Published timetable'} + {part.name or 'part'}"[:100])
+    db.add(row)
+    db.flush()
+    event(db, ws, user, 'schedule.merged', row.id)
+    return publish_row(db, ws, user, ScheduleRun, row, 'schedule')
+
+
 @router.post('/api/schedules/{ident}/unpublish')
 def unpublish(ident: str, request: Request, user=Depends(administrator), db=Depends(db_session)):
     ws = lock_workspace(request, db)

@@ -11,3 +11,6 @@ backups/
 .ruff_cache/
 data-entry/
 reports/
+
+# Demo-only sign-ins (local demo app); never commit
+demo-accounts.json

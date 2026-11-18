@@ -12,6 +12,7 @@ the model. Enabled with:
 """
 import json
 import os
+import re
 import httpx
 from app.extraction import ExtractionRequest, IncompleteResponse, ProviderResponse, RetryableProviderError
 from app.openai_provider import INSTRUCTIONS, PROMPT_VERSION, output_schema
@@ -28,6 +29,15 @@ def relevant_context(text, context):
     """A small model cannot read a whole university (hundreds of records, ~100k tokens), so send
     only the records the text names, plus every record sharing an ambiguous name part, so the model
     can still ask which one is meant. Small contexts are sent whole."""
+    calendar = context.get('calendar') or {}
+    periods = calendar.get('teaching_periods') or []
+    if not periods and all(k in calendar for k in ('start_hour', 'end_hour', 'period_minutes')):
+        step = calendar['period_minutes']
+        periods = [{'start': start, 'end': start + step} for start in range(round(calendar['start_hour'] * 60), round(calendar['end_hour'] * 60) - step + 1, step)]
+    if periods:
+        context = {**context, 'calendar': {**calendar, 'slot_reference': [
+            {'number': i + 1, 'start_hour': slot['start'] / 60, 'end_hour': slot['end'] / 60}
+            for i, slot in enumerate(periods)]}}
     records = context.get('records') or []
     slim = lambda r: {'id': r['id'], 'kind': r['kind'], 'data': {k: v for k, v in (r.get('data') or {}).items() if k in KEEP}}
     if len(records) <= SMALL:
@@ -70,9 +80,35 @@ class LocalProvider:
     async def extract(self, request: ExtractionRequest):
         if request.prompt_version != PROMPT_VERSION or request.schema_version != 'proposal-contract-v1':
             raise ValueError('Unsupported prompt/schema version')
+        preliminary = []
+        from app.teaching_language import eligible, FRAME, INSTRUCTION, compile_frame
+        if eligible(request.text) and all(key in json.loads(request.context_json).get('calendar', {}) for key in ('start_hour', 'end_hour')):
+            # A small semantic frame avoids asking the 7B model to perform calendar
+            # arithmetic while also copying the full database-rule schema.
+            frame_payload = {'model': self.model, 'stream': False, 'keep_alive': '30m',
+                'format': FRAME, 'options': {'temperature': 0, 'seed': 42, 'num_ctx': 8192, 'num_predict': 360},
+                'messages': [{'role':'system','content':INSTRUCTION}, {'role':'user','content':json.dumps({'requirement':request.text},ensure_ascii=False)}]}
+            try:
+                async with httpx.AsyncClient(transport=self._transport, timeout=self.timeout_seconds, follow_redirects=False, trust_env=False) as client:
+                    response = await client.post(self.url+'/api/chat',json=frame_payload)
+                response.raise_for_status()
+                data=response.json()
+                frame=json.loads((data.get('message') or {}).get('content',''))
+                if not data.get('done'):raise IncompleteResponse('Local frame incomplete')
+                compiled=compile_frame(frame,request.text,json.loads(request.context_json)['calendar'])
+                if compiled is not None:
+                    return ProviderResponse(json.dumps(compiled,ensure_ascii=False), None, data.get('prompt_eval_count'), data.get('eval_count'))
+                preliminary.append(data)
+            except httpx.TimeoutException:
+                raise TimeoutError('Local model timeout') from None
+            except httpx.HTTPError:
+                raise RetryableProviderError('Local model unavailable') from None
+            except (ValueError, KeyError, TypeError):
+                raise ValueError('Invalid local semantic frame') from None
+
         payload = {'model': self.model, 'stream': False, 'keep_alive': '30m',
                    'format': output_schema(),  # Ollama constrains decoding to this JSON schema
-                   'options': {'temperature': 0, 'seed': 42, 'num_ctx': 8192},
+                   'options': {'temperature': 0, 'seed': 42, 'num_ctx': 8192, 'num_predict': 1800},
                    'messages': [{'role': 'system', 'content': INSTRUCTIONS},
                                 {'role': 'user', 'content': json.dumps({'requirement': request.text, 'context': relevant_context(request.text, json.loads(request.context_json))}, ensure_ascii=False)}]}
         try:
@@ -94,6 +130,51 @@ class LocalProvider:
         text = (data.get('message') or {}).get('content')
         if not isinstance(text, str) or not text.strip():
             raise ValueError('One structured output required')
-        tokens = [data.get('prompt_eval_count'), data.get('eval_count')]
-        tokens = [v if type(v) is int and v >= 0 else None for v in tokens]
+        # JSON-constrained decoding alone cannot enforce meanings (known IDs, calendar bounds,
+        # required versus preferred, or consistent decisions). Give the model one bounded
+        # correction using validator errors; the normal completion validator still has the final say.
+        from app.proposal_validation import validate_proposal
+        observations = preliminary + [data]
+        context = json.loads(request.context_json)
+        try:
+            candidate = json.loads(text)
+        except ValueError:
+            candidate = None
+        if isinstance(candidate, dict) and context.get('records') and context.get('calendar'):
+            checked = validate_proposal(candidate, records={r['id']: r['kind'] for r in context['records']}, calendar=context['calendar'])
+            if not checked.valid:
+                payload['messages'] += [{'role': 'assistant', 'content': text}, {'role': 'user', 'content': json.dumps({
+                    'validation_errors': checked.errors,
+                    'instruction': 'Correct the previous JSON using only the original requirement and supplied context. Do not change its meaning to satisfy validation. Unavailability is mandatory, never preferred. Before T ends at T; after T starts at T. Use calendar start/end for the other edge. A ready response has proposals and empty clarifications/unsupported. If a required detail is unknown, return clarify with no invented values. Return the complete JSON.'})}]
+                try:
+                    async with httpx.AsyncClient(transport=self._transport, timeout=self.timeout_seconds, follow_redirects=False, trust_env=False) as client:
+                        repaired = await client.post(self.url + '/api/chat', json=payload)
+                    if repaired.status_code == 200 and len(repaired.content) <= 2_000_000:
+                        fixed = repaired.json()
+                        observations.append(fixed)
+                        fixed_text = (fixed.get('message') or {}).get('content')
+                        if fixed.get('done') and isinstance(fixed_text, str):
+                            fixed_candidate = json.loads(fixed_text)
+                            if validate_proposal(fixed_candidate, records={r['id']: r['kind'] for r in context['records']}, calendar=context['calendar']).valid:
+                                text = fixed_text
+                except (httpx.HTTPError, ValueError, TypeError):
+                    pass  # preserve the original invalid candidate for the normal rejection path
+
+        # An explicit preference must never become a hard constraint on review.
+        # Ambiguous/mixed prose is left to the model and human reviewer.
+        explicit_soft = re.match(r'^\s*(?:preferred|preferably|ideally|soft(?: constraint)?|if possible|يفضل|مفضل)\b', request.text, re.I)
+        explicit_hard = re.match(r'^\s*(?:mandatory|required|hard(?: constraint)?|must)\b', request.text, re.I)
+        try:
+            final = json.loads(text)
+            rules = [item['data'] for item in final.get('proposals', [])]
+            if rules and ((explicit_soft and not re.search(r'\b(?:must|required|mandatory)\b', request.text, re.I) and any(rule.get('strength') != 'preferred' for rule in rules)) or
+                          (explicit_hard and not re.search(r'\b(?:prefer|preferred|ideally|soft)\b', request.text, re.I) and any(rule.get('strength') != 'mandatory' for rule in rules))):
+                text = json.dumps({'decision': 'clarify', 'proposals': [], 'clarifications': ['constraint_strength_mismatch'], 'unsupported': []})
+        except (ValueError, KeyError, TypeError):
+            pass
+
+        tokens = []
+        for key in ('prompt_eval_count', 'eval_count'):
+            counts = [item.get(key) for item in observations]
+            tokens.append(sum(counts) if all(type(v) is int and v >= 0 for v in counts) else None)
         return ProviderResponse(text, None, *tokens)

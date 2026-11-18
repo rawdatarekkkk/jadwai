@@ -26,7 +26,7 @@ POLICY_AR = {'student_daily_hours': 'حد ساعات الطلاب اليومي',
              'max_consecutive_periods': 'أقصى فترات متتالية', 'max_idle_periods': 'أقصى فترات فراغ في اليوم',
              'spread_activity_days': 'حصص المقرر في أيام مختلفة'}
 AR_DAYS = {'Saturday': 'السبت', 'Sunday': 'الأحد', 'Monday': 'الإثنين', 'Tuesday': 'الثلاثاء', 'Wednesday': 'الأربعاء', 'Thursday': 'الخميس', 'Friday': 'الجمعة'}
-RELAXED_RULE_TYPES = [t for t in rs.TYPES if t != 'preferred_period']  # preferences are already soft
+RELAXED_RULE_TYPES = [t for t in rs.TYPES if t not in rs.SOFT_TYPES]  # preferences are already soft
 
 
 def clock(m):

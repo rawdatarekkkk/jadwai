@@ -22,7 +22,7 @@ export function Proposals({ws,lang,refresh}:{ws:Workspace;lang:'en'|'ar';refresh
  const stale=!!row&&(row.stale||row.input_version!==ws.version);
  const corrected=ctx?rules.map(r=>{const p=annotationRule(r,ctx,0.5);return p&&r.title.trim()&&r.title.trim().length<=100?{...p,data:{...p.data,title:r.title.trim()}}:null;}):[];
  // The structured editor covers time rules; limit rules are reviewed as interpreted.
- const hasLimits=!!row&&row.record.output.proposals.some(p=>LIMIT_RULES.includes(p.data.type as RuleType));
+ const hasLimits=!!row&&row.record.output.proposals.some(p=>(LIMIT_RULES.includes(p.data.type as RuleType)||String(p.data.type).startsWith("teaching_")));
  const canCreate=!!row&&!row.review&&!stale&&rules.length>0&&(hasLimits||corrected.every(Boolean))&&!!rationale.trim()&&(row.record.output.decision==='ready'||resolved);
  async function load(){const data=await api<{proposals:Saved[]}>('/proposals');setRows(data.proposals);setLoaded(true);}
  useEffect(()=>{let active=true;api<{enabled:boolean;model?:string;provider?:string}>('/model-calls/configuration').then(c=>{if(active){setModelEnabled(c.enabled===true);if(c.provider==='local'&&c.model)setModelInfo({model:c.model,local:true});}}).catch(()=>{});api<{proposals:Saved[]}>('/proposals').then(data=>{if(active){setRows(data.proposals);setLoaded(true);}}).catch(()=>{if(active)setError(say('Could not load proposals.','تعذر تحميل المقترحات.'));});return()=>{active=false;};},[]);

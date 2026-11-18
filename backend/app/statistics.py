@@ -77,21 +77,20 @@ def build_statistics(snapshot, result, scope=None):
             conflicts['room_overlap_pairs']+=int(a['room_id']==b['room_id'])
             conflicts['instructor_overlap_pairs']+=int(a['instructor_id']==b['instructor_id'])
             conflicts['group_overlap_pairs']+=int(bool(set(activities[a['activity_id']]['group_ids']) & set(activities[b['activity_id']]['group_ids'])))
-    preferences=[r for r in snapshot['rules'] if r['status']=='approved' and r['type']=='preferred_period']
+    preferences=[r for r in snapshot['rules'] if r['status']=='approved' and r['type'] in rs.SOFT_TYPES]
     if chosen is not None:
-        preferences=[r for r in preferences if r['instructor_id'] in teacher_minutes]
+        preferences=[r for r in preferences if r.get('instructor_id') in teacher_minutes or r['type']=='teaching_preferred']
         instructors={k:r for k,r in instructors.items() if k in teacher_minutes}
     per_rule=[]
     for rule in preferences:
-        relevant=[a for a in assignments if a['instructor_id']==rule['instructor_id']]
+        relevant=[a for a in assignments if (a['instructor_id']==rule.get('instructor_id') if rule['type']=='preferred_period' else rs.teaching_matches(rule,activities[a['activity_id']]))]
         satisfied=sum(rs.covers(rule,a['day'],a['start_minute'],a['end_minute']) for a in relevant)
-        per_rule.append({'id':rule['id'],'title':rule['title'],'instructor':records[rule['instructor_id']]['name'],'applicable_sessions':len(relevant),'satisfied_sessions':satisfied,'unsatisfied_sessions':len(relevant)-satisfied,'satisfaction_percent':percentage(satisfied,len(relevant)),'status':'not_applicable' if not relevant else 'fully_satisfied' if satisfied==len(relevant) else 'partially_satisfied' if satisfied else 'unsatisfied'})
+        per_rule.append({'id':rule['id'],'title':rule['title'],'instructor':records[rule['instructor_id']]['name'] if rule.get('instructor_id') else ', '.join(rs.param(rule, 'activity_types', [])),'applicable_sessions':len(relevant),'satisfied_sessions':satisfied,'unsatisfied_sessions':len(relevant)-satisfied,'satisfaction_percent':percentage(satisfied,len(relevant)),'status':'not_applicable' if not relevant else 'fully_satisfied' if satisfied==len(relevant) else 'partially_satisfied' if satisfied else 'unsatisfied'})
     applicable=0; preferred_satisfied=0
     for a in assignments:
-        windows=[r for r in preferences if r['instructor_id']==a['instructor_id']]
-        if not windows:continue
-        applicable+=1
-        preferred_satisfied+=int(rs.within_windows(windows,a['day'],a['start_minute'],a['end_minute']))
+        for windows in rs.preference_sets(snapshot, activities[a['activity_id']], a['instructor_id']):
+            applicable+=1
+            preferred_satisfied+=int(rs.within_windows(windows,a['day'],a['start_minute'],a['end_minute']))
     return {'provenance':result.get('provenance'), 'solver_diagnostics':result.get('solver_diagnostics'), 'report_version':1,'generated_at':datetime.now(timezone.utc).isoformat(),'status':result.get('status'),'input_version':snapshot['input_version'],
         'input_summary':{'activities':len(activities),'instructors':len(instructors),'rooms':len(rooms),'student_groups':len(groups),'approved_rules':len(snapshot['rules']),'approved_unavailability_rules':sum(r['type'] in ('unavailable','room_unavailable','group_unavailable') for r in snapshot['rules']),'approved_preference_rules':len(preferences)},
         'coverage':{'expected_sessions':expected,'scheduled_sessions':len(assignments),'unscheduled_sessions':expected-len(assignments),'assignment_percent':percentage(len(assignments),expected)},

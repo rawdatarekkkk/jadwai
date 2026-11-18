@@ -67,7 +67,12 @@ export function ScenarioActions({ ws, run, runs, lang, reload, select, notify, s
         <button className="btn white" disabled={busy || !name.trim()} onClick={() => void act(async () => { await api(`/schedules/${run.id}/name`, "PUT", { name }); await reload(); })}>{t("rename")}</button>
         {run.published_at
           ? <button className="btn white" disabled={busy} onClick={() => void act(async () => { await api(`/schedules/${run.id}/unpublish`, "POST", undefined, ws.version); await reload(); })}>{t("unpublish")}</button>
-          : <button className="btn primary" disabled={busy || run.stale} onClick={() => void act(async () => { await api(`/schedules/${run.id}/publish`, "POST", undefined, ws.version); await reload(); setMessage(ar ? "تم النشر. يرى المدرسون والطلاب هذا الجدول الآن." : "Published. Instructors and students now see this timetable."); })}>{t("publish")}</button>}
+          : run.progress && !run.progress.complete && runs.some(r => r.published_at)
+            /* A part (a programme, year or group): publish it into the published timetable, checked as one week. */
+            ? <button className="btn primary" disabled={busy || run.stale} title={ar ? "تحل محاضرات هذا الجزء محل محاضراته في الجدول المنشور، ويُفحص الأسبوع المدمج قبل النشر." : "This part's sessions replace its sessions in the published timetable; the combined week is checked before it is published."}
+                onClick={() => void act(async () => { await api(`/schedules/${run.id}/publish-merged`, "POST", { request_key: crypto.randomUUID() }, ws.version); await reload(); setMessage(ar ? "تم النشر داخل الجدول المنشور. أسبوع الباقين لم يتغير." : "Published into the published timetable. Everyone else's week is unchanged."); })}>
+                {ar ? "نشر داخل الجدول المنشور" : "Publish into the published timetable"}</button>
+            : <button className="btn primary" disabled={busy || run.stale} onClick={() => void act(async () => { await api(`/schedules/${run.id}/publish`, "POST", undefined, ws.version); await reload(); setMessage(ar ? "تم النشر. يرى المدرسون والطلاب هذا الجدول الآن." : "Published. Instructors and students now see this timetable."); })}>{t("publish")}</button>}
         <a className="btn white" href={`/api/schedules/${run.id}/export.csv`} download>{t("exportCsv")}</a>
       </div>
     </div>

@@ -1015,6 +1015,7 @@ export default function App() {
         <JaiChat
           ws={ws}
           lang={lang}
+          screen={page === "timetable" ? scheduleMode : page}
           hidden={!jaiOpen}
           close={() => setJaiOpen(false)}
           refresh={refresh}
@@ -1022,7 +1023,10 @@ export default function App() {
             if (target === "exams" || target === "timetable") {
               setScheduleMode(target === "exams" ? "exams" : "teaching");
               navigate("timetable");
-            } else navigate(target, recordKind);
+            } else if (target === "settings") setCalendarOpen(true);
+            else if (target === "import") { navigate("data", recordKind); setImportOpen(true); }
+            else if (target === "advising") setAdvisingOpen(true);
+            else navigate(target, recordKind);
           }}
         />
       )}

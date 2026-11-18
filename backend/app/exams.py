@@ -19,6 +19,7 @@ LABELS={'quiz':'Quiz','midterm':'Midterm','makeup':'Second-chance midterm','fina
 
 class ExamInput(Strict):
     """One exam timetable: a quiz round, the midterms, or the finals (with second-chance midterms)."""
+    course_ids: list[str] | None = Field(default=None, min_length=1, max_length=2000)
     start_date: date=date(2026,10,20)
     end_date: date=date(2026,10,31)
     exclude_fridays: bool=True
@@ -92,6 +93,12 @@ def create_exam(body:ExamInput,request:Request,user=Depends(administrator),db=De
         from app.dependencies import fail
         windows=[(minutes(t),minutes(t)+120) for t in starts['makeup']]
         if any(minutes(f)<b and a<minutes(f)+180 for f in starts['final'] for a,b in windows):fail(422,'final_overlaps_second_chance')
+    if body.course_ids is not None:
+        from app.dependencies import fail
+        wanted=set(body.course_ids)
+        if len(wanted)!=len(body.course_ids) or wanted-{course['id'] for course in courses}:
+            fail(422,'invalid_exam_scope')
+        courses=[course for course in courses if course['id'] in wanted]
     courses=exam_items(body,courses)
     missing=sorted({c['code'] for c in courses if c['code'] in missing})
     days=[body.start_date+timedelta(days=i) for i in range((body.end_date-body.start_date).days+1)]
@@ -166,3 +173,11 @@ def save_cohort_rules(body:CohortRules,request:Request,user=Depends(administrato
         'aliases':{clean(k):clean(v) for k,v in body.aliases.items() if clean(k) and clean(v)}}
     event(db,ws,user,'exam.cohort_rules_updated',changes_inputs=True)
     db.commit();return ws.exam_cohort_rules
+
+
+@router.get('/{ident}')
+def get_exam_schedule(ident: str, user=Depends(administrator), db=Depends(db_session)):
+    from app.dependencies import fail
+    row=db.get(ExamRun,ident)
+    if not row:fail(404,'not_found')
+    return representation(row)

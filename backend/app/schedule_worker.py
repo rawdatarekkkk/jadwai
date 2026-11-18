@@ -8,7 +8,7 @@ from pathlib import Path
 from app.provenance import verify_snapshot, VALIDATOR_VERSION
 from datetime import timedelta
 from sqlalchemy import select
-from app.models import ScheduleRun, SessionLocal, utcnow
+from app.models import ScheduleRun, SessionLocal, WorkerHeartbeat, utcnow
 from app.solver import generate
 from app.validation import validate_schedule
 from app.statistics import build_statistics
@@ -53,6 +53,10 @@ def process_one(factory=SessionLocal, shutdown=None):
                             holder["solver"].stop_search()
                         return
                     job.updated_at = utcnow()
+                    # A long solve is a busy worker, not a missing one.
+                    beat = db.get(WorkerHeartbeat, 1)
+                    if beat:
+                        beat.seen_at = utcnow()
                     job.result = {"assignments":[],"lifecycle":{"queued_at":queued_at,"started_at":started_at},"progress":holder.get("progress")}
             except Exception:
                 # Losing access to cancellation/state invalidates this run rather than

@@ -106,3 +106,21 @@ def test_large_workspace_sends_only_the_records_the_text_names():
     assert {r['id'] for r in unsure['records']} == {'a1', 'a2'}  # both, so the model can ask which
     small = relevant_context('anything', {'records': many[:3], 'calendar': {}})
     assert len(small['records']) == 3 and 'email' not in small['records'][0]['data']
+
+
+def test_invalid_semantics_get_one_local_correction_before_review():
+    calls = []
+    context = {'records': [{'id': 'i', 'kind': 'instructors', 'data': {'name': 'Sara'}}],
+               'calendar': {'days': ['Sunday'], 'start_hour': 8, 'end_hour': 18}}
+    original = {'decision': 'ready', 'proposals': [], 'clarifications': [], 'unsupported': []}
+    fixed = {'decision': 'clarify', 'proposals': [], 'clarifications': ['time_required'], 'unsupported': []}
+    def handler(req):
+        calls.append(json.loads(req.content))
+        answer = original if len(calls) == 1 else fixed
+        return httpx.Response(200, json=reply(message={'content': json.dumps(answer)}))
+    provider = LocalProvider(transport=httpx.MockTransport(handler))
+    req = ExtractionRequest.create('Sara is unavailable', context, 1, PROMPT_VERSION, 'proposal-contract-v1')
+    result = asyncio.run(extract_candidate(provider, req, timeout_seconds=5))
+    assert len(calls) == 2 and json.loads(result.candidate_json) == fixed
+    assert 'validation_errors' in calls[1]['messages'][-1]['content']
+    assert result.requires_human_approval

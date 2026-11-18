@@ -2,6 +2,8 @@
 from app.rule_semantics import TARGETS, TIME_TYPES
 
 PARAMS = {
+    'teaching_allowed': ('activity_types',),
+    'teaching_preferred': ('activity_types',),
     'activity_room': ('room_ids',),
     'activities_not_same_day': ('activity_ids',),
     'instructor_max_daily_hours': ('hours',),
@@ -36,6 +38,6 @@ def rule_error(body, kind_of, calendar):
             return 'invalid_time_range'
     elif body.day is not None or body.start_hour is not None or body.end_hour is not None:
         return 'invalid_time_range'
-    if body.strength != ('preferred' if body.type == 'preferred_period' else 'mandatory'):
+    if body.strength != ('preferred' if body.type in ('preferred_period', 'teaching_preferred') else 'mandatory'):
         return 'invalid_strength'
     return None

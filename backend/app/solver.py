@@ -181,7 +181,8 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
         local = lambda s: (days[s//1440], s%1440, ends[s]-(s//1440)*1440)
         # Windows for one target form a weekly union. Each activity/group target
         # is a separate mandatory restriction, so targets intersect.
-        window_sets = [[r for r in rules_of('activity_allowed') if r.get('activity_id')==activity['id']]]
+        window_sets = rs.teaching_window_sets(snapshot, activity, 'teaching_allowed')
+        window_sets += [[r for r in rules_of('activity_allowed') if r.get('activity_id')==activity['id']]]
         window_sets += [[r for r in rules_of('group_allowed') if r.get('group_id')==g] for g in activity['group_ids']]
         group_blocks = [r for r in rules_of('group_unavailable') if r['group_id'] in activity['group_ids']]
         starts = [s for s in ends if all(rs.within_windows(w, *local(s)) for w in window_sets) and not any(rs.overlaps(r, *local(s)) for r in group_blocks)]
@@ -190,10 +191,10 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
         for teacher in activity['eligible_instructors']:
             mine = [r for r in snapshot['rules'] if r['status']=='approved' and r.get('instructor_id')==teacher]
             mandatory = [r for r in mine if r['type']=='unavailable']
-            windows = [r for r in mine if r['type']=='preferred_period']
+            families = rs.preference_sets(snapshot, activity, teacher)
             allowed[teacher] = [s for s in starts if local(s)[0] != by_id[teacher].get('day_off') and not any(rs.overlaps(r, *local(s)) for r in mandatory)]
-            if windows:
-                preferred[teacher] = [s for s in starts if rs.within_windows(windows, *local(s))]
+            if families:
+                preferred[teacher] = [[s for s in starts if rs.within_windows(windows, *local(s))] for windows in families]
         fixed = [pinned.get((activity['id'], o)) for o in range(activity['sessions'])]
         if fixed[0]:
             # Carried over from the base run: the same instructor, time and room again.
@@ -260,15 +261,15 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
                 else:
                     model.add_linear_expression_in_domain(start,cp_model.Domain.from_values(allowed[teacher])).only_enforce_if(selected)
                 resources[('teacher',teacher)].append(model.new_optional_interval_var(start,length,end,selected,'teacher_session_'+prefix+'_'+teacher))
-                if teacher in preferred:
-                    fits = model.new_bool_var('preferred_'+prefix+'_'+teacher)
-                    if preferred[teacher]:
-                        domain = cp_model.Domain.from_values(preferred[teacher])
+                for preference_index, preferred_starts in enumerate(preferred.get(teacher, [])):
+                    fits = model.new_bool_var('preferred_'+prefix+'_'+teacher+'_'+str(preference_index))
+                    if preferred_starts:
+                        domain = cp_model.Domain.from_values(preferred_starts)
                         model.add_linear_expression_in_domain(start,domain).only_enforce_if(fits)
                         model.add_linear_expression_in_domain(start,domain.complement()).only_enforce_if(fits.Not())
                     else:
                         model.add(fits==0)
-                    penalty = model.new_bool_var('penalty_'+prefix+'_'+teacher)
+                    penalty = model.new_bool_var('penalty_'+prefix+'_'+teacher+'_'+str(preference_index))
                     model.add(penalty>=selected-fits)
                     model.add(penalty<=selected)
                     model.add(penalty<=1-fits)
@@ -339,6 +340,16 @@ def generate(snapshot, cancel=None, on_solver=None, time_limit=None, *, fixed_as
     # Every TA teaches: each must be selected for at least one activity.
     for ta in tas_that_must_teach(snapshot, records):
         model.add(sum(workload_terms[ta['id']]) >= 1)
+    if rs.approved(snapshot, 'lecture_before_tutorial'):
+        by_activity = defaultdict(list)
+        for activity, occurrence, start, teachers, rooms, ends in choices:
+            by_activity[activity['id']].append((start, ends))
+        for lecture, tutorial in rs.lecture_tutorial_pairs(records):
+            for start, ends in by_activity[lecture]:
+                finish = model.new_int_var(min(ends.values()), max(ends.values()), f'lecture_end_{lecture}_{len(model.proto.variables)}')
+                model.add_allowed_assignments([start, finish], list(ends.items()))
+                for tutorial_start, _ in by_activity[tutorial]:
+                    model.add(finish <= tutorial_start)
     add_limit_rules(model, snapshot, choices, day_of, len(days))
     components = {'preferences': penalties}
     if active_policy or profile == 'convenience-v1':

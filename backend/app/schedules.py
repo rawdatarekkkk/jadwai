@@ -3,7 +3,7 @@ import json
 from app.statistics import build_statistics, html_report
 from app.statistics_pdf import pdf_report
 from app.export_names import report_disposition
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import Field
 from app.schemas import Name, Strict
 from app.provenance import SolverSettings
@@ -29,6 +29,12 @@ class GenerateInput(Strict):
     # Build in parts: schedule these programmes (or programme years), keeping the base run's sessions fixed.
     scope: list[ScopeItem] | None = Field(default=None, min_length=1, max_length=100)
     base_run_id: UUID | None = None
+    # Re-plan the scope inside the base timetable: every other session stays where the base has it, and
+    # the scope's sessions are placed again around them (for example one group in the published timetable).
+    replace: bool = False
+    # Then build these parts, one after another, each on top of the one before (the worker starts each when the
+    # previous finishes valid): a timetable too large for one run, built whole.
+    then: list[list[ScopeItem]] | None = Field(default=None, max_length=20)
 
 
 def snapshot_of(db, ws):
@@ -52,18 +58,35 @@ def with_plan(db, ws, snapshot, body):
     from app.partial_plan import matches, scope_activities
     from app.scenarios import completed
     fixed, base_id = [], None
+    scope = scope_key(body.scope)
+    if body.replace and not body.base_run_id:
+        fail(422, "invalid_scope")
     if body.base_run_id:
         base = db.get(ScheduleRun, str(body.base_run_id))
         if not completed(base):
             fail(409, "invalid_base_run")
-        if base.input_version != ws.version:
+        if base.input_version != ws.version and not body.replace:
             fail(409, "stale_schedule")
         fixed, base_id = base.result["assignments"], base.id
-    scope = scope_key(body.scope)
     groups = [r for r in snapshot["records"] if r["kind"] == "groups"]
     if any(not matches(g, [item]) for item in scope for g in [next((g for g in groups if matches(g, [item])), {})]):
         fail(422, "invalid_scope")  # names a programme or year with no student groups
-    ids = scope_activities(snapshot["records"], scope, {r["activity_id"] for r in fixed})
+    if body.replace:
+        # Keep the base's sessions outside the scope that still name existing records; the scope is placed again.
+        # The base may be older than the inputs: the finished run is validated against the current ones.
+        ids = scope_activities(snapshot["records"], scope, set(), snapshot["rules"])
+        known = {r["id"] for r in snapshot["records"]}
+        fixed = [a for a in fixed if a["activity_id"] not in set(ids) and a["activity_id"] in known
+                 and a.get("room_id") in known and a.get("instructor_id") in known]
+        if not ids:
+            fail(422, "scope_empty")
+        # Sessions added since the base was made (new groups, courses, sections) are in neither the base nor the
+        # scope; place them too, so the result is a whole timetable that can be published.
+        kept = {a["activity_id"] for a in fixed}
+        added = sorted(r["id"] for r in snapshot["records"] if r["kind"] == "courses" and r["id"] not in kept and r["id"] not in set(ids))
+        return {**snapshot, "plan": {"scope": scope, "base_run_id": base_id, "activity_ids": sorted(set(ids) | set(added)), "fixed": fixed,
+                                     "replace": True, "added_since_base": added}}
+    ids = scope_activities(snapshot["records"], scope, {r["activity_id"] for r in fixed}, snapshot["rules"])
     if not ids:
         fail(422, "scope_empty")
     return {**snapshot, "plan": {"scope": scope, "base_run_id": base_id, "activity_ids": ids, "fixed": fixed}}
@@ -81,9 +104,58 @@ def representation(row, current_version):
             "name": row.name, "parent_run_id": row.parent_run_id, "published_at": row.published_at}
 
 
+def continue_chain(db, ws):
+    """Queue the next part of a whole-university build once the newest part finished valid.
+
+    The API's background coordinator calls this even with no browser connected.
+    A workspace lock serializes coordinators across API processes and requests.
+    """
+    ws = db.scalar(select(Workspace).where(Workspace.id == 1).with_for_update(skip_locked=True))
+    if ws is None or db.scalar(select(ScheduleRun.id).where(ScheduleRun.status.in_(["queued", "running"]))):
+        return None
+    row, chain = None, None
+    # An unrelated draft/manual edit must not orphan an earlier saved chain.
+    candidates = db.scalars(select(ScheduleRun).where(ScheduleRun.snapshot["chain"].is_not(None))
+                            .order_by(ScheduleRun.created_at.desc()))
+    for candidate in candidates:
+        plan = (candidate.snapshot or {}).get("chain") or {}
+        if not plan.get("parts") or candidate.cancel_requested or (candidate.result or {}).get("chain_stopped"):
+            continue
+        children = db.scalars(select(ScheduleRun).where(ScheduleRun.parent_run_id == candidate.id))
+        if any(((c.snapshot or {}).get("chain") or {}).get("step", 0) > plan.get("step", 1) for c in children):
+            continue  # this part already advanced, even if its child was later cancelled
+        row, chain = candidate, plan
+        break
+    if row is None:
+        return None
+    if row.status != "completed" or not (row.result or {}).get("validation", {}).get("passed"):
+        reason = "part_failed"
+    else:
+        body = GenerateInput(request_key=uuid4(), settings=chain["settings"], scope=chain["parts"][0], base_run_id=row.id)
+        try:
+            snap = with_plan(db, ws, snapshot_of(db, ws), body)
+            reason = None
+        except HTTPException as error:  # for example the data changed while the earlier parts were built
+            reason = error.detail if isinstance(error.detail, str) else "invalid_scope"
+    if reason:
+        row.result = {**(row.result or {}), "chain_stopped": reason}
+        db.commit()
+        return None
+    from app.provenance import seal_snapshot
+    step = chain.get("step", 1) + 1
+    snap["chain"] = {**chain, "parts": chain["parts"][1:], "step": step}
+    snap = seal_snapshot(snap, body.settings.model_dump())
+    nxt = ScheduleRun(id=str(uuid4()), workspace_id=1, created_by=row.created_by, input_version=snap["input_version"], request_key=str(body.request_key),
+                      snapshot=snap, parent_run_id=row.id, name=f"Whole university · part {step}/{chain.get('steps', step)}")
+    db.add(nxt)
+    db.commit()
+    return nxt
+
+
 @router.get("")
 def list_runs(user=Depends(administrator), db: DB = Depends(db_session)):
     ws = db.get(Workspace, 1)
+    continue_chain(db, ws)
     rows = list(db.scalars(select(ScheduleRun).order_by(ScheduleRun.created_at.desc()).limit(20)))
     published = db.scalar(select(ScheduleRun).where(ScheduleRun.published_at.isnot(None)))
     if published and published not in rows:
@@ -140,10 +212,15 @@ def create_run(body: GenerateInput, request: Request, user=Depends(administrator
         snap = snapshot_of(db, ws)
         if body.scope:
             snap = with_plan(db, ws, snap, body)
+        if body.then:
+            if not body.scope:
+                fail(422, "invalid_scope")
+            snap["chain"] = {"parts": [scope_key(p) for p in body.then], "settings": body.settings.model_dump(), "step": 1, "steps": 1 + len(body.then)}
         snap = seal_snapshot(snap, body.settings.model_dump())
     if not any(r["kind"] == "courses" for r in snap["records"]) or not any(r["kind"] == "rooms" for r in snap["records"]):
         fail(422, "schedule_missing_data")
-    row = ScheduleRun(id=str(uuid4()), workspace_id=1, created_by=user.id, input_version=snap["input_version"], request_key=str(body.request_key), snapshot=snap)
+    row = ScheduleRun(id=str(uuid4()), workspace_id=1, created_by=user.id, input_version=snap["input_version"], request_key=str(body.request_key), snapshot=snap,
+                      name=f"Whole university · part 1/{snap['chain']['steps']}" if snap.get("chain") else None)
     db.add(row)
     event(db, ws, user, "schedule.queued", row.id)
     db.commit()

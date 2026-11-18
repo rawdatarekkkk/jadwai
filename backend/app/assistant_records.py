@@ -27,6 +27,8 @@ ROOM_TYPES = {'lecture': ('lecture', 'class', 'محاضرات', 'قاعة'), 'la
 def record_kind(text):
     """The kind of record a create request is about, '' when it doesn't say what, or None."""
     padded = f' {text} '
+    if re.search(r'account|login|user|حساب', text):
+        return None  # "create a student account": an account, not a record
     if re.match(r'^(?:i want to |i would like to |i need to |can you |please |عايز |عاوز |محتاج )?(?:add|create|register|اضيف|أضيف|ضيف|اضف|أضف)(?:\s+(?:something|a new one|new|one|حاجة|حاجه))?\s*[.?!]?$', text):
         return ''
     if not any(w in padded for w in ADD_WORDS) or any(w in text for w in ('timetable', 'schedule', 'جدول')):
@@ -102,8 +104,7 @@ def fill(field, raw, text, view, form):
     if field == 'position':
         return position_of(text) or ('doctor' if re.search(r'(?<![\w])d(?![\w])', text) else None)
     if field == 'department':
-        known = sorted({r['data'].get('department') for r in view['records'] if r['kind'] == 'instructors' and r['data'].get('department')})
-        return next((d for d in known if normalise(d) == text or mentions(text, normalise(d))), None) or (raw if 2 <= len(raw) <= 100 else None)
+        return named_answer(field, raw, text, view, form)
     if field == 'day_off':
         if any(re.fullmatch(rf'{w}\.?', text) for w in NONE_WORDS) or text in NONE_WORDS:
             return 'none'
@@ -117,9 +118,7 @@ def fill(field, raw, text, view, form):
         found = [t for t, words in ROOM_TYPES.items() if any(w in text for w in words)]
         return found or None
     if field == 'major':
-        from app.assistant import find_programme
-        progs = find_programme(text, view['records'])
-        return progs[0] if len(progs) == 1 else (raw if 2 <= len(raw) <= 100 and not raw.isdigit() else None)
+        return named_answer(field, raw, text, view, form)
     if field == 'year':
         from app.assistant import find_year
         m = find_year(text) or (int(text) if re.fullmatch(r'\d{1,2}', text) else None)
@@ -127,6 +126,29 @@ def fill(field, raw, text, view, form):
     if field == 'number':
         m = re.search(r'\d{1,2}', text)
         return int(m.group()) if m else None
+    return None
+
+
+def named_answer(field, raw, text, view, form):
+    """Existing names are references; an unfamiliar label needs explicit consent."""
+    from app.assistant import programmes, find_programme
+    known = programmes(view['records']) if field == 'major' else sorted({
+        r['data'].get('department') for r in view['records']
+        if r['kind'] == 'instructors' and r['data'].get('department')})
+    pending = form.get('_clarify') or {}
+    if pending.get('field') == field and text in ('use as new name', 'انشاء جديد', 'إنشاء جديد'):
+        form.pop('_clarify', None)
+        form.setdefault('_new_names', {})[field] = pending['raw']
+        return pending['raw']
+    # Full names and established aliases are safe; partial matches must be unique.
+    exact = [name for name in known if normalise(name) == text]
+    found = exact or (find_programme(text, view['records']) if field == 'major' else
+                      [name for name in known if mentions(text, normalise(name))])
+    if len(found) == 1:
+        form.pop('_clarify', None)
+        return found[0]
+    if 2 <= len(raw) <= 100 and not raw.isdigit():
+        form['_clarify'] = {'field': field, 'raw': raw, 'matches': found}
     return None
 
 
@@ -201,7 +223,9 @@ def body_of(kind, form, view):
     if kind == 'rooms':
         return {'name': form['code'], 'code': form['code'], 'capacity': form['capacity'], 'room_types': form['room_types']}
     code = group_code(form['major'], form['year'], form['number'], records)
-    return {'name': f"{form['major']} Year {form['year']} G{form['number']}", 'code': code, 'size': form['size'], 'year': form['year'], 'major': form['major']}
+    roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII']
+    year = roman[form['year'] - 1] if 1 <= form['year'] <= 12 else f"Year {form['year']}"  # as the existing groups: "Business Informatics I G1"
+    return {'name': f"{form['major']} {year} G{form['number']}", 'code': code, 'size': form['size'], 'year': form['year'], 'major': form['major']}
 
 
 def summary(kind, body, say):
@@ -220,6 +244,27 @@ def summary(kind, body, say):
 def converse(slots, view, say):
     """The next step of a create conversation: a question, or the summary to confirm."""
     kind, form = slots['kind'], slots.get('form') or {}
+    # Recheck old in-progress chats too: earlier versions accepted arbitrary names.
+    for field in ('major', 'department'):
+        if field in form and (form.get('_new_names') or {}).get(field) != form[field]:
+            value = form[field]
+            if named_answer(field, value, normalise(value), view, form) is None:
+                form.pop(field)
+    slots['form'] = form
+    pending = form.get('_clarify')
+    if pending:
+        field, raw = pending['field'], pending['raw']
+        from app.assistant import programmes
+        known = programmes(view['records']) if field == 'major' else sorted({
+            r['data'].get('department') for r in view['records']
+            if r['kind'] == 'instructors' and r['data'].get('department')})
+        noun = say('programme', 'برنامج') if field == 'major' else say('department', 'قسم')
+        matches = pending.get('matches') or []
+        message = say(f'Which {noun} do you mean by "{raw}"? Please choose an existing name or specify the full name. If this is a new {noun}, choose Create new.',
+                      f'تقصد أي {noun} بـ "{raw}"؟ اختر اسماً موجوداً أو اكتب الاسم الكامل. لو تقصد اسماً جديداً اختر إنشاء جديد.')
+        return {'text': [message], 'asking': True, 'field': field, 'form': form,
+                'choices': [{'label': name, 'text': name} for name in (matches or known)] +
+                           [{'label': say(f'Create new {noun}: {raw}', f'إنشاء {noun} جديد: {raw}'), 'text': 'use as new name'}]}
     if kind == 'courses':
         return {'text': [say('Courses are set up with their sections, eligible instructors and groups on the Course setup page. I opened it for you.',
                              'تُعد المقررات مع شعبها ومحاضريها ومجموعاتها في صفحة إعداد المقررات. فتحتها لك.')],

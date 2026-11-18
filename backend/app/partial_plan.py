@@ -37,9 +37,11 @@ def tas_that_must_teach(snapshot, records):
     Whole timetable: every TA. A part: each TA not yet teaching in the fixed sessions
     whom the activities left for later parts could not all still cover (a matching,
     one TA per activity), so no part strands a TA with nothing left to teach."""
-    from app.positions import tas_without_teaching
+    from app.positions import tas_without_teaching, unassigned_tas
     records = list(records)
-    tas = [r for r in records if r['kind'] == 'instructors' and r.get('position') == 'ta']
+    courses = [r for r in records if r['kind'] == 'courses']
+    waiting = {r['id'] for r in unassigned_tas([r for r in records if r['kind'] == 'instructors'], courses)}
+    tas = [r for r in records if r['kind'] == 'instructors' and r.get('position') == 'ta' and r['id'] not in waiting]
     ids = covered(snapshot)
     if ids is None:
         return tas
@@ -62,10 +64,14 @@ def matches(group, scope):
                and s.get('group') in (None, group.get('id')) for s in scope)
 
 
-def scope_activities(records, scope, done):
+def scope_activities(records, scope, done, rules=()):
     """Activities with at least one group in `scope`, minus those already scheduled."""
     groups = {r['id'] for r in records if r['kind'] == 'groups' and matches(r, scope)}
-    return sorted(r['id'] for r in records if r['kind'] == 'courses' and r['id'] not in done and groups & set(r['group_ids']))
+    selected = {r['id'] for r in records if r['kind'] == 'courses' and r['id'] not in done and groups & set(r['group_ids'])}
+    if any(rule['status'] == 'approved' and rule['type'] == 'lecture_before_tutorial' for rule in rules):
+        from app.rule_semantics import lecture_tutorial_pairs
+        selected |= {lecture for lecture, tutorial in lecture_tutorial_pairs(records) if tutorial in selected and lecture not in done}
+    return sorted(selected)
 
 
 def progress(snapshot):

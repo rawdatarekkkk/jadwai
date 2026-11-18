@@ -6,6 +6,7 @@ import { errors, type Word } from "./i18n";
 type Envelope = { decision: string; proposals: { kind: string; data: Rule }[]; clarifications: string[]; unsupported: string[] };
 /** Parser question codes (annotation guide v2) as plain questions. */
 const QUESTIONS: Record<string, [string, string]> = {
+  constraint_strength_mismatch: ["The interpretation did not preserve your requested hard/soft strength. Please clarify whether this is mandatory or a preference.", "لم يحافظ التفسير على قوة القيد. وضّح هل هو إلزامي أم تفضيل."],
   ambiguous_instructor: ["Several instructors match this name. Use the full name.", "أكثر من مدرس بهذا الاسم. اكتب الاسم كاملًا."],
   ambiguous_group: ["Several student groups match. Use the group code, for example BA5-G7.", "أكثر من مجموعة مطابقة. اكتب رمز المجموعة، مثل BA5-G7."],
   ambiguous_room: ["Several rooms match. Use the room code.", "أكثر من قاعة مطابقة. اكتب رمز القاعة."],
@@ -30,23 +31,24 @@ type Saved = { id: string; record: { text: string; output: Envelope; origin: str
 /** Admin box: plain-text constraint -> interpreted rules -> draft rules (approval stays separate). */
 export function TypedConstraint({ ws, lang, t, refresh }: { ws: Workspace; lang: "en" | "ar"; t: (key: Word) => string; refresh: () => Promise<void> }) {
   const [text, setText] = useState(""), [saved, setSaved] = useState<Saved | null>(null), [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState(""), [gpt, setGpt] = useState(false);
+  const [message, setMessage] = useState(""), [gpt, setGpt] = useState<boolean | null>(null);
   const key = useRef({ text: "", value: "" });
   const ar = lang === "ar";
-  useEffect(() => { api<{ enabled: boolean }>("/model-calls/configuration").then(c => setGpt(c.enabled === true)).catch(() => setGpt(false)); }, []);
+  useEffect(() => { api<{ enabled: boolean; provider?: string }>("/model-calls/configuration").then(c => setGpt(c.enabled === true && c.provider === "local")).catch(() => setGpt(false)); }, []);
   // One request key per distinct text, so a retried click never stores twice.
   const requestKey = (value: string) => { if (key.current.text !== value) key.current = { text: value, value: crypto.randomUUID() }; return key.current.value; };
   async function run(action: () => Promise<void>) {
     setBusy(true); setMessage("");
     try { await action(); } catch (e) { const code = e instanceof ApiError ? e.code : "invalid_input"; setMessage(errors[code]?.[ar ? 1 : 0] || code); } finally { setBusy(false); }
   }
-  const interpret = () => run(async () => setSaved(await api<Saved>("/proposals/interpret", "POST", { text, request_key: requestKey("parser:" + text) }, ws.version)));
-  const askGpt = () => run(async () => {
+  const interpretBuiltin = () => run(async () => setSaved(await api<Saved>("/proposals/interpret", "POST", { text, request_key: requestKey("parser:" + text) }, ws.version)));
+  const interpretModel = () => run(async () => {
     const job = await api<{ status: string; proposal_id: string | null }>("/model-calls", "POST", { text, request_key: requestKey("gpt:" + text) }, ws.version);
-    if (!job.proposal_id) { setMessage(t("notUnderstood")); return; }
+    if (!job.proposal_id) { key.current = {text: "", value: ""}; setMessage(ar ? `لم يكتمل التفسير (${job.status}). حاول مرة أخرى؛ لم تُضف قيود.` : `Interpretation did not complete (${job.status}). Retry; no constraints were added.`); return; }
     const all = await api<{ proposals: Saved[] }>("/proposals");
     setSaved(all.proposals.find(p => p.id === job.proposal_id) || null);
   });
+  const interpret = () => gpt ? interpretModel() : interpretBuiltin();
   const create = () => run(async () => {
     if (!saved) return;
     await api(`/proposals/${saved.id}/review`, "POST", { action: "create_drafts", rationale: "Confirmed typed constraint", request_key: requestKey("review:" + saved.id) }, ws.version);
@@ -60,10 +62,11 @@ export function TypedConstraint({ ws, lang, t, refresh }: { ws: Workspace; lang:
     <form onSubmit={(e) => { e.preventDefault(); void interpret(); }}>
       <textarea dir="auto" rows={2} maxLength={2000} value={text} onChange={(e) => { setText(e.target.value); setSaved(null); }} />
       <div className="form-actions">
-        {gpt && output && output.decision !== "ready" && <button type="button" className="btn white" disabled={busy} onClick={() => void askGpt()}>{t("askGpt")}</button>}
-        <button className="btn primary" disabled={busy || !text.trim()}>{t(busy ? "working" : "interpret")}</button>
+
+        <button className="btn primary" disabled={busy || gpt === null || !text.trim()}>{t(busy ? "working" : "interpret")}</button>
       </div>
     </form>
+    <p className="room-type-help">{gpt ? (ar ? "يفسّر النموذج المحلي النص ويحدد القيد الإلزامي أو التفضيل. قد يستغرق دقيقة أو أكثر. التفسير مقترح فقط؛ لا تُضاف أو تُعتمد قيود حتى تراجعها." : "The local AI interprets your wording as a hard requirement or soft preference. This may take a minute or more. Interpretation only creates a proposal; review is required before adding or approving any constraint.") : (ar ? "النموذج المحلي غير متاح. سيستخدم التفسير المحلل الأساسي محدود العبارات." : "Local AI is unavailable. Interpret will use the limited built-in phrase parser.")}</p>
     {message && <p role="status">{message}</p>}
     {output && <div className="meaning-preview" aria-live="polite">
       <span className="eyebrow">{output.decision === "ready" ? t("interpretation") : output.proposals.length ? t("needsClarification") : t("notUnderstood")}</span>

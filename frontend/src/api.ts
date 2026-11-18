@@ -44,9 +44,9 @@ export type Rule = {
   params?: RuleParams;
 };
 export type RuleType = "unavailable" | "preferred_period" | "room_unavailable" | "group_unavailable" | "activity_allowed" | "group_allowed"
-  | "activity_room" | "activities_not_same_day" | "instructor_max_daily_hours" | "group_max_daily_hours" | "instructor_max_days";
-export type RuleParams = {room_ids?: string[] | null; activity_ids?: string[] | null; hours?: number | null; days?: number | null};
-export const LIMIT_RULES: RuleType[] = ["activity_room", "activities_not_same_day", "instructor_max_daily_hours", "group_max_daily_hours", "instructor_max_days"];
+  | "teaching_allowed" | "teaching_preferred" | "lecture_before_tutorial" | "activity_room" | "activities_not_same_day" | "instructor_max_daily_hours" | "group_max_daily_hours" | "instructor_max_days";
+export type RuleParams = {activity_types?: ("lecture" | "tutorial" | "lab")[] | null; room_ids?: string[] | null; activity_ids?: string[] | null; hours?: number | null; days?: number | null};
+export const LIMIT_RULES: RuleType[] = ["lecture_before_tutorial", "activity_room", "activities_not_same_day", "instructor_max_daily_hours", "group_max_daily_hours", "instructor_max_days"];
 /** 8.5 -> "08:30" */
 export const clockHour = (h: number) => `${String(Math.floor(h)).padStart(2, "0")}:${h % 1 ? "30" : "00"}`;
 export type AssignmentLock = {id:string;source_run_id:string;activity_id:string;occurrence:number;instructor_id:string|null;room_id:string|null;day:string|null;start_minute:number|null;status:"draft"|"approved";approved_by?:string|null};

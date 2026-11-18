@@ -91,10 +91,12 @@ def test_every_ta_teaches():
 def test_ta_who_cannot_teach_is_named_before_generation():
     snapshot = ta_snapshot()
     snapshot['records'].append({'id': 'idle', 'kind': 'instructors', 'name': 'Idle TA', 'position': 'ta'})
-    blockers = inspect_inputs(snapshot)['blockers']
-    assert [b['resource_id'] for b in blockers if b['code'] == 'ta_without_teaching'] == ['idle']
-    assert generate(snapshot)['reason'] == 'ta_without_teaching'
-    # Eligible, but three TAs cannot share two activities.
+    # A TA not yet named for any course (for example just added) is a warning, not a blocker.
+    checks = inspect_inputs(snapshot)
+    assert not any(b['code'] == 'ta_without_teaching' for b in checks['blockers'])
+    assert [w['resource_id'] for w in checks['warnings'] if w['code'] == 'ta_not_assigned'] == ['idle']
+    assert generate(snapshot)['status'] == 'completed'
+    # Eligible, but three TAs cannot share two activities: that still blocks.
     next(r for r in snapshot['records'] if r['id'] == 'a')['eligible_instructors'].append('idle')
     next(r for r in snapshot['records'] if r['id'] == 'b')['eligible_instructors'] = ['t', 'u', 'idle']
     assert any(b['code'] == 'ta_without_teaching' for b in inspect_inputs(snapshot)['blockers'])

@@ -61,6 +61,19 @@ def details(snapshot, rows, report):
                 if len(same)>1:add('activity_day_distribution',same)
     for lock in report.get('assignment_locks') or []:
         if not lock['passed']:add('assignment_lock',[a for a in rows if a['activity_id']==lock['activity_id'] and a['occurrence']==lock['occurrence']],rule_ids=[lock['lock_id']])
+    if rs.approved(snapshot, 'lecture_before_tutorial'):
+        by_activity = {}
+        for row in rows:
+            by_activity.setdefault(row['activity_id'], []).append(row)
+        for lecture, tutorial in rs.lecture_tutorial_pairs(activities):
+            for a in by_activity.get(lecture, []):
+                for b in by_activity.get(tutorial, []):
+                    if a['day'] in cal['days'] and b['day'] in cal['days'] and (cal['days'].index(a['day']), a['end_minute']) > (cal['days'].index(b['day']), b['start_minute']):
+                        add('approved_lecture_before_tutorial', [a, b], rule_ids=[r.get('id') for r in rules if r['type'] == 'lecture_before_tutorial'], message='A course lecture finishes after its tutorial starts.')
+    for a in rows:
+        for windows in rs.teaching_window_sets(snapshot, records.get(a['activity_id'], {}), 'teaching_allowed'):
+            if not rs.within_windows(windows, a['day'], a['start_minute'], a['end_minute']):
+                add('approved_teaching_windows', [a], rule_ids=[rule.get('id') for rule in windows])
     for code in report['errors']:
         if not any(v['code']==code for v in violations):add(code,message='Validation failed; see saved input and check coverage.')
     for code in ('approved_daily_limits','approved_teaching_days','approved_separate_days'):
@@ -76,11 +89,11 @@ def details(snapshot, rows, report):
         elif check=='resource_conflicts':applicable=len(rows)*(len(rows)-1)//2;basis='assignment pairs; exact room/instructor/group IDs, half-open time intervals'
         elif check=='configured_weekly_workload':applicable=sum(w['configured'] for w in report.get('workload') or []);basis='instructors with 12-hour standard load and extra-time accounting' if cal.get('weekly_load_policy',{}).get('allow_overtime') else 'instructors with configured weekly maxima'
         elif check=='approved_assignment_locks':applicable=len(report.get('assignment_locks') or []);basis='approved locks'
-        elif check in ('approved_room_rules','approved_daily_limits','approved_teaching_days','approved_separate_days'):
-            types={'approved_room_rules':{'activity_room'},'approved_daily_limits':{'instructor_max_daily_hours','group_max_daily_hours'},'approved_teaching_days':{'instructor_max_days'},'approved_separate_days':{'activities_not_same_day'}}[check]
+        elif check in ('approved_room_rules','approved_daily_limits','approved_teaching_days','approved_separate_days','approved_lecture_before_tutorial'):
+            types={'approved_room_rules':{'activity_room'},'approved_daily_limits':{'instructor_max_daily_hours','group_max_daily_hours'},'approved_teaching_days':{'instructor_max_days'},'approved_separate_days':{'activities_not_same_day'},'approved_lecture_before_tutorial':{'lecture_before_tutorial'}}[check]
             applicable=sum(r['type'] in types for r in rules);basis='approved rules'
-        elif check in ('approved_unavailability','approved_room_unavailability','approved_group_unavailability','approved_allowed_windows'):
-            types={'approved_unavailability':{'unavailable'},'approved_room_unavailability':{'room_unavailable'},'approved_group_unavailability':{'group_unavailable'},'approved_allowed_windows':{'activity_allowed','group_allowed'}}[check]
+        elif check in ('approved_unavailability','approved_room_unavailability','approved_group_unavailability','approved_allowed_windows','approved_teaching_windows'):
+            types={'approved_unavailability':{'unavailable'},'approved_room_unavailability':{'room_unavailable'},'approved_group_unavailability':{'group_unavailable'},'approved_allowed_windows':{'activity_allowed','group_allowed'},'approved_teaching_windows':{'teaching_allowed'}}[check]
             applicable=sum(r['type'] in types for r in rules);basis='approved rules'
         elif check.startswith('configured_') or check=='activity_day_distribution':applicable=len(realism.get('daily_resources',[])) if check!='activity_day_distribution' else len(activities);basis='observed resource-days' if check!='activity_day_distribution' else 'activities'
         failure=bool(set(report['errors'])&aliases.get(check,{check}))
@@ -93,10 +106,10 @@ def details(snapshot, rows, report):
 def preference_penalty(snapshot, rows):
     """Recalculate one penalty per session outside its instructor's union of windows."""
     count=0;observed=[]
+    activities = {r['id']: r for r in snapshot['records'] if r['kind'] == 'courses'}
     for a in rows:
-        windows=[r for r in snapshot['rules'] if r['status']=='approved' and r['type']=='preferred_period' and r.get('instructor_id')==a['instructor_id']]
-        if not windows:continue
-        satisfied=rs.within_windows(windows,a['day'],a['start_minute'],a['end_minute'])
-        count+=not satisfied
-        observed.append(dict(activity_id=a['activity_id'],occurrence=a['occurrence'],rule_ids=[r.get('id','legacy-rule') for r in windows],penalty=0 if satisfied else 1))
-    return dict(definition='one-per-session-outside-instructor-window-union-v1',total=count,sessions=observed)
+        for windows in rs.preference_sets(snapshot, activities.get(a['activity_id'], {}), a['instructor_id']):
+            satisfied=rs.within_windows(windows,a['day'],a['start_minute'],a['end_minute'])
+            count+=not satisfied
+            observed.append(dict(activity_id=a['activity_id'],occurrence=a['occurrence'],rule_ids=[r.get('id','legacy-rule') for r in windows],penalty=0 if satisfied else 1))
+    return dict(definition='one-per-session-outside-applicable-window-family-v2' if rs.approved(snapshot, 'teaching_preferred') else 'one-per-session-outside-instructor-window-union-v1',total=count,sessions=observed)

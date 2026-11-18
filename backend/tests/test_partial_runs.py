@@ -166,3 +166,188 @@ def test_preflight_blocks_more_teaching_than_the_rooms_hold():
     codes = [b["code"] for b in inspect_inputs(snapshot)["blockers"]]
     assert "room_week_capacity" in codes
     assert "room_week_capacity" not in [b["code"] for b in inspect_inputs(campus())["blockers"]]
+
+
+def test_a_part_can_be_published_into_the_published_timetable(environment):
+    client, factory = environment
+    login(client); setup_data(client, factory)
+    records = client.get('/api/workspace').json()['records']
+    group = next(r for r in records if r['kind'] == 'groups')
+    assert client.put(f"/api/records/groups/{group['id']}", headers=version(client), json={'name': 'G', 'code': 'G', 'size': 20, 'major': 'A', 'year': 1}).status_code == 200
+    client.post('/api/records/groups', headers=version(client), json={'name': 'H', 'code': 'H', 'size': 20, 'major': 'B', 'year': 1}).raise_for_status()
+    other = next(r for r in client.get('/api/workspace').json()['records'] if r['kind'] == 'groups' and r['code'] == 'H')
+    assert client.post('/api/records/courses', headers=version(client), json={"name": "Other", "code": "O", "activity_type": "lecture", "sessions": 1, "duration": 60, "eligible_instructors": ["teacher"], "group_ids": [other['id']]}).status_code == 201
+    full = client.post('/api/schedules', headers=version(client), json={'request_key': str(uuid4())})
+    assert process_one(factory)
+    full = client.get(f"/api/schedules/{full.json()['id']}").json()
+    merge = lambda ident: client.post(f'/api/schedules/{ident}/publish-merged', headers=version(client), json={'request_key': str(uuid4())})
+    part = scoped(client, ['B'])
+    assert process_one(factory)
+    part = client.get(f"/api/schedules/{part.json()['id']}").json()
+    assert part['status'] == 'completed', part['result']
+    assert merge(part['id']).json()['detail'] == 'nothing_published'
+    assert client.post(f"/api/schedules/{full['id']}/publish", headers=version(client)).status_code == 200
+    assert merge(full['id']).json()['detail'] == 'not_a_part'
+    # Made without the published week, this part clashes with it: refused, with the clash named.
+    clash = merge(part['id'])
+    if clash.status_code == 409:
+        assert clash.json()['detail']['code'] == 'merge_validation_failed' and 'resource_conflicts' in clash.json()['detail']['errors']
+    # Re-planned inside the published timetable, B's course is placed around everyone else: complete, and published directly.
+    again = client.post('/api/schedules', headers=version(client), json={'request_key': str(uuid4()), 'scope': [{'programme': 'B', 'year': 1}],
+                                                                         'base_run_id': full['id'], 'replace': True})
+    assert again.status_code == 202, again.text
+    assert process_one(factory)
+    again = client.get(f"/api/schedules/{again.json()['id']}").json()
+    assert again['status'] == 'completed' and again['progress']['complete'], again['result']
+    o = next(r['id'] for r in client.get('/api/workspace').json()['records'] if r['kind'] == 'courses' and r['code'] == 'O')
+    kept = [a for a in full['result']['assignments'] if a['activity_id'] != o]
+    assert [a for a in again['result']['assignments'] if a['activity_id'] != o] == kept  # everyone else untouched
+    # Merging it works too (same result); publishing it directly also works.
+    done = merge(again['id'])
+    assert done.status_code == 201, done.text
+    merged = client.get(f"/api/schedules/{done.json()['id']}").json()
+    assert merged['published_at'] and merged['result']['validation']['passed'] and merged['result']['merge']['part_run_id'] == again['id']
+    assert client.get(f"/api/schedules/{full['id']}").json()['published_at'] is None  # replaced by the merged version
+    assert client.post(f"/api/schedules/{again['id']}/publish", headers=version(client)).status_code == 200
+
+
+def test_a_group_replanned_after_new_data_still_makes_a_whole_publishable_timetable(environment):
+    client, factory = environment
+    login(client); setup_data(client, factory)
+    records = client.get('/api/workspace').json()['records']
+    group = next(r for r in records if r['kind'] == 'groups')
+    assert client.put(f"/api/records/groups/{group['id']}", headers=version(client), json={'name': 'G', 'code': 'G', 'size': 20, 'major': 'A', 'year': 1}).status_code == 200
+    full = client.post('/api/schedules', headers=version(client), json={'request_key': str(uuid4())})
+    assert process_one(factory)
+    full = full.json()['id']
+    assert client.post(f"/api/schedules/{full}/publish", headers=version(client)).status_code == 200
+    # Added after publishing: a new group with its own course (like ACSI2-G20 and its labs).
+    client.post('/api/records/groups', headers=version(client), json={'name': 'H', 'code': 'H', 'size': 20, 'major': 'B', 'year': 1}).raise_for_status()
+    other = next(r for r in client.get('/api/workspace').json()['records'] if r['kind'] == 'groups' and r['code'] == 'H')
+    assert client.post('/api/records/courses', headers=version(client), json={"name": "New", "code": "NEW", "activity_type": "lecture", "sessions": 1, "duration": 60,
+                                                                               "eligible_instructors": ["teacher"], "group_ids": [other['id']]}).status_code == 201
+    # Re-planning group A inside the published timetable places the new course too.
+    again = client.post('/api/schedules', headers=version(client), json={'request_key': str(uuid4()), 'scope': [{'programme': 'A', 'year': 1}], 'base_run_id': full, 'replace': True})
+    assert again.status_code == 202, again.text
+    assert process_one(factory)
+    again = client.get(f"/api/schedules/{again.json()['id']}").json()
+    new = next(r['id'] for r in client.get('/api/workspace').json()['records'] if r['kind'] == 'courses' and r['code'] == 'NEW')
+    assert again['status'] == 'completed' and again['progress']['complete'], again['result']
+    assert new in {a['activity_id'] for a in again['result']['assignments']}
+    assert client.post(f"/api/schedules/{again['id']}/publish", headers=version(client)).status_code == 200
+
+
+def test_one_request_builds_a_timetable_in_chained_parts(environment):
+    client, factory = environment
+    login(client); setup_data(client, factory)
+    records = client.get('/api/workspace').json()['records']
+    group = next(r for r in records if r['kind'] == 'groups')
+    assert client.put(f"/api/records/groups/{group['id']}", headers=version(client), json={'name': 'G', 'code': 'G', 'size': 20, 'major': 'A', 'year': 1}).status_code == 200
+    client.post('/api/records/groups', headers=version(client), json={'name': 'H', 'code': 'H', 'size': 20, 'major': 'B', 'year': 1}).raise_for_status()
+    other = next(r for r in client.get('/api/workspace').json()['records'] if r['kind'] == 'groups' and r['code'] == 'H')
+    assert client.post('/api/records/courses', headers=version(client), json={"name": "Other", "code": "O", "activity_type": "lecture", "sessions": 1, "duration": 60,
+                                                                               "eligible_instructors": ["teacher"], "group_ids": [other['id']]}).status_code == 201
+    first = client.post('/api/schedules', headers=version(client), json={'request_key': str(uuid4()), 'scope': [{'programme': 'A', 'year': 1}],
+                                                                         'then': [[{'programme': 'B', 'year': 1}]]}).json()
+    assert first['name'] == 'Whole university · part 1/2'
+    assert process_one(factory)
+    # No browser requests: the coordinator queues the next part on its own.
+    from app.chain_coordinator import advance
+    # Another finished draft created while no browser was watching must not hide the chain.
+    with factory.begin() as db:
+        from app.models import ScheduleRun
+        source = db.get(ScheduleRun, first['id'])
+        db.add(ScheduleRun(id=str(uuid4()), workspace_id=1, created_by='admin', input_version=source.input_version,
+                           request_key=str(uuid4()), status='completed', snapshot={k: v for k, v in source.snapshot.items() if k != 'chain'}, result=source.result))
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        attempts = list(pool.map(lambda _: advance(factory), range(2)))
+    assert sum(r is not None for r in attempts) == 1
+    second_id = next(r.id for r in attempts if r is not None)
+    assert advance(factory) is None  # another coordinator cannot queue a duplicate
+    runs = client.get('/api/schedules').json()
+    second = next(r for r in runs if r['id'] == second_id)
+    assert second['id'] == second_id
+    assert second['status'] == 'queued' and second['name'] == 'Whole university · part 2/2' and second['parent_run_id'] == first['id']
+    assert process_one(factory)
+    second = client.get(f"/api/schedules/{second['id']}").json()
+    assert second['status'] == 'completed' and second['progress']['complete'], second['result']
+    assert client.post(f"/api/schedules/{second['id']}/publish", headers=version(client)).status_code == 200
+    assert not process_one(factory)  # nothing more queued
+
+
+def test_a_chain_stops_and_says_why_when_the_data_changed_during_the_build(environment):
+    client, factory = environment
+    login(client); setup_data(client, factory)
+    records = client.get('/api/workspace').json()['records']
+    group = next(r for r in records if r['kind'] == 'groups')
+    assert client.put(f"/api/records/groups/{group['id']}", headers=version(client), json={'name': 'G', 'code': 'G', 'size': 20, 'major': 'A', 'year': 1}).status_code == 200
+    client.post('/api/records/groups', headers=version(client), json={'name': 'H', 'code': 'H', 'size': 20, 'major': 'B', 'year': 1}).raise_for_status()
+    first = client.post('/api/schedules', headers=version(client), json={'request_key': str(uuid4()), 'scope': [{'programme': 'A', 'year': 1}],
+                                                                         'then': [[{'programme': 'B', 'year': 1}]]}).json()
+    assert process_one(factory)
+    client.post('/api/records/groups', headers=version(client), json={'name': 'K', 'code': 'K', 'size': 20, 'major': 'B', 'year': 1}).raise_for_status()
+    runs = client.get('/api/schedules').json()
+    assert [r['id'] for r in runs] == [first['id']]
+    assert runs[0]['result']['chain_stopped'] == 'stale_schedule'
+    answer = client.post('/api/assistant', headers=version(client), json={'text': 'status', 'previous': {}}).json()
+    assert 'stopped after part 1 of 2' in ' '.join(answer['text']) and answer['choices'][0]['text'] == 'generate the whole university timetable'
+
+
+def test_the_chat_publishes_the_timetable_it_generated_from_any_page(environment):
+    client, factory = environment
+    login(client); setup_data(client, factory)
+    hello = client.post('/api/assistant', headers=version(client), json={'text': 'generate the timetable'}).json()
+    run = client.post('/api/schedules', headers=version(client), json={'request_key': str(uuid4())}).json()
+    # The chat confirms it started this run: from now on "it" means this timetable.
+    client.post(f"/api/assistant/chats/{hello['chat_id']}/messages/{hello['message_id']}/done", headers=version(client),
+                json={'note': ['Started.'], 'subject_kind': 'schedules', 'subject_id': run['id']}).raise_for_status()
+    waiting = client.post('/api/assistant', headers=version(client), json={'text': 'publish the schedule', 'chat_id': hello['chat_id'], 'screen': {'page': 'dashboard'}}).json()
+    assert 'still being generated' in waiting['text'][0] and waiting['action']['run_id'] == run['id'] and waiting['show_run'] == run['id']
+    assert process_one(factory)
+    ready = client.post('/api/assistant', headers=version(client), json={'text': 'publish this schedule', 'chat_id': hello['chat_id'], 'screen': {'page': 'dashboard'}}).json()
+    assert ready['text'][0].startswith("Publish the timetable we've been talking about")
+    assert ready['action'] == {'type': 'publish', 'what': 'teaching', 'run_id': run['id'], 'label': 'Publish'} and ready['show_run'] == run['id']
+
+
+def test_an_older_chat_still_knows_the_timetable_it_generated(environment):
+    client, factory = environment
+    login(client); setup_data(client, factory)
+    hello = client.post('/api/assistant', headers=version(client), json={'text': 'generate the whole university timetable'}).json()
+    run = client.post('/api/schedules', headers=version(client), json={'request_key': str(uuid4())}).json()
+    assert (hello['action'] or {}).get('type') == 'generate', hello['text']
+    # Confirmed before chats remembered their timetable: no subject was sent.
+    client.post(f"/api/assistant/chats/{hello['chat_id']}/messages/{hello['message_id']}/done", headers=version(client), json={'note': ['Started.']}).raise_for_status()
+    assert process_one(factory)
+    shown = client.post('/api/assistant', headers=version(client), json={'text': 'show the draft', 'chat_id': hello['chat_id'], 'screen': {'page': 'dashboard'}}).json()
+    assert shown['text'][0].startswith('The timetable we generated in this chat:') and shown['action']['run_id'] == run['id'] and shown['auto_open']
+
+
+def test_one_groups_week_from_a_whole_draft_is_published_into_the_published_timetable(environment):
+    client, factory = environment
+    login(client); setup_data(client, factory)
+    records = client.get('/api/workspace').json()['records']
+    group = next(r for r in records if r['kind'] == 'groups')
+    assert client.put(f"/api/records/groups/{group['id']}", headers=version(client), json={'name': 'G', 'code': 'G', 'size': 20, 'major': 'A', 'year': 1}).status_code == 200
+    full = client.post('/api/schedules', headers=version(client), json={'request_key': str(uuid4())}).json()['id']
+    assert process_one(factory)
+    assert client.post(f"/api/schedules/{full}/publish", headers=version(client)).status_code == 200
+    published = client.get(f"/api/schedules/{full}").json()['result']['assignments']
+    # Added after publishing: a group with its own course.
+    client.post('/api/records/groups', headers=version(client), json={'name': 'H', 'code': 'H', 'size': 20, 'major': 'B', 'year': 1}).raise_for_status()
+    other = next(r for r in client.get('/api/workspace').json()['records'] if r['kind'] == 'groups' and r['code'] == 'H')
+    assert client.post('/api/records/courses', headers=version(client), json={"name": "New", "code": "NEW", "activity_type": "lecture", "sessions": 1, "duration": 60,
+                                                                               "eligible_instructors": ["teacher"], "group_ids": [other['id']]}).status_code == 201
+    draft = client.post('/api/schedules', headers=version(client), json={'request_key': str(uuid4())}).json()['id']
+    assert process_one(factory)
+    # JAI, asked to publish H's week only, offers that and says nothing else changes.
+    answer = client.post('/api/assistant', headers=version(client), json={'text': "publish this group's schedule", 'previous': {}, 'screen': {'page': 'timetable', 'run_id': draft, 'group': other['id']}}).json()
+    assert answer['action'] == {'type': 'publish_merged', 'run_id': draft, 'groups': [other['id']], 'label': 'Publish H'}, answer['text']
+    assert answer['text'][0].startswith("Publish H's week (1 sessions) from this draft into the published timetable?")
+    merged = client.post(f"/api/schedules/{draft}/publish-merged", headers=version(client), json={'request_key': str(uuid4()), 'groups': [other['id']]})
+    assert merged.status_code == 201, merged.text
+    now = client.get(f"/api/schedules/{merged.json()['id']}").json()
+    assert now['published_at'] and now['result']['merge']['scope'] == [{'group': other['id']}]
+    kept = {(a['activity_id'], a['occurrence']): (a['day'], a['start_minute']) for a in published}
+    assert all((a['day'], a['start_minute']) == kept[(a['activity_id'], a['occurrence'])] for a in now['result']['assignments'] if (a['activity_id'], a['occurrence']) in kept)
+    assert len(now['result']['assignments']) == len(published) + 1

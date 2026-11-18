@@ -17,7 +17,7 @@ def test_configuration_disabled_and_permissions(environment,monkeypatch):
     client,_=environment;monkeypatch.delenv('JADWAI_AI_ENABLED',raising=False);monkeypatch.delenv('JADWAI_AI_PROVIDER',raising=False)
     assert client.get('/api/model-calls/configuration').status_code==401
     login(client)
-    assert client.get('/api/model-calls/configuration').json()=={'model':'gpt-5.4-mini','provider':'openai','enabled':False,'prompt_version':'jai-rules-v2'}
+    assert client.get('/api/model-calls/configuration').json()=={'model':'gpt-5.4-mini','provider':'openai','enabled':False,'prompt_version':'jai-rules-v4'}
     assert client.post('/api/model-calls',json={'request_key':str(uuid4()),'text':'test'},headers=version(client)).status_code==503
     client.post('/api/auth/logout');login(client,'viewer@example.test')
     assert client.get('/api/model-calls/configuration').status_code==403

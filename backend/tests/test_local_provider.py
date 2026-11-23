@@ -28,7 +28,12 @@ def test_same_instructions_and_schema_sent_to_the_local_model():
         assert str(req.url) == 'http://127.0.0.1:11434/api/chat'
         body = json.loads(req.content)
         assert body['model'] == 'qwen2.5:7b-instruct' and body['stream'] is False
-        assert body['format'] == output_schema() and body['options']['temperature'] == 0
+        from app.local_provider import local_schema
+        assert body['format'] == local_schema() and body['options']['temperature'] == 0
+        # same fields as the production schema; proposals first, decision last, short codes
+        assert set(body['format']['properties']) == set(output_schema()['properties'])
+        assert list(body['format']['properties'])[0] == 'proposals' and list(body['format']['properties'])[-1] == 'decision'
+        assert body['format']['properties']['clarifications']['items']['pattern'] == '^[a-z][a-z0-9_]{2,59}$'
         assert body['messages'][0] == {'role': 'system', 'content': INSTRUCTIONS}
         user = json.loads(body['messages'][1]['content'])
         assert user['requirement'] == 'مش عايز محاضرات السبت' and user['context']['calendar']['days'] == ['Saturday']

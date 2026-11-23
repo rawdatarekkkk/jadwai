@@ -53,6 +53,26 @@ def relevant_context(text, context):
             'note': f'Only the records this requirement mentions are listed (of {len(records)}). If a named record is not listed, ask a clarification.'}
 
 
+CODE = {'type': 'string', 'pattern': '^[a-z][a-z0-9_]{2,59}$'}
+
+
+def local_schema():
+    """The production proposal schema, reordered for a small local model. Ollama generates fields in
+    schema order, so with `decision` first the model committed to a decision before writing its
+    proposal, and it wrote prose explanations where short codes belong (every statement then came
+    back "unsupported"). Proposals come first and the decision last, and clarification and
+    unsupported items must be short snake_case codes. Validation is unchanged."""
+    schema = output_schema()
+    props = schema['properties']
+    order = ['proposals', 'clarifications', 'unsupported', 'decision']
+    assert set(order) == set(props)
+    schema['properties'] = {k: props[k] for k in order}
+    schema['required'] = order
+    for key in ('clarifications', 'unsupported'):
+        schema['properties'][key] = {**props[key], 'items': CODE}
+    return schema
+
+
 class LocalProvider:
     name = 'ollama'
 
@@ -107,7 +127,7 @@ class LocalProvider:
                 raise ValueError('Invalid local semantic frame') from None
 
         payload = {'model': self.model, 'stream': False, 'keep_alive': '30m',
-                   'format': output_schema(),  # Ollama constrains decoding to this JSON schema
+                   'format': local_schema(),  # Ollama constrains decoding to this JSON schema
                    'options': {'temperature': 0, 'seed': 42, 'num_ctx': 8192, 'num_predict': 1800},
                    'messages': [{'role': 'system', 'content': INSTRUCTIONS},
                                 {'role': 'user', 'content': json.dumps({'requirement': request.text, 'context': relevant_context(request.text, json.loads(request.context_json))}, ensure_ascii=False)}]}

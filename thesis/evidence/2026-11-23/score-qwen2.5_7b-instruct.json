@@ -1,0 +1,250 @@
+{
+ "model": "qwen2.5:7b-instruct",
+ "cases": 8,
+ "statuses": {
+  "candidate": 8
+ },
+ "result": {
+  "family_consistency": {
+   "family_count": 2,
+   "complete_valid_families": 0,
+   "consistent_families": 0,
+   "all_exact_families": 0,
+   "families": [
+    {
+     "family_id": "family-001",
+     "complete_valid": false,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-002",
+     "complete_valid": false,
+     "consistent": false,
+     "all_exact": false
+    }
+   ]
+  },
+  "stage": "raw",
+  "case_count": 8,
+  "received_predictions": 8,
+  "missing_predictions": 0,
+  "valid_outputs": 0,
+  "exact_cases": 0,
+  "end_to_end_accuracy": 0.0,
+  "decision_accuracy": 0.125,
+  "cases_with_unknown_entity_reference": 0,
+  "metrics": {
+   "proposals": {
+    "true_positive": 1,
+    "predicted": 12,
+    "expected": 8,
+    "precision": 0.08333333333333333,
+    "recall": 0.125,
+    "f1": 0.1
+   },
+   "fields": {
+    "true_positive": 6,
+    "predicted": 6,
+    "expected": 48,
+    "precision": 1.0,
+    "recall": 0.125,
+    "f1": 0.2222222222222222
+   },
+   "clarifications": {
+    "true_positive": 0,
+    "predicted": 0,
+    "expected": 0,
+    "precision": null,
+    "recall": null,
+    "f1": null
+   },
+   "unsupported": {
+    "true_positive": 0,
+    "predicted": 0,
+    "expected": 0,
+    "precision": null,
+    "recall": null,
+    "f1": null
+   }
+  },
+  "by_language": {
+   "en": {
+    "cases": 2,
+    "exact": 0,
+    "end_to_end_accuracy": 0.0
+   },
+   "ar": {
+    "cases": 2,
+    "exact": 0,
+    "end_to_end_accuracy": 0.0
+   },
+   "arz": {
+    "cases": 2,
+    "exact": 0,
+    "end_to_end_accuracy": 0.0
+   },
+   "mixed": {
+    "cases": 2,
+    "exact": 0,
+    "end_to_end_accuracy": 0.0
+   }
+  },
+  "telemetry": {
+   "latency_ms": {
+    "observed_cases": 8,
+    "missing_cases": 0,
+    "sum": 1309973,
+    "mean": 163746.625
+   },
+   "cost_usd": {
+    "observed_cases": 8,
+    "missing_cases": 0,
+    "sum": 0,
+    "mean": 0.0
+   },
+   "attempts": {
+    "observed_cases": 8,
+    "missing_cases": 0,
+    "sum": 8,
+    "mean": 1.0
+   },
+   "input_tokens": {
+    "observed_cases": 8,
+    "missing_cases": 0,
+    "sum": 19895,
+    "mean": 2486.875
+   },
+   "output_tokens": {
+    "observed_cases": 8,
+    "missing_cases": 0,
+    "sum": 4154,
+    "mean": 519.25
+   }
+  },
+  "cases": [
+   {
+    "id": "jdw-001-en",
+    "language": "en",
+    "family_id": "family-001",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "decision_consistency"
+    ],
+    "exact": false,
+    "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
+    "observed_sha256": "4afa6087fdffa552b30026b40bbd237d8df04ed6594a5743c370ae734dcaa9a3"
+   },
+   {
+    "id": "jdw-001-ar",
+    "language": "ar",
+    "family_id": "family-001",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "unsupported_rule_type",
+     "decision_consistency"
+    ],
+    "exact": false,
+    "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
+    "observed_sha256": "0d2eec24c8a56a9ba8c4b903884423742045c732c5e4c63c33a49e7ca2c41037"
+   },
+   {
+    "id": "jdw-001-arz",
+    "language": "arz",
+    "family_id": "family-001",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "outside_calendar",
+     "decision_consistency"
+    ],
+    "exact": false,
+    "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
+    "observed_sha256": "ffcd1fd028d5e510c2f53be2bcbb083475410b0c47fdf5d11a3ce638b659e6f6"
+   },
+   {
+    "id": "jdw-001-mixed",
+    "language": "mixed",
+    "family_id": "family-001",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "rule_fields",
+     "decision_consistency"
+    ],
+    "exact": false,
+    "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
+    "observed_sha256": "bd3e89faf279e682d0f4b643e368f8475e0a8958f277794bb8063fdf262d9dce"
+   },
+   {
+    "id": "jdw-002-en",
+    "language": "en",
+    "family_id": "family-002",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "unsupported_rule_type",
+     "unsupported_rule_type",
+     "unsupported_rule_type",
+     "unsupported_rule_type",
+     "unsupported_rule_type"
+    ],
+    "exact": false,
+    "expected_sha256": "44da066755ad24ad00e704341b9a9dbfcef18f0a73f9f978bcbdec9425ce65f8",
+    "observed_sha256": "e7ef4bfee02a1d34ad1553a818aa71d8440b5c2fd0835db99ee51dd394a609fa"
+   },
+   {
+    "id": "jdw-002-ar",
+    "language": "ar",
+    "family_id": "family-002",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "unsupported_rule_type",
+     "decision_consistency"
+    ],
+    "exact": false,
+    "expected_sha256": "44da066755ad24ad00e704341b9a9dbfcef18f0a73f9f978bcbdec9425ce65f8",
+    "observed_sha256": "099b24fc5e546fb431982192ea7af687a795a59d466898e305e3e85584895df3"
+   },
+   {
+    "id": "jdw-002-arz",
+    "language": "arz",
+    "family_id": "family-002",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "unsupported_rule_type",
+     "decision_consistency"
+    ],
+    "exact": false,
+    "expected_sha256": "44da066755ad24ad00e704341b9a9dbfcef18f0a73f9f978bcbdec9425ce65f8",
+    "observed_sha256": "af51dc0429af50f3038c3fb11137e1f50229b3df31cc8a1eb75ab6116c590e63"
+   },
+   {
+    "id": "jdw-002-mixed",
+    "language": "mixed",
+    "family_id": "family-002",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "rule_fields",
+     "decision_consistency"
+    ],
+    "exact": false,
+    "expected_sha256": "44da066755ad24ad00e704341b9a9dbfcef18f0a73f9f978bcbdec9425ce65f8",
+    "observed_sha256": "dd405a071cdef965891586459ea6addbd64b0f3f39a4a92df8e4f74f2d77031a"
+   }
+  ],
+  "definitions": {
+   "exact": "Decision, complete proposal multiset (titles ignored), clarification codes and unsupported codes must all match. Invalid or missing output fails the case.",
+   "fields": "Conditional diagnostic over individually schema-valid proposals. Micro bag-of-fields diagnostic; it can miss cross-proposal field association errors. Strict proposal and full-case metrics preserve associations.",
+   "proposal_precision": "Every attempted invalid proposal is a false positive; missing or invalid full envelopes still fail end-to-end. Valid proposals can be evaluated separately from envelope errors.",
+   "consistency": "Translations of a family must all yield the same valid semantic output; consistency alone does not establish correctness.",
+   "telemetry": "Only supplied measured values are summarised. Missing cost/latency is unknown, not zero. Attempts includes the first request.",
+   "scope": "Scores against unreviewed synthetic draft labels are development diagnostics, not research findings. No provider is called by this tool."
+  }
+ }
+}

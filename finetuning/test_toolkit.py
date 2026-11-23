@@ -15,7 +15,7 @@ def test_families_and_prompts_do_not_cross_splits():
  train={r['family'] for r in rows if r['split']=='train'}
  test={r['family'] for r in rows if r['split']=='test'}
  assert train and test and not train.intersection(test)
- assert len(rows)==315
+ assert len(rows)==402
  assert all('fictional draft' in r['provenance'] for r in rows)
 
 
@@ -86,11 +86,21 @@ def test_conversation_prompts_match_the_production_chat_exactly():
 
 
 def test_conversation_replies_are_grounded_and_in_the_users_language():
+ from conversations import FAMILIES
+ actions={f['name']:f.get('operation','') for f in FAMILIES}
  rows=[r for r in toolkit.load() if r['task']=='conversation']
- assert len(rows)==216 and {r['language'] for r in rows}=={'en','ar'}
+ assert len(rows)==303 and {r['language'] for r in rows}=={'en','ar'}
  for r in rows:
   checks=toolkit.reply_checks(r,r['target'])
-  assert r['target']['operation']=='' and checks['within_80_words'] and checks['language_match'] and not checks['exposes_internal'],r['id']
+  assert r['target']['operation']==actions[r['family']] and checks['within_80_words'] and checks['language_match'] and not checks['exposes_internal'],r['id']
+
+
+def test_exam_timetable_publish_uses_the_exam_route():
+ rows=[r for r in toolkit.load() if r['task']=='conversation' and r['target']['operation'].endswith('/publish')]
+ for r in rows:
+  facts=json.loads(r['messages'][-1]['content'])['facts']
+  exam=r['target']['operation']=='POST /api/exam-schedules/{ident}/publish'
+  assert exam==(r['scenario']!='week') and (facts['exam_run'] is not None)==exam,r['id']
 
 
 def test_blind_sheet_hides_which_model_wrote_each_reply(tmp_path):

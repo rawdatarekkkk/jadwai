@@ -149,6 +149,13 @@
       "rationale": ""
     },
     {
+      "family": "exam-already-published",
+      "family_sha256": "42d66adb874c1e469a0e1006f935f94040bef32fb10da27cc00b53cf85028e85",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
       "family": "exam-date-clarification",
       "family_sha256": "a2ee938f04ae46eb8796abee77a0784fe088cce18776ad8fe205351ce198febb",
       "reviewer": "",
@@ -177,6 +184,20 @@
       "rationale": ""
     },
     {
+      "family": "exam-publish-after-pdf",
+      "family_sha256": "8d21fbcb456c2a455a3a0099320bb9d73e44c4d3040db1cb6fadb4a31af2c4fd",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "exam-publish-after-review",
+      "family_sha256": "acba6678a30012b545d3d237840e429970d389a990ed6ef351fd5f9c490b40b1",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
       "family": "exam-publish-arguments",
       "family_sha256": "b1ee3191e3af41a644dd52baea86a3525fee3ea5afd2e380e62cab9499c9a2dd",
       "reviewer": "",
@@ -186,6 +207,34 @@
     {
       "family": "exam-publish-context",
       "family_sha256": "7d11d8b40c89ba640f087f29d3bfdbd7bcd7528d2f494bd79ba545ae8c154f80",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "exam-publish-formal",
+      "family_sha256": "135fd86495822f3ab4711078be3d1cb99b64bc8feeb50b04ed7be0863ab9d508",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "exam-publish-named",
+      "family_sha256": "eb83ab95ac3f600efc32d11d065268b846a00d927393b195e2ff044e50b518bb",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "exam-publish-not-teaching",
+      "family_sha256": "a95e3b70a3f8124604aef1af2fbf2931b1c899725f0667c74f1074f862abe632",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "exam-publish-screen",
+      "family_sha256": "24767cdb83dd26603388d9bc9f220edc2cb71d6b54d28eb05222912e06f42f45",
       "reviewer": "",
       "approved": false,
       "rationale": ""
@@ -380,6 +429,48 @@
       "rationale": ""
     },
     {
+      "family": "offtopic-homework",
+      "family_sha256": "3c6de1e5cc1ca274934d5711f90a7877ca7eb746a8e90eff8f6e3e8681cc4b85",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "offtopic-joke",
+      "family_sha256": "487d1eff2859bcda807fec9e184338297319aac632cf712184189dd8917b17f9",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "offtopic-poem",
+      "family_sha256": "b2b3aaa4b73dcb9efe1c7cd4214e4447706e0732ba26d5d5d83c5bfc07f622fa",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "offtopic-story",
+      "family_sha256": "e5d7ba77bbe4c56c988b442003cff8d9ada481dd494eb3617df3262bcdc47e0f",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "offtopic-trivia",
+      "family_sha256": "cc512e0b89c54d7b0f0a9b42fadea9c46003bcf5166907608331d00487add07a",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "offtopic-weather",
+      "family_sha256": "830bce83ddcf66b8aa47aa1666a5fb2176bac85d89d59df82956d0e225c22aa0",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
       "family": "out-of-scope",
       "family_sha256": "dbae7590e17a1d4f2ac45394d69a0a4bdb61047de4bdd01374a76424e1b0c9b1",
       "reviewer": "",
@@ -452,6 +543,55 @@
     {
       "family": "room-unknown",
       "family_sha256": "54c6dc197920c6a1138a76da2c01a55c405952935264f7d934636346d5908da0",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "rooms-capacity-seats",
+      "family_sha256": "8abb457adfd6bd9d6848423e10d3ac99b0f1b049df7fa2c3584efc2a495a2466",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "rooms-data-science-lab",
+      "family_sha256": "2027ec9f4e4d28c16905b4037c6b2d269d4e1249eb6fc2a8e41b42249c487bf7",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "rooms-exam-hall",
+      "family_sha256": "343510820f1ab37ee18181a46fa8b346b8e09a7deefcf2a6048225372bd3672c",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "rooms-gpu-feature",
+      "family_sha256": "5de4a467ed0f2e253b7c83eedbc53e288b67b68e14e0b5f3c8218c4053d3597f",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "rooms-lab-in-classroom",
+      "family_sha256": "4c893fb159570f92cd2d33b3e64fade8ccabf3af830ceb89c7d64fd094be8104",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "rooms-new-gpu-lab",
+      "family_sha256": "04ae7b8f7f0907baa5bb96b25a10e6038ecb29634635a040bb4a2e4cae040a37",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "rooms-pin-activity",
+      "family_sha256": "cab026a1df7db25261a1640e2853ca95e33ff36a0b93b6ccd0f8979602991bf7",
       "reviewer": "",
       "approved": false,
       "rationale": ""
@@ -555,6 +695,41 @@
       "rationale": ""
     },
     {
+      "family": "switch-draft-to-roles",
+      "family_sha256": "95af2e4d9499d0e24728ec64431144f75fb42915f6c8fb8a0b58acaac3617767",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "switch-exam-to-rooms",
+      "family_sha256": "2f760a7accc07d5c9e07630006c27a353772856ea01c90500d1194034bee3027",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "switch-pending-to-doctors",
+      "family_sha256": "58ae0eebca664eced7a0bc550526ada186885221fd335086c172287380766541",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "switch-rule-to-notifications",
+      "family_sha256": "204b17b33489741e90f639d28cbd81d3f61b67a789e722cc465a64e3fdb399ea",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "switch-rule-to-portal",
+      "family_sha256": "ee6d716c8f2abb189b10283c3db8d2c3384befd7e9c275819e63538154ad6267",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
       "family": "ta-one-session",
       "family_sha256": "5bb4afc3270958f8c33dc98bfe8c7b73e2933f7e33d356ae1517320f3f2116a8",
       "reviewer": "",
@@ -564,6 +739,13 @@
     {
       "family": "ta-workload",
       "family_sha256": "6a2639a1b05a7ba19ef1f047a4a6d0b58ea720b76bc9a5883e83e0afbf1dadba",
+      "reviewer": "",
+      "approved": false,
+      "rationale": ""
+    },
+    {
+      "family": "teaching-publish-screen",
+      "family_sha256": "0644b92f0128da439d912ade4459bae006284a5ddbf227bb122314003c5f78b3",
       "reviewer": "",
       "approved": false,
       "rationale": ""

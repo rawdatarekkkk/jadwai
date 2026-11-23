@@ -105,7 +105,7 @@ def build():
    given=json.loads(messages[-1]['content'])['facts'].get('guide',[]);bodies={t:b for t,_,b in GUIDE}
    lacking=[t for t in GUIDE_TOPICS.get(fam['name'],[]) if bodies[t] not in given]
    if lacking:raise SystemExit(f"{fam['name']}: wording {text!r} lacks guide topics {lacking}")
-   row={'id':f"{fam['name']}-{i+1}",'family':fam['name'],'task':'conversation','split':'test' if fam.get('holdout') else 'train','provenance':'agent-authored fictional draft; not human-reviewed','language':'ar' if arabic else 'en','discussion':discussion,'scenario':fam['scenario'],'messages':messages,'schema':schema,'target':{'operation':'','reply':reply},'score_keys':['operation']}
+   row={'id':f"{fam['name']}-{i+1}",'family':fam['name'],'task':'conversation','split':'test' if fam.get('holdout') else 'train','provenance':'agent-authored fictional draft; not human-reviewed','language':'ar' if arabic else 'en','discussion':discussion,'scenario':fam['scenario'],'messages':messages,'schema':schema,'target':{'operation':fam.get('operation',''),'reply':reply},'score_keys':['operation']}
    row['sha256']=digest(row);rows.append(row)
  out=Path(__file__).parent/'data';out.mkdir(exist_ok=True)
  for split in ('train','test'):

@@ -11,7 +11,8 @@ import re
 GUIDE = (
     ('privacy', ('cloud', 'privacy', 'private', 'my data', 'chatgpt', 'openai', 'internet', 'stored', 'what model', 'which model', 'are you', 'برة', 'بره', 'كلاود', 'سحاب', 'بياناتي', 'خصوصي', 'شات جي بي تي'),
      'JAI runs on a language model hosted on this server. Conversations and records are not sent to a cloud model. Changes are saved only in the JadwAI database, and only after the user confirms them.'),
-    ('scope', ('poem', 'joke', 'story', 'song', 'weather', 'recipe', 'football', 'what can you do', 'can you help', 'how can you help', 'تساعدني', 'تقدر تعمل', 'تعمل إيه', 'شعر', 'قصيدة', 'نكتة', 'قصة', 'غنية', 'الطقس'),
+    ('scope', ('poem', 'joke', 'story', 'song', 'weather', 'recipe', 'football', 'what can you do', 'can you help', 'how can you help', 'تساعدني', 'تقدر تعمل', 'تعمل إيه', 'شعر', 'قصيدة', 'نكتة', 'قصة', 'غنية', 'الطقس',
+               'rain', 'capital of', 'world cup', 'homework', 'essay', 'equation', 'الجو هيبقى', 'كاس العالم', 'كأس العالم', 'عاصمة', 'واجب'),
      'JAI only helps with JadwAI: timetables, records, constraints, exams, publishing and accounts. For anything else it says it is outside what it can help with and offers to help with the timetable.'),
     ('confirming', ('confirm', 'save', 'saved', 'did you', 'propose', 'proposal', 'أؤكد', 'تأكيد', 'undo', 'cancel', 'اتحفظ', 'حفظت', 'أكد', 'اكد', 'الغي', 'إلغاء'),
      'JAI prepares one website change at a time. Nothing is saved until the user presses the confirm button or replies explicitly, such as "yes, do it"; "cancel" rejects it. The website re-checks permissions and the data version before saving, and refuses the change if someone else changed the data in between.'),

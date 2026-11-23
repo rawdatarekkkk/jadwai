@@ -1,15 +1,15 @@
 # JAI local fine-tuning preparation
 
 Status: two QLoRA runs trained on Colab and merged locally (`jai-candidate`, best so far; `jai-candidate-v2`,
-worse, see RESULTS.md). The data has since been rewritten so answers follow `facts.guide`; it needs review
-(`data/CHANGES-guide-rewrite.md`) before the next run. Not deployed: the app still uses qwen2.5:7b-instruct.
+worse, see RESULTS.md). A third run (`jai-candidate-v3`, data rewritten to follow `facts.guide`) followed. Round-4 data
+(`data/CHANGES-round4.md`) is approved and exported as `exports/reviewed-v4`, not yet trained. Not deployed: the app still uses qwen2.5:7b-instruct.
 Review approvals were a bulk owner approval.
 The running Ollama model and application configuration are unchanged.
 
 ## What this dataset is
 
-315 fictional, agent-authored draft examples in 97 families, English/Arabic/Egyptian Arabic.
-243 training rows and 72 held-out rows; all paraphrases from a family stay together.
+402 fictional, agent-authored draft examples in 123 families, English/Arabic/Egyptian Arabic.
+317 training rows and 85 held-out rows; all paraphrases from a family stay together.
 Tasks match four production model interfaces: operation selection, argument preparation,
 the small teaching semantic frame, and **conversation** (216 rows, 64 families in `conversations.py`).
 
@@ -61,7 +61,7 @@ invalidates its approval. Reviewing test labels does not permit putting them int
 
 ```sh
 backend/.venv/bin/python finetuning/toolkit.py export \
-  --reviews finetuning/reviews.local.json --output finetuning/exports/reviewed-v3
+  --reviews finetuning/reviews.local.json --output finetuning/exports/reviewed-v4
 ```
 
 Export requires approved training and test families. Only approved rows are exported.
@@ -89,7 +89,7 @@ families for tuning, and reserve test families for final comparison.
 ## Free GPU path (Google Colab or Kaggle) — recommended
 
 1. Review and export on the Mac (above), then zip the export:
-   `cd finetuning/exports && zip -r reviewed-v3.zip reviewed-v3`
+   `cd finetuning/exports && zip -r reviewed-v4.zip reviewed-v4`
 2. Open `finetuning/colab_train.ipynb` in Google Colab (File → Upload notebook) with a T4 GPU
    runtime, or in Kaggle with GPU and Internet enabled. Run every cell and upload the zip when asked.
    It uses Unsloth (QLoRA, 4-bit, 6144-token context, loss on JAI's final answer only),
@@ -140,7 +140,7 @@ python3.11 -m venv .training-venv
 .training-venv/bin/python finetuning/train.py --check
 .training-venv/bin/python finetuning/train.py \
   --base-model /local/models/Qwen2.5-7B-Instruct \
-  --dataset finetuning/exports/reviewed-v3 \
+  --dataset finetuning/exports/reviewed-v4 \
   --output finetuning/runs/jai-lora-v1 --epochs 2
 ```
 

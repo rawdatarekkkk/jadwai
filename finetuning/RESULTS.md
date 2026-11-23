@@ -181,4 +181,9 @@ Next training round, most valuable first:
    4 new families, 23 formal-Arabic wordings; the builder now checks guide coverage. Trained as v3 (above).
 2. More Arabic explanation examples (300–500 rows in total), new families rather than paraphrases.
 3. Polite-decline rows for off-topic requests (poems etc.) and more exam-timetable action rows.
+   Round 4 (2026-11-23), aimed at the v3 live-test failures: 26 new families / 87 rows (off-topic
+   declines, topic switches with history, Arabic room/lab explanations, exam-timetable publish actions;
+   4 held-out test families, one per failure). `switch-complaint-to-import` was dropped at review.
+   Bulk-approved by the owner after reading `data/CHANGES-round4.md` (not row by row) and **exported as
+   `exports/reviewed-v4`** (317 train / 85 test rows, 95 / 28 families, hashes verified). Not trained yet.
 4. Back to 2 epochs unless there is much more data; compare with the same evaluation and the blind rating.

@@ -81,6 +81,17 @@ def view(name):
                 'memory': {'exam_run': 'exam-mid1', 'schedule_focus': {'kind': 'exams', 'id': 'exam-mid1'}},
                 'exam_run': {'id': 'exam-mid1', 'status': 'completed', 'kind': 'midterm', 'published': False, 'stale': False, 'halls': True,
                              'name': 'Computing midterms', 'courses': 12, 'start_date': '2026-11-21', 'end_date': '2026-11-30'}}
+    # Round 4: exam timetables next to a teaching draft, so "publish it" must pick the exam route from the facts.
+    if name == 'exam-published':
+        exam = view('exam')
+        return {**exam, 'exam_run': {**exam['exam_run'], 'published': True}}
+    if name == 'exam-and-draft':  # exam timetable on screen, teaching Draft 3 also exists
+        week, exam = view('week'), view('exam')
+        return {**week, 'screen': exam['screen'], 'memory': exam['memory'], 'exam_run': exam['exam_run'],
+                'run': {**week['run'], 'on_screen': False}}
+    if name == 'draft-and-exam':  # teaching Draft 3 on screen, the exam timetable remembered from earlier
+        week, exam = view('week'), view('exam')
+        return {**week, 'memory': {**week['memory'], 'exam_run': 'exam-mid1'}, 'exam_run': exam['exam_run']}
     raise KeyError(name)
 
 
@@ -464,6 +475,149 @@ FAMILIES = [
                 'Whoever runs this server would know. Is there something in Draft 3 I can help with meanwhile?',
                 'مش متأكد. معنديش معلومة مؤكدة عن حد أقصى لعدد المستخدمين في نفس الوقت. '
                 'اللي مسؤول عن السيرفر ده هيعرف. فيه حاجة في Draft 3 أقدر أساعدك فيها؟')),
+
+    # ==== Round 4 (aimed at failures seen live in jai-candidate-v3) ====
+    # ---- Off-topic requests: decline in one sentence, say JAI only helps with JadwAI, offer a relevant next step ----
+    dict(name='offtopic-poem', scenario='exam',
+         variants=['can you write a short poem for students about their midterms?', 'compose a funny poem about exam stress', 'اكتبلي شعر عن الامتحانات'],
+         reply=('Sorry, writing poems is outside what I can help with; I only help with JadwAI. I can help with the exam timetable on your screen: '
+                'Computing midterms is ready but not published yet. Would you like to review it before publishing?',
+                'معلش، كتابة الشعر برة اللي أقدر أساعد فيه، أنا بساعد في JadwAI بس. أقدر أساعدك في جدول الامتحانات اللي قدامك: '
+                'Computing midterms جاهز بس لسه متنشرش. تحب نراجعه قبل النشر؟')),
+    dict(name='offtopic-joke', scenario='week',
+         variants=['tell me a joke', 'say something funny, a joke maybe?', 'قولي نكتة تضحكني'],
+         reply=('Jokes are outside what I can help with; I only help with JadwAI. If you like, I can walk you through Draft 3 for Applied Computing II G1, '
+                'for example its busiest day. Shall we look at it?',
+                'النكت برة اللي أقدر أساعد فيه، أنا بساعد في JadwAI بس. لو تحب، أقدر أوريك Draft 3 بتاع Applied Computing II G1، '
+                'زي أتقل يوم فيه. نبص عليه؟')),
+    dict(name='offtopic-weather', scenario='week',
+         variants=['will it rain in Cairo tomorrow?', "what's the weather like this weekend?", 'الجو هيبقى عامل إيه بكرة؟'],
+         reply=('I cannot check the weather; I only help with JadwAI. I can tell you which days Applied Computing II G1 has classes in Draft 3, '
+                'if that helps you plan the week. Would that help?',
+                'مقدرش أعرف حالة الجو، أنا بساعد في JadwAI بس. أقدر أقولك Applied Computing II G1 عنده حصص أنهي أيام في Draft 3، '
+                'لو ده هيساعدك تخطط للأسبوع. ده يفيدك؟')),
+    dict(name='offtopic-trivia', scenario='week',
+         variants=["what's the capital of Australia?", 'who won the World Cup in 2022?', 'مين كسب كاس العالم آخر مرة؟', 'ما هي عاصمة أستراليا؟'],
+         reply=('General knowledge questions are outside what I can help with; I only help with JadwAI: timetables, records, constraints, exams, publishing and accounts. '
+                'Is there something in Draft 3 you would like to check?',
+                'أسئلة المعلومات العامة برة اللي أقدر أساعد فيه، أنا بساعد في JadwAI بس: الجداول والبيانات والقيود والامتحانات والنشر والحسابات. '
+                'فيه حاجة في Draft 3 تحب نشوفها؟')),
+    dict(name='offtopic-homework', scenario='empty',
+         variants=['solve this equation for me: 2x + 3 = 11', 'can you write my essay on climate change?', 'حللي الواجب ده لو سمحت', 'هل يمكنك حل هذا الواجب؟'],
+         reply=('Homework and essays are outside what I can help with; I only help with JadwAI. Your workspace has no records yet, '
+                'so a good next step is setting up the semester. Would you like me to explain where to start?',
+                'الواجبات والمقالات برة اللي أقدر أساعد فيه، أنا بساعد في JadwAI بس. الـ workspace لسه مفيهوش بيانات، '
+                'فخطوة كويسة إنك تجهز الترم. تحب أشرحلك تبدأ منين؟')),
+
+    # ---- Topic switches: the history is about one thing, the new message about another; answer only the new message ----
+    dict(name='switch-rule-to-notifications', scenario='week',
+         history=[U('delete the rule that keeps labs off Thursdays'), A('I cannot find a rule about labs on Thursdays. Which rule do you mean? You can describe what it restricts.')],
+         history_ar=[U('امسح القيد اللي بيمنع المعامل يوم الخميس'), A('مش لاقي قيد عن المعامل يوم الخميس. تقصد أنهي قيد؟ ممكن توصفلي هو بيمنع إيه.')],
+         variants=['forget that. will students get an email or a notification when I publish?', 'never mind the rule; does JadwAI send SMS or email notifications?',
+                   'سيبك من القيد. الطلاب بيوصلهم إيميل أو إشعار لما أنشر؟'],
+         reply=('No. JadwAI has no email, SMS or push notifications. After you publish, people see their timetable in their own portal '
+                'and can download it as CSV, so you may want to tell them yourself.',
+                'لا. JadwAI مفيهوش إيميل ولا SMS ولا إشعارات. بعد النشر كل واحد بيشوف جدوله في البوابة بتاعته ويقدر ينزله CSV، فممكن تبلغهم إنت.')),
+    dict(name='switch-draft-to-roles', scenario='week', history=[U('which day is the busiest?'), A(BUSIEST_EN)], history_ar=[U('أنهي يوم أتقل؟'), A(BUSIEST_AR)],
+         variants=["ok, other thing: why can't my colleague change any records?", 'separate question, who has permission to edit data in JadwAI?',
+                   'حاجة تانية: زميلي مش قادر يعدل البيانات، ليه؟', 'سؤال آخر: من يملك صلاحية تعديل البيانات؟'],
+         reply=('Only administrators can change data. If your colleague has the viewer role, they can read but not change anything; that is intended. '
+                'An administrator can change their role on the accounts page. Should they be able to edit?',
+                'التعديل للأدمن بس. لو زميلك حسابه viewer، يقدر يشوف بس ميعدلش، وده مقصود. الأدمن يقدر يغير الـ role بتاعه من صفحة الحسابات. هو محتاج يعدل؟')),
+    dict(name='switch-exam-to-rooms', scenario='exam',
+         history=[U('why does the midterm draft still have back-to-back exam days?'),
+                  A('The planner avoids back-to-back exam days for a cohort, but with 12 courses between 21 and 30 November some may be unavoidable, and it reports when they are.')],
+         history_ar=[U('ليه لسه فيه امتحانات في أيام ورا بعض في الميدترم؟'),
+                     A('المخطط بيحاول يتجنب امتحانات في أيام ورا بعض لنفس الطلاب، بس مع 12 مادة بين 21 و30 نوفمبر ممكن بعضها ميتجنبش، وبيقولك لما ده يحصل.')],
+         variants=['unrelated: how many rooms do we have?', 'different topic, which rooms are in the system?', 'موضوع تاني: عندنا كام قاعة؟'],
+         reply=('There are four rooms: H12 and H5 for lectures, Classroom C3.201 for tutorials, and Computer Lab B5.101. Do you want details for one of them?',
+                'عندنا أربع قاعات: H12 وH5 للمحاضرات، وC3.201 للسكاشن، ومعمل B5.101. عايز تفاصيل قاعة معينة؟')),
+    dict(name='switch-pending-to-doctors', scenario='week', pending={'operation': 'PUT /api/records/{kind}/{ident}'},
+         history=[U('set C3.201 capacity to 40'), A('I prepared the change: room C3.201 capacity becomes 40. Please confirm to apply it.')],
+         history_ar=[U('خلي سعة C3.201 أربعين'), A('جهزت التعديل: سعة قاعة C3.201 هتبقى 40. أكد عشان يتنفذ.')],
+         variants=['hold on, what is the difference between a Doctor and a TA?', 'wait, who teaches tutorials, doctors or TAs?', 'استنى، إيه الفرق بين الدكتور والمعيد؟'],
+         reply=('Each instructor is either a Doctor or a TA. Doctors teach lectures; TAs teach tutorials and labs, and every TA must get at least one session. '
+                "A TA's load depends on which activities list them as eligible.",
+                'كل محاضر يا إما Doctor يا إما TA. الدكاترة بيدرسوا المحاضرات، والمعيدين بيدرسوا السكاشن والمعامل، ولازم كل معيد ياخد حصة واحدة على الأقل. '
+                'عبء المعيد بيعتمد على الأنشطة اللي هو مسموحله يديها.')),
+
+    # ---- Rooms, labs and room features in consistent Egyptian Arabic: قاعة/قاعات، معمل/معامل، مقاعد ----
+    dict(name='rooms-data-science-lab', scenario='empty',
+         variants=['how do I make a course use a Data Science Lab?', 'what does the Data Science Lab feature do?', 'إزاي أخلي مادة تتحط في Data Science Lab؟',
+                   'كيف أجعل المقرر يستخدم معمل Data Science Lab؟'],
+         reply=("Data Science Lab is a room feature. Give that feature to the rooms that have it, then list it as a required feature on the course's activity, such as its lab. "
+                'The solver then considers only rooms with every required feature, enough seats and a suitable type. Which activity needs it?',
+                'Data Science Lab دي ميزة بتتحط على القاعة. حط الميزة دي على المعامل اللي فيها فعلاً، وبعدين حددها كميزة مطلوبة في نشاط المادة، زي المعمل بتاعها. '
+                'الـ solver هيختار بس من القاعات اللي فيها كل المميزات المطلوبة ومقاعد كفاية ونوع مناسب. أنهي نشاط محتاجها؟')),
+    dict(name='rooms-gpu-feature', scenario='week',
+         variants=['what does the GPU feature on a room mean?', 'do any of our rooms have GPUs?', 'يعني إيه ميزة GPU في القاعة؟'],
+         reply=('GPU is an optional room feature. An activity that requires it is placed only in a room with that feature, enough seats and a suitable type. '
+                'None of the four rooms here lists GPU; Computer Lab B5.101 has only the Computer Lab feature. Do you want to add GPU to a room?',
+                'GPU ميزة اختيارية بتتحط على القاعة. النشاط اللي محتاجها بيتحط بس في قاعة فيها الميزة دي ومقاعد كفاية ونوع مناسب. '
+                'ولا قاعة من الأربعة هنا عليها GPU، ومعمل B5.101 عليه ميزة Computer Lab بس. تحب تضيف GPU لقاعة؟')),
+    dict(name='rooms-capacity-seats', scenario='week',
+         variants=['what happens if a group is bigger than the room capacity?', 'can a 120-student lecture use room H5?', 'لو الجروب أكبر من سعة القاعة إيه اللي بيحصل؟',
+                   'هل يمكن وضع محاضرة لـ 120 طالباً في القاعة H5؟'],
+         reply=('A room is considered only if it has enough seats for everyone attending. For example, H5 has 90 seats, so a lecture for 120 students cannot use it, '
+                'while H12, with 120 seats, can. Which session are you checking?',
+                'القاعة بتتاخد في الاعتبار بس لو فيها مقاعد كفاية لكل اللي حاضرين. مثلاً H5 فيها 90 مقعد، فمحاضرة لـ 120 طالب متنفعش فيها، '
+                'لكن H12 فيها 120 مقعد فتنفع. بتراجع أنهي حصة؟')),
+    dict(name='rooms-exam-hall', scenario='exam',
+         variants=['what does it mean when a room is marked Exam hall?', 'why are some rooms never used for exams?', 'يعني إيه القاعة متعلم عليها Exam hall؟'],
+         reply=('Exam hall marks the rooms that can host exams. Each exam gets enough Exam halls to seat its students, and each hall needs a free TA invigilator. '
+                'Rooms without that mark are not used for exams. Is an exam short of halls?',
+                'Exam hall علامة على القاعات اللي ينفع يتعمل فيها امتحانات. كل امتحان بياخد قاعات امتحانات مقاعدها تكفي طلابه، وكل قاعة محتاجة معيد مراقب فاضي. '
+                'القاعات اللي من غير العلامة دي مش بتستخدم في الامتحانات. فيه امتحان مش لاقي قاعات كفاية؟')),
+    dict(name='rooms-pin-activity', scenario='week',
+         variants=['how do I keep the Computer Programming lab in B5.101 every week?', 'can I fix the Discrete Mathematics lecture to room H12?',
+                   'عايز معمل Computer Programming يفضل دايماً في B5.101، أعمل إيه؟', 'كيف أثبت محاضرة Discrete Mathematics في القاعة H12؟'],
+         reply=('A rule can pin an activity to particular rooms, so the next drafts keep it there. Without one, equivalent rooms are interchangeable and the room may change between drafts. '
+                'The room still needs enough seats and a suitable type and features. Should it be pinned to that one room?',
+                'فيه rule يقدر يثبت النشاط في قاعات معينة، فالمسودات الجاية هتحطه فيها. من غيره، القاعات المتساوية بتتبدل والقاعة ممكن تتغير من مسودة للتانية. '
+                'والقاعة لازم يبقى فيها مقاعد كفاية ونوع ومميزات مناسبة. نثبته في القاعة دي بس؟')),
+    dict(name='rooms-lab-in-classroom', scenario='week',
+         variants=['the solver never puts the lab in a normal classroom, is that intended?', "the programming lab can't go in C3.201?", 'المعمل مش بيتحط في قاعة عادية، ده طبيعي؟',
+                   'هل من الطبيعي ألا يوضع المعمل في قاعة دراسية عادية؟'],
+         reply=('Yes, if the lab needs it. Only rooms with a suitable type, every required feature and enough seats are considered. C3.201 is a tutorial classroom with no features, '
+                'while B5.101 is a lab with the Computer Lab feature. Should this lab be allowed in ordinary classrooms?',
+                'أيوه، لو المعمل محتاج كده. بيتاخد في الاعتبار بس القاعات اللي نوعها مناسب وفيها كل المميزات المطلوبة ومقاعد كفاية. C3.201 قاعة سكاشن من غير مميزات، '
+                'لكن B5.101 معمل عليه ميزة Computer Lab. عايز المعمل ده ينفع يتحط في قاعات عادية؟')),
+
+    # ---- Exam-timetable actions: with an exam timetable in the facts, "publish it" is the exam publish route ----
+    dict(name='exam-publish-screen', scenario='exam', operation='POST /api/exam-schedules/{ident}/publish',
+         variants=['publish it now', 'go ahead and publish this', 'انشره', 'أرجو نشر هذا الجدول'],
+         reply=('Shall I publish Computing midterms, the exam timetable on your screen? Publishing re-validates it first.',
+                'أنشر Computing midterms، جدول الامتحانات اللي قدامك؟ النشر بيراجعه الأول.')),
+    dict(name='exam-publish-after-review', scenario='exam', operation='POST /api/exam-schedules/{ident}/publish',
+         history=[U('what should I check in the midterm draft?'),
+                  A('Check that every course appears, no cohort has two exams at once, every hall has an invigilator, and the dates fall inside 21 to 30 November. Computing midterms is not published yet.')],
+         history_ar=[U('أراجع إيه في مسودة الميدترم؟'),
+                     A('اتأكد إن كل المواد موجودة، ومفيش طلاب عندهم امتحانين في نفس الوقت، وكل قاعة ليها مراقب، والأيام جوه الفترة من 21 لـ 30 نوفمبر. Computing midterms لسه متنشرش.')],
+         variants=['looks fine, publish it', 'all good, go ahead and publish', 'تمام، انشره'],
+         reply=('Shall I publish Computing midterms now? Publishing re-validates it against the current approved inputs first.',
+                'أنشر Computing midterms دلوقتي؟ النشر بيراجعه الأول على المدخلات المعتمدة الحالية.')),
+    dict(name='exam-publish-after-pdf', scenario='exam', operation='POST /api/exam-schedules/{ident}/publish',
+         history=[U('download the midterm timetable as a PDF'), A('The confirmed website response returned the PDF for Computing midterms.')],
+         history_ar=[U('نزلي جدول الميدترم PDF'), A('الموقع رجع ملف PDF لـ Computing midterms.')],
+         variants=['checked the PDF, publish it', 'ok, now publish the exams', 'راجعت الـ PDF، انشره'],
+         reply=('Shall I publish the exam timetable Computing midterms? Publishing re-validates it first.',
+                'أنشر جدول الامتحانات Computing midterms؟ النشر بيراجعه الأول.')),
+    dict(name='exam-publish-not-teaching', scenario='exam-and-draft', operation='POST /api/exam-schedules/{ident}/publish',
+         variants=['publish this one', 'publish what is on my screen', 'انشر اللي قدامي'],
+         reply=('Shall I publish Computing midterms, the exam timetable on your screen? Draft 3, the teaching draft, is not affected.',
+                'أنشر Computing midterms، جدول الامتحانات اللي قدامك؟ Draft 3، مسودة التدريس، مش هتتأثر.')),
+    dict(name='exam-publish-named', scenario='draft-and-exam', operation='POST /api/exam-schedules/{ident}/publish',
+         variants=['publish the midterm exam timetable', 'publish the exams, not the teaching draft', 'انشر جدول الامتحانات مش جدول المحاضرات'],
+         reply=('Shall I publish Computing midterms, the exam timetable? Draft 3, the teaching timetable on your screen, stays unpublished.',
+                'أنشر Computing midterms، جدول الامتحانات؟ Draft 3، جدول التدريس اللي قدامك، هيفضل متنشرش.')),
+    dict(name='teaching-publish-screen', scenario='week', operation='POST /api/schedules/{ident}/publish',
+         variants=['publish this draft', 'ok, publish Draft 3', 'انشر المسودة دي'],
+         reply=('Shall I publish Draft 3, the teaching timetable on your screen? Publishing re-validates it first, and only one teaching timetable can be published at a time.',
+                'أنشر Draft 3، جدول التدريس اللي قدامك؟ النشر بيراجعه الأول، وجدول تدريس واحد بس ينفع يبقى منشور في نفس الوقت.')),
+    dict(name='exam-already-published', scenario='exam-published',
+         variants=['publish the exams', 'can you publish this?', 'انشر الامتحانات'],
+         reply=('Computing midterms is already published, and only one exam timetable can be published at a time. Is there a change you want to make first, or did you mean another timetable?',
+                'Computing midterms منشور خلاص، وجدول امتحانات واحد بس ينفع يبقى منشور في نفس الوقت. فيه تعديل عايز تعمله الأول، ولا تقصد جدول تاني؟')),
     dict(name='notifications', scenario='week',
          variants=['will students get an email when I publish?', 'does JadwAI send notifications to instructors?', 'الطلاب هيوصلهم إيميل لما أنشر؟', 'هل يرسل النظام إشعاراً للطلاب عند النشر؟'],
          reply=('No. JadwAI has no email, SMS or push notifications. After you publish, each person sees their timetable in their own portal '
@@ -476,6 +630,30 @@ FAMILIES = [
                 'atomically, every row or none, so exporting the data as CSV from that system is the safe route.',
                 'مش متأكد إن فيه ربط مباشر، مفيش حاجة عندي بتقول كده. اللي أعرفه إن صفحة الاستيراد بتستورد ملف CSV مرة واحدة، يا كل الصفوف يا ولا واحد، '
                 'فالأضمن إنك تصدر البيانات من السيستم ده كـ CSV.')),
+
+    # ---- Round 4 held-out test families: one per targeted failure ----
+    dict(name='offtopic-story', scenario='stale', holdout=True,
+         variants=['tell me a bedtime story', 'write a short story about a lost student', 'احكيلي قصة قبل النوم'],
+         reply=('Stories are outside what I can help with; I only help with JadwAI. Your published timetable, Fall teaching v2, is marked stale. '
+                'Would you like to know what that means?',
+                'القصص برة اللي أقدر أساعد فيه، أنا بساعد في JadwAI بس. الجدول المنشور Fall teaching v2 متعلم عليه إنه stale. تحب تعرف ده معناه إيه؟')),
+    dict(name='switch-rule-to-portal', scenario='week', holdout=True,
+         history=[U('add a mandatory rule: no tutorials at 8:30'), A('Before I prepare it: should it apply to every group, or just to Applied Computing II G1?')],
+         history_ar=[U('ضيف قيد إجباري: مفيش سكاشن الساعة 8:30'), A('قبل ما أجهزه: يتطبق على كل الجروبات، ولا على Applied Computing II G1 بس؟')],
+         variants=['wait, unrelated: what does a TA see in the portal?', 'different question, what do instructors see in their portal?', 'استنى، سؤال تاني: الطالب بيشوف إيه في البوابة؟'],
+         reply=('Each instructor sees only their own teaching, and TAs also see their invigilation duties; students see only their own published sessions and exams. '
+                'Each can download their own timetable as CSV. Nobody sees drafts or unpublished changes.',
+                'كل محاضر بيشوف تدريسه هو بس، والمعيد كمان بيشوف المراقبة بتاعته، والطالب بيشوف حصصه وامتحاناته المنشورة بس. '
+                'وكل واحد يقدر ينزل جدوله CSV. محدش بيشوف المسودات أو التعديلات اللي متنشرتش.')),
+    dict(name='rooms-new-gpu-lab', scenario='week', holdout=True,
+         variants=['we got a new lab with GPUs, how do I add it?', 'how should I set up a new GPU lab room?', 'جالنا معمل جديد فيه GPU، أضيفه إزاي؟', 'كيف أضيف معملاً جديداً مزوداً بـ GPU؟'],
+         reply=('Add it as a new room with its code, capacity, the lab type and the GPU feature. Activities that require GPU will then consider it, as long as it has enough seats. '
+                'What are its code and capacity?',
+                'ضيفه كقاعة جديدة بالكود والسعة ونوع معمل وميزة GPU. بعد كده الأنشطة اللي محتاجة GPU هتاخده في الاعتبار، طالما فيه مقاعد كفاية. إيه الكود والسعة بتوعه؟')),
+    dict(name='exam-publish-formal', scenario='exam-and-draft', holdout=True, operation='POST /api/exam-schedules/{ident}/publish',
+         variants=['please publish the exam schedule', 'يرجى نشر جدول الامتحانات', 'ممكن تنشر جدول الامتحانات؟'],
+         reply=('Shall I publish Computing midterms, the exam timetable? Publishing re-validates it first.',
+                'أنشر جدول الامتحانات Computing midterms؟ النشر بيراجعه الأول.')),
 ]
 
 
@@ -493,4 +671,13 @@ GUIDE_TOPICS = {
     'compare-drafts': ['convenience'], 'is-optimal': ['convenience'], 'move-shared': ['shared-lectures'], 'no-early-classes': ['constraints'],
     'days-vs-load': ['convenience'], 'ta-workload': ['instructors'], 'ta-one-session': ['instructors'], 'salma-unavailable': ['unavailability'],
     'room-closure': ['unavailability'], 'delete-used-room': ['deleting'], 'notifications': ['unknown-features'], 'not-sure-sis': ['import'],
+    # Round 4
+    'offtopic-poem': ['scope'], 'offtopic-joke': ['scope'], 'offtopic-weather': ['scope'], 'offtopic-trivia': ['scope'], 'offtopic-homework': ['scope'],
+    'offtopic-story': ['scope'], 'switch-rule-to-notifications': ['unknown-features'], 'switch-draft-to-roles': ['roles'],
+    'switch-exam-to-rooms': ['rooms'], 'switch-pending-to-doctors': ['instructors'], 'switch-rule-to-portal': ['portals'],
+    'rooms-data-science-lab': ['rooms'], 'rooms-gpu-feature': ['rooms'], 'rooms-capacity-seats': ['rooms'], 'rooms-exam-hall': ['exams'],
+    'rooms-pin-activity': ['rooms'], 'rooms-lab-in-classroom': ['rooms'], 'rooms-new-gpu-lab': ['rooms'],
+    'exam-publish-screen': ['publishing'], 'exam-publish-after-review': ['publishing'], 'exam-publish-after-pdf': ['publishing'],
+    'exam-publish-not-teaching': ['publishing'], 'exam-publish-named': ['publishing'], 'teaching-publish-screen': ['publishing'],
+    'exam-already-published': ['publishing'], 'exam-publish-formal': ['publishing'],
 }

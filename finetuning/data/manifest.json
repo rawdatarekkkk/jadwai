@@ -2,10 +2,10 @@
   "version": "jai-sft-draft-v2",
   "status": "synthetic engineering draft; human review pending",
   "source": "fictional examples authored for JAI; no live chat or reserved research data",
-  "rows": 315,
-  "families": 97,
+  "rows": 402,
+  "families": 123,
   "files": {
-    "train.jsonl": "0ba318d096c7538701fc5aa6725b3a7eb6121b8d29aefbf6092314b908acfb75",
-    "test.jsonl": "40c7054edec25e49e9076fa58d6a65f75cce43b84df043534d407c915f4dd558"
+    "train.jsonl": "73b3a9d3f8940afdaf1faa4b4b6d1cc5fe48dac6bcecf91fd1d75f01a56ae6ed",
+    "test.jsonl": "6f1374eb4fea43e7393bdf008fbc009e5895e115101c496cf5f32f33dbc9df3c"
   }
 }

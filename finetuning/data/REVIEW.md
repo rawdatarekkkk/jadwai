@@ -387,6 +387,21 @@ Split: train. Task: conversation.
 - **User:** ما الفرق بين الدكتور والمعيد في JadwAI؟
 - **JAI:** كل محاضر يا إما Doctor يا إما TA. الدكاترة بيدرسوا المحاضرات، والمعيدين بيدرسوا السكاشن والمعامل، ولازم كل معيد ياخد حصة واحدة على الأقل. عبء المعيد بيعتمد على الأنشطة اللي هو مسموحله يديها. فيه محاضر معين عايز تتأكد من دوره؟
 
+## exam-already-published
+Split: train. Task: conversation.
+
+### Wording 1 (en, exam-published facts, full context)
+- **User:** publish the exams
+- **JAI:** Computing midterms is already published, and only one exam timetable can be published at a time. Is there a change you want to make first, or did you mean another timetable?
+
+### Wording 2 (en, exam-published facts, full context)
+- **User:** can you publish this?
+- **JAI:** Computing midterms is already published, and only one exam timetable can be published at a time. Is there a change you want to make first, or did you mean another timetable?
+
+### Wording 3 (ar, exam-published facts, full context)
+- **User:** انشر الامتحانات
+- **JAI:** Computing midterms منشور خلاص، وجدول امتحانات واحد بس ينفع يبقى منشور في نفس الوقت. فيه تعديل عايز تعمله الأول، ولا تقصد جدول تاني؟
+
 ## exam-date-clarification
 Split: train. Task: selection.
 
@@ -458,6 +473,48 @@ Draft target:
 }
 ```
 
+## exam-publish-after-pdf
+Split: train. Task: conversation.
+
+### Wording 1 (en, exam facts, full context)
+> user: download the midterm timetable as a PDF
+> assistant: The confirmed website response returned the PDF for Computing midterms.
+- **User:** checked the PDF, publish it
+- **JAI:** Shall I publish the exam timetable Computing midterms? Publishing re-validates it first.
+
+### Wording 2 (en, exam facts, full context)
+> user: download the midterm timetable as a PDF
+> assistant: The confirmed website response returned the PDF for Computing midterms.
+- **User:** ok, now publish the exams
+- **JAI:** Shall I publish the exam timetable Computing midterms? Publishing re-validates it first.
+
+### Wording 3 (ar, exam facts, full context)
+> user: نزلي جدول الميدترم PDF
+> assistant: الموقع رجع ملف PDF لـ Computing midterms.
+- **User:** راجعت الـ PDF، انشره
+- **JAI:** أنشر جدول الامتحانات Computing midterms؟ النشر بيراجعه الأول.
+
+## exam-publish-after-review
+Split: train. Task: conversation.
+
+### Wording 1 (en, exam facts, full context)
+> user: what should I check in the midterm draft?
+> assistant: Check that every course appears, no cohort has two exams at once, every hall has an invigilator, and the dates fall inside 21 to 30 November. Computing midterms is not published yet.
+- **User:** looks fine, publish it
+- **JAI:** Shall I publish Computing midterms now? Publishing re-validates it against the current approved inputs first.
+
+### Wording 2 (en, exam facts, full context)
+> user: what should I check in the midterm draft?
+> assistant: Check that every course appears, no cohort has two exams at once, every hall has an invigilator, and the dates fall inside 21 to 30 November. Computing midterms is not published yet.
+- **User:** all good, go ahead and publish
+- **JAI:** Shall I publish Computing midterms now? Publishing re-validates it against the current approved inputs first.
+
+### Wording 3 (ar, exam facts, full context)
+> user: أراجع إيه في مسودة الميدترم؟
+> assistant: اتأكد إن كل المواد موجودة، ومفيش طلاب عندهم امتحانين في نفس الوقت، وكل قاعة ليها مراقب، والأيام جوه الفترة من 21 لـ 30 نوفمبر. Computing midterms لسه متنشرش.
+- **User:** تمام، انشره
+- **JAI:** أنشر Computing midterms دلوقتي؟ النشر بيراجعه الأول على المدخلات المعتمدة الحالية.
+
 ## exam-publish-arguments
 Split: test. Task: arguments.
 
@@ -494,6 +551,70 @@ Draft target:
   "reply": "Shall I publish this exam timetable?"
 }
 ```
+
+## exam-publish-formal
+Split: test. Task: conversation.
+
+### Wording 1 (en, exam-and-draft facts, full context)
+- **User:** please publish the exam schedule
+- **JAI:** Shall I publish Computing midterms, the exam timetable? Publishing re-validates it first.
+
+### Wording 2 (ar, exam-and-draft facts, full context)
+- **User:** يرجى نشر جدول الامتحانات
+- **JAI:** أنشر جدول الامتحانات Computing midterms؟ النشر بيراجعه الأول.
+
+### Wording 3 (ar, exam-and-draft facts, full context)
+- **User:** ممكن تنشر جدول الامتحانات؟
+- **JAI:** أنشر جدول الامتحانات Computing midterms؟ النشر بيراجعه الأول.
+
+## exam-publish-named
+Split: train. Task: conversation.
+
+### Wording 1 (en, draft-and-exam facts, full context)
+- **User:** publish the midterm exam timetable
+- **JAI:** Shall I publish Computing midterms, the exam timetable? Draft 3, the teaching timetable on your screen, stays unpublished.
+
+### Wording 2 (en, draft-and-exam facts, full context)
+- **User:** publish the exams, not the teaching draft
+- **JAI:** Shall I publish Computing midterms, the exam timetable? Draft 3, the teaching timetable on your screen, stays unpublished.
+
+### Wording 3 (ar, draft-and-exam facts, full context)
+- **User:** انشر جدول الامتحانات مش جدول المحاضرات
+- **JAI:** أنشر Computing midterms، جدول الامتحانات؟ Draft 3، جدول التدريس اللي قدامك، هيفضل متنشرش.
+
+## exam-publish-not-teaching
+Split: train. Task: conversation.
+
+### Wording 1 (en, exam-and-draft facts, full context)
+- **User:** publish this one
+- **JAI:** Shall I publish Computing midterms, the exam timetable on your screen? Draft 3, the teaching draft, is not affected.
+
+### Wording 2 (en, exam-and-draft facts, full context)
+- **User:** publish what is on my screen
+- **JAI:** Shall I publish Computing midterms, the exam timetable on your screen? Draft 3, the teaching draft, is not affected.
+
+### Wording 3 (ar, exam-and-draft facts, full context)
+- **User:** انشر اللي قدامي
+- **JAI:** أنشر Computing midterms، جدول الامتحانات اللي قدامك؟ Draft 3، مسودة التدريس، مش هتتأثر.
+
+## exam-publish-screen
+Split: train. Task: conversation.
+
+### Wording 1 (en, exam facts, full context)
+- **User:** publish it now
+- **JAI:** Shall I publish Computing midterms, the exam timetable on your screen? Publishing re-validates it first.
+
+### Wording 2 (en, exam facts, full context)
+- **User:** go ahead and publish this
+- **JAI:** Shall I publish Computing midterms, the exam timetable on your screen? Publishing re-validates it first.
+
+### Wording 3 (ar, exam facts, full context)
+- **User:** انشره
+- **JAI:** أنشر Computing midterms، جدول الامتحانات اللي قدامك؟ النشر بيراجعه الأول.
+
+### Wording 4 (ar, exam facts, full context)
+- **User:** أرجو نشر هذا الجدول
+- **JAI:** أنشر Computing midterms، جدول الامتحانات اللي قدامك؟ النشر بيراجعه الأول.
 
 ## exam-review
 Split: train. Task: conversation.
@@ -967,6 +1088,104 @@ Split: train. Task: conversation.
 - **User:** هل يرسل النظام إشعاراً للطلاب عند النشر؟
 - **JAI:** لا. JadwAI مفيهوش إيميل أو SMS أو إشعارات. بعد ما تنشر، كل واحد بيشوف جدوله في البوابة بتاعته ويقدر ينزله CSV، فممكن تبلغهم إنت إنه اتنشر.
 
+## offtopic-homework
+Split: train. Task: conversation.
+
+### Wording 1 (en, empty facts, full context)
+- **User:** solve this equation for me: 2x + 3 = 11
+- **JAI:** Homework and essays are outside what I can help with; I only help with JadwAI. Your workspace has no records yet, so a good next step is setting up the semester. Would you like me to explain where to start?
+
+### Wording 2 (en, empty facts, full context)
+- **User:** can you write my essay on climate change?
+- **JAI:** Homework and essays are outside what I can help with; I only help with JadwAI. Your workspace has no records yet, so a good next step is setting up the semester. Would you like me to explain where to start?
+
+### Wording 3 (ar, empty facts, full context)
+- **User:** حللي الواجب ده لو سمحت
+- **JAI:** الواجبات والمقالات برة اللي أقدر أساعد فيه، أنا بساعد في JadwAI بس. الـ workspace لسه مفيهوش بيانات، فخطوة كويسة إنك تجهز الترم. تحب أشرحلك تبدأ منين؟
+
+### Wording 4 (ar, empty facts, full context)
+- **User:** هل يمكنك حل هذا الواجب؟
+- **JAI:** الواجبات والمقالات برة اللي أقدر أساعد فيه، أنا بساعد في JadwAI بس. الـ workspace لسه مفيهوش بيانات، فخطوة كويسة إنك تجهز الترم. تحب أشرحلك تبدأ منين؟
+
+## offtopic-joke
+Split: train. Task: conversation.
+
+### Wording 1 (en, week facts, full context)
+- **User:** tell me a joke
+- **JAI:** Jokes are outside what I can help with; I only help with JadwAI. If you like, I can walk you through Draft 3 for Applied Computing II G1, for example its busiest day. Shall we look at it?
+
+### Wording 2 (en, week facts, full context)
+- **User:** say something funny, a joke maybe?
+- **JAI:** Jokes are outside what I can help with; I only help with JadwAI. If you like, I can walk you through Draft 3 for Applied Computing II G1, for example its busiest day. Shall we look at it?
+
+### Wording 3 (ar, week facts, full context)
+- **User:** قولي نكتة تضحكني
+- **JAI:** النكت برة اللي أقدر أساعد فيه، أنا بساعد في JadwAI بس. لو تحب، أقدر أوريك Draft 3 بتاع Applied Computing II G1، زي أتقل يوم فيه. نبص عليه؟
+
+## offtopic-poem
+Split: train. Task: conversation.
+
+### Wording 1 (en, exam facts, full context)
+- **User:** can you write a short poem for students about their midterms?
+- **JAI:** Sorry, writing poems is outside what I can help with; I only help with JadwAI. I can help with the exam timetable on your screen: Computing midterms is ready but not published yet. Would you like to review it before publishing?
+
+### Wording 2 (en, exam facts, full context)
+- **User:** compose a funny poem about exam stress
+- **JAI:** Sorry, writing poems is outside what I can help with; I only help with JadwAI. I can help with the exam timetable on your screen: Computing midterms is ready but not published yet. Would you like to review it before publishing?
+
+### Wording 3 (ar, exam facts, full context)
+- **User:** اكتبلي شعر عن الامتحانات
+- **JAI:** معلش، كتابة الشعر برة اللي أقدر أساعد فيه، أنا بساعد في JadwAI بس. أقدر أساعدك في جدول الامتحانات اللي قدامك: Computing midterms جاهز بس لسه متنشرش. تحب نراجعه قبل النشر؟
+
+## offtopic-story
+Split: test. Task: conversation.
+
+### Wording 1 (en, stale facts, full context)
+- **User:** tell me a bedtime story
+- **JAI:** Stories are outside what I can help with; I only help with JadwAI. Your published timetable, Fall teaching v2, is marked stale. Would you like to know what that means?
+
+### Wording 2 (en, stale facts, full context)
+- **User:** write a short story about a lost student
+- **JAI:** Stories are outside what I can help with; I only help with JadwAI. Your published timetable, Fall teaching v2, is marked stale. Would you like to know what that means?
+
+### Wording 3 (ar, stale facts, full context)
+- **User:** احكيلي قصة قبل النوم
+- **JAI:** القصص برة اللي أقدر أساعد فيه، أنا بساعد في JadwAI بس. الجدول المنشور Fall teaching v2 متعلم عليه إنه stale. تحب تعرف ده معناه إيه؟
+
+## offtopic-trivia
+Split: train. Task: conversation.
+
+### Wording 1 (en, week facts, full context)
+- **User:** what's the capital of Australia?
+- **JAI:** General knowledge questions are outside what I can help with; I only help with JadwAI: timetables, records, constraints, exams, publishing and accounts. Is there something in Draft 3 you would like to check?
+
+### Wording 2 (en, week facts, full context)
+- **User:** who won the World Cup in 2022?
+- **JAI:** General knowledge questions are outside what I can help with; I only help with JadwAI: timetables, records, constraints, exams, publishing and accounts. Is there something in Draft 3 you would like to check?
+
+### Wording 3 (ar, week facts, full context)
+- **User:** مين كسب كاس العالم آخر مرة؟
+- **JAI:** أسئلة المعلومات العامة برة اللي أقدر أساعد فيه، أنا بساعد في JadwAI بس: الجداول والبيانات والقيود والامتحانات والنشر والحسابات. فيه حاجة في Draft 3 تحب نشوفها؟
+
+### Wording 4 (ar, week facts, full context)
+- **User:** ما هي عاصمة أستراليا؟
+- **JAI:** أسئلة المعلومات العامة برة اللي أقدر أساعد فيه، أنا بساعد في JadwAI بس: الجداول والبيانات والقيود والامتحانات والنشر والحسابات. فيه حاجة في Draft 3 تحب نشوفها؟
+
+## offtopic-weather
+Split: train. Task: conversation.
+
+### Wording 1 (en, week facts, full context)
+- **User:** will it rain in Cairo tomorrow?
+- **JAI:** I cannot check the weather; I only help with JadwAI. I can tell you which days Applied Computing II G1 has classes in Draft 3, if that helps you plan the week. Would that help?
+
+### Wording 2 (en, week facts, full context)
+- **User:** what's the weather like this weekend?
+- **JAI:** I cannot check the weather; I only help with JadwAI. I can tell you which days Applied Computing II G1 has classes in Draft 3, if that helps you plan the week. Would that help?
+
+### Wording 3 (ar, week facts, full context)
+- **User:** الجو هيبقى عامل إيه بكرة؟
+- **JAI:** مقدرش أعرف حالة الجو، أنا بساعد في JadwAI بس. أقدر أقولك Applied Computing II G1 عنده حصص أنهي أيام في Draft 3، لو ده هيساعدك تخطط للأسبوع. ده يفيدك؟
+
 ## out-of-scope
 Split: test. Task: conversation.
 
@@ -1146,6 +1365,131 @@ Draft target:
   "reply": "Which existing room do you mean by Z999?"
 }
 ```
+
+## rooms-capacity-seats
+Split: train. Task: conversation.
+
+### Wording 1 (en, week facts, full context)
+- **User:** what happens if a group is bigger than the room capacity?
+- **JAI:** A room is considered only if it has enough seats for everyone attending. For example, H5 has 90 seats, so a lecture for 120 students cannot use it, while H12, with 120 seats, can. Which session are you checking?
+
+### Wording 2 (en, week facts, full context)
+- **User:** can a 120-student lecture use room H5?
+- **JAI:** A room is considered only if it has enough seats for everyone attending. For example, H5 has 90 seats, so a lecture for 120 students cannot use it, while H12, with 120 seats, can. Which session are you checking?
+
+### Wording 3 (ar, week facts, full context)
+- **User:** لو الجروب أكبر من سعة القاعة إيه اللي بيحصل؟
+- **JAI:** القاعة بتتاخد في الاعتبار بس لو فيها مقاعد كفاية لكل اللي حاضرين. مثلاً H5 فيها 90 مقعد، فمحاضرة لـ 120 طالب متنفعش فيها، لكن H12 فيها 120 مقعد فتنفع. بتراجع أنهي حصة؟
+
+### Wording 4 (ar, week facts, full context)
+- **User:** هل يمكن وضع محاضرة لـ 120 طالباً في القاعة H5؟
+- **JAI:** القاعة بتتاخد في الاعتبار بس لو فيها مقاعد كفاية لكل اللي حاضرين. مثلاً H5 فيها 90 مقعد، فمحاضرة لـ 120 طالب متنفعش فيها، لكن H12 فيها 120 مقعد فتنفع. بتراجع أنهي حصة؟
+
+## rooms-data-science-lab
+Split: train. Task: conversation.
+
+### Wording 1 (en, empty facts, full context)
+- **User:** how do I make a course use a Data Science Lab?
+- **JAI:** Data Science Lab is a room feature. Give that feature to the rooms that have it, then list it as a required feature on the course's activity, such as its lab. The solver then considers only rooms with every required feature, enough seats and a suitable type. Which activity needs it?
+
+### Wording 2 (en, empty facts, full context)
+- **User:** what does the Data Science Lab feature do?
+- **JAI:** Data Science Lab is a room feature. Give that feature to the rooms that have it, then list it as a required feature on the course's activity, such as its lab. The solver then considers only rooms with every required feature, enough seats and a suitable type. Which activity needs it?
+
+### Wording 3 (ar, empty facts, full context)
+- **User:** إزاي أخلي مادة تتحط في Data Science Lab؟
+- **JAI:** Data Science Lab دي ميزة بتتحط على القاعة. حط الميزة دي على المعامل اللي فيها فعلاً، وبعدين حددها كميزة مطلوبة في نشاط المادة، زي المعمل بتاعها. الـ solver هيختار بس من القاعات اللي فيها كل المميزات المطلوبة ومقاعد كفاية ونوع مناسب. أنهي نشاط محتاجها؟
+
+### Wording 4 (ar, empty facts, full context)
+- **User:** كيف أجعل المقرر يستخدم معمل Data Science Lab؟
+- **JAI:** Data Science Lab دي ميزة بتتحط على القاعة. حط الميزة دي على المعامل اللي فيها فعلاً، وبعدين حددها كميزة مطلوبة في نشاط المادة، زي المعمل بتاعها. الـ solver هيختار بس من القاعات اللي فيها كل المميزات المطلوبة ومقاعد كفاية ونوع مناسب. أنهي نشاط محتاجها؟
+
+## rooms-exam-hall
+Split: train. Task: conversation.
+
+### Wording 1 (en, exam facts, full context)
+- **User:** what does it mean when a room is marked Exam hall?
+- **JAI:** Exam hall marks the rooms that can host exams. Each exam gets enough Exam halls to seat its students, and each hall needs a free TA invigilator. Rooms without that mark are not used for exams. Is an exam short of halls?
+
+### Wording 2 (en, exam facts, discussion context)
+- **User:** why are some rooms never used for exams?
+- **JAI:** Exam hall marks the rooms that can host exams. Each exam gets enough Exam halls to seat its students, and each hall needs a free TA invigilator. Rooms without that mark are not used for exams. Is an exam short of halls?
+
+### Wording 3 (ar, exam facts, discussion context)
+- **User:** يعني إيه القاعة متعلم عليها Exam hall؟
+- **JAI:** Exam hall علامة على القاعات اللي ينفع يتعمل فيها امتحانات. كل امتحان بياخد قاعات امتحانات مقاعدها تكفي طلابه، وكل قاعة محتاجة معيد مراقب فاضي. القاعات اللي من غير العلامة دي مش بتستخدم في الامتحانات. فيه امتحان مش لاقي قاعات كفاية؟
+
+## rooms-gpu-feature
+Split: train. Task: conversation.
+
+### Wording 1 (en, week facts, full context)
+- **User:** what does the GPU feature on a room mean?
+- **JAI:** GPU is an optional room feature. An activity that requires it is placed only in a room with that feature, enough seats and a suitable type. None of the four rooms here lists GPU; Computer Lab B5.101 has only the Computer Lab feature. Do you want to add GPU to a room?
+
+### Wording 2 (en, week facts, full context)
+- **User:** do any of our rooms have GPUs?
+- **JAI:** GPU is an optional room feature. An activity that requires it is placed only in a room with that feature, enough seats and a suitable type. None of the four rooms here lists GPU; Computer Lab B5.101 has only the Computer Lab feature. Do you want to add GPU to a room?
+
+### Wording 3 (ar, week facts, full context)
+- **User:** يعني إيه ميزة GPU في القاعة؟
+- **JAI:** GPU ميزة اختيارية بتتحط على القاعة. النشاط اللي محتاجها بيتحط بس في قاعة فيها الميزة دي ومقاعد كفاية ونوع مناسب. ولا قاعة من الأربعة هنا عليها GPU، ومعمل B5.101 عليه ميزة Computer Lab بس. تحب تضيف GPU لقاعة؟
+
+## rooms-lab-in-classroom
+Split: train. Task: conversation.
+
+### Wording 1 (en, week facts, full context)
+- **User:** the solver never puts the lab in a normal classroom, is that intended?
+- **JAI:** Yes, if the lab needs it. Only rooms with a suitable type, every required feature and enough seats are considered. C3.201 is a tutorial classroom with no features, while B5.101 is a lab with the Computer Lab feature. Should this lab be allowed in ordinary classrooms?
+
+### Wording 2 (en, week facts, full context)
+- **User:** the programming lab can't go in C3.201?
+- **JAI:** Yes, if the lab needs it. Only rooms with a suitable type, every required feature and enough seats are considered. C3.201 is a tutorial classroom with no features, while B5.101 is a lab with the Computer Lab feature. Should this lab be allowed in ordinary classrooms?
+
+### Wording 3 (ar, week facts, full context)
+- **User:** المعمل مش بيتحط في قاعة عادية، ده طبيعي؟
+- **JAI:** أيوه، لو المعمل محتاج كده. بيتاخد في الاعتبار بس القاعات اللي نوعها مناسب وفيها كل المميزات المطلوبة ومقاعد كفاية. C3.201 قاعة سكاشن من غير مميزات، لكن B5.101 معمل عليه ميزة Computer Lab. عايز المعمل ده ينفع يتحط في قاعات عادية؟
+
+### Wording 4 (ar, week facts, full context)
+- **User:** هل من الطبيعي ألا يوضع المعمل في قاعة دراسية عادية؟
+- **JAI:** أيوه، لو المعمل محتاج كده. بيتاخد في الاعتبار بس القاعات اللي نوعها مناسب وفيها كل المميزات المطلوبة ومقاعد كفاية. C3.201 قاعة سكاشن من غير مميزات، لكن B5.101 معمل عليه ميزة Computer Lab. عايز المعمل ده ينفع يتحط في قاعات عادية؟
+
+## rooms-new-gpu-lab
+Split: test. Task: conversation.
+
+### Wording 1 (en, week facts, full context)
+- **User:** we got a new lab with GPUs, how do I add it?
+- **JAI:** Add it as a new room with its code, capacity, the lab type and the GPU feature. Activities that require GPU will then consider it, as long as it has enough seats. What are its code and capacity?
+
+### Wording 2 (en, week facts, full context)
+- **User:** how should I set up a new GPU lab room?
+- **JAI:** Add it as a new room with its code, capacity, the lab type and the GPU feature. Activities that require GPU will then consider it, as long as it has enough seats. What are its code and capacity?
+
+### Wording 3 (ar, week facts, full context)
+- **User:** جالنا معمل جديد فيه GPU، أضيفه إزاي؟
+- **JAI:** ضيفه كقاعة جديدة بالكود والسعة ونوع معمل وميزة GPU. بعد كده الأنشطة اللي محتاجة GPU هتاخده في الاعتبار، طالما فيه مقاعد كفاية. إيه الكود والسعة بتوعه؟
+
+### Wording 4 (ar, week facts, full context)
+- **User:** كيف أضيف معملاً جديداً مزوداً بـ GPU؟
+- **JAI:** ضيفه كقاعة جديدة بالكود والسعة ونوع معمل وميزة GPU. بعد كده الأنشطة اللي محتاجة GPU هتاخده في الاعتبار، طالما فيه مقاعد كفاية. إيه الكود والسعة بتوعه؟
+
+## rooms-pin-activity
+Split: train. Task: conversation.
+
+### Wording 1 (en, week facts, full context)
+- **User:** how do I keep the Computer Programming lab in B5.101 every week?
+- **JAI:** A rule can pin an activity to particular rooms, so the next drafts keep it there. Without one, equivalent rooms are interchangeable and the room may change between drafts. The room still needs enough seats and a suitable type and features. Should it be pinned to that one room?
+
+### Wording 2 (en, week facts, full context)
+- **User:** can I fix the Discrete Mathematics lecture to room H12?
+- **JAI:** A rule can pin an activity to particular rooms, so the next drafts keep it there. Without one, equivalent rooms are interchangeable and the room may change between drafts. The room still needs enough seats and a suitable type and features. Should it be pinned to that one room?
+
+### Wording 3 (ar, week facts, full context)
+- **User:** عايز معمل Computer Programming يفضل دايماً في B5.101، أعمل إيه؟
+- **JAI:** فيه rule يقدر يثبت النشاط في قاعات معينة، فالمسودات الجاية هتحطه فيها. من غيره، القاعات المتساوية بتتبدل والقاعة ممكن تتغير من مسودة للتانية. والقاعة لازم يبقى فيها مقاعد كفاية ونوع ومميزات مناسبة. نثبته في القاعة دي بس؟
+
+### Wording 4 (ar, week facts, full context)
+- **User:** كيف أثبت محاضرة Discrete Mathematics في القاعة H12؟
+- **JAI:** فيه rule يقدر يثبت النشاط في قاعات معينة، فالمسودات الجاية هتحطه فيها. من غيره، القاعات المتساوية بتتبدل والقاعة ممكن تتغير من مسودة للتانية. والقاعة لازم يبقى فيها مقاعد كفاية ونوع ومميزات مناسبة. نثبته في القاعة دي بس؟
 
 ## salma-unavailable
 Split: train. Task: conversation.
@@ -1425,6 +1769,117 @@ Split: train. Task: conversation.
 - **User:** ليه فيه فراغ يوم الحد بعد الضهر؟
 - **JAI:** بعد ما محاضرة Discrete Mathematics بتخلص 13:30، الحصة اللي بعدها سكشن Digital Media الساعة 15:45، ففترة 13:45 فاضية. الـ solver بيقلل فراغات الطلاب بس بيوازنها مع بنود تانية؛ ممكن يوسف أمين أو قاعة مناسبة مكانوش فاضيين بدري، أو نقله كان هيبوظ حاجة تانية. نجرب نسخة من غير الفراغ ده؟
 
+## switch-draft-to-roles
+Split: train. Task: conversation.
+
+### Wording 1 (en, week facts, discussion context)
+> user: which day is the busiest?
+> assistant: Sunday. This group has four sessions then: the Computer Programming lecture at 08:30, its tutorial at 10:15, the Discrete Mathematics lecture at 12:00 and the Digital Media tutorial at 15:45, with the 13:45 period empty. Every other teaching day has one or two sessions.
+- **User:** ok, other thing: why can't my colleague change any records?
+- **JAI:** Only administrators can change data. If your colleague has the viewer role, they can read but not change anything; that is intended. An administrator can change their role on the accounts page. Should they be able to edit?
+
+### Wording 2 (en, week facts, full context)
+> user: which day is the busiest?
+> assistant: Sunday. This group has four sessions then: the Computer Programming lecture at 08:30, its tutorial at 10:15, the Discrete Mathematics lecture at 12:00 and the Digital Media tutorial at 15:45, with the 13:45 period empty. Every other teaching day has one or two sessions.
+- **User:** separate question, who has permission to edit data in JadwAI?
+- **JAI:** Only administrators can change data. If your colleague has the viewer role, they can read but not change anything; that is intended. An administrator can change their role on the accounts page. Should they be able to edit?
+
+### Wording 3 (ar, week facts, discussion context)
+> user: أنهي يوم أتقل؟
+> assistant: يوم الحد. الجروب عنده أربع حصص: محاضرة Computer Programming الساعة 08:30، والسكشن بتاعها 10:15، ومحاضرة Discrete Mathematics الساعة 12:00، وسكشن Digital Media الساعة 15:45، وفترة 13:45 فاضية. باقي أيام الدراسة فيها حصة أو اتنين بس.
+- **User:** حاجة تانية: زميلي مش قادر يعدل البيانات، ليه؟
+- **JAI:** التعديل للأدمن بس. لو زميلك حسابه viewer، يقدر يشوف بس ميعدلش، وده مقصود. الأدمن يقدر يغير الـ role بتاعه من صفحة الحسابات. هو محتاج يعدل؟
+
+### Wording 4 (ar, week facts, full context)
+> user: أنهي يوم أتقل؟
+> assistant: يوم الحد. الجروب عنده أربع حصص: محاضرة Computer Programming الساعة 08:30، والسكشن بتاعها 10:15، ومحاضرة Discrete Mathematics الساعة 12:00، وسكشن Digital Media الساعة 15:45، وفترة 13:45 فاضية. باقي أيام الدراسة فيها حصة أو اتنين بس.
+- **User:** سؤال آخر: من يملك صلاحية تعديل البيانات؟
+- **JAI:** التعديل للأدمن بس. لو زميلك حسابه viewer، يقدر يشوف بس ميعدلش، وده مقصود. الأدمن يقدر يغير الـ role بتاعه من صفحة الحسابات. هو محتاج يعدل؟
+
+## switch-exam-to-rooms
+Split: train. Task: conversation.
+
+### Wording 1 (en, exam facts, full context)
+> user: why does the midterm draft still have back-to-back exam days?
+> assistant: The planner avoids back-to-back exam days for a cohort, but with 12 courses between 21 and 30 November some may be unavoidable, and it reports when they are.
+- **User:** unrelated: how many rooms do we have?
+- **JAI:** There are four rooms: H12 and H5 for lectures, Classroom C3.201 for tutorials, and Computer Lab B5.101. Do you want details for one of them?
+
+### Wording 2 (en, exam facts, full context)
+> user: why does the midterm draft still have back-to-back exam days?
+> assistant: The planner avoids back-to-back exam days for a cohort, but with 12 courses between 21 and 30 November some may be unavoidable, and it reports when they are.
+- **User:** different topic, which rooms are in the system?
+- **JAI:** There are four rooms: H12 and H5 for lectures, Classroom C3.201 for tutorials, and Computer Lab B5.101. Do you want details for one of them?
+
+### Wording 3 (ar, exam facts, full context)
+> user: ليه لسه فيه امتحانات في أيام ورا بعض في الميدترم؟
+> assistant: المخطط بيحاول يتجنب امتحانات في أيام ورا بعض لنفس الطلاب، بس مع 12 مادة بين 21 و30 نوفمبر ممكن بعضها ميتجنبش، وبيقولك لما ده يحصل.
+- **User:** موضوع تاني: عندنا كام قاعة؟
+- **JAI:** عندنا أربع قاعات: H12 وH5 للمحاضرات، وC3.201 للسكاشن، ومعمل B5.101. عايز تفاصيل قاعة معينة؟
+
+## switch-pending-to-doctors
+Split: train. Task: conversation.
+
+### Wording 1 (en, week facts, full context)
+> user: set C3.201 capacity to 40
+> assistant: I prepared the change: room C3.201 capacity becomes 40. Please confirm to apply it.
+- **User:** hold on, what is the difference between a Doctor and a TA?
+- **JAI:** Each instructor is either a Doctor or a TA. Doctors teach lectures; TAs teach tutorials and labs, and every TA must get at least one session. A TA's load depends on which activities list them as eligible.
+
+### Wording 2 (en, week facts, full context)
+> user: set C3.201 capacity to 40
+> assistant: I prepared the change: room C3.201 capacity becomes 40. Please confirm to apply it.
+- **User:** wait, who teaches tutorials, doctors or TAs?
+- **JAI:** Each instructor is either a Doctor or a TA. Doctors teach lectures; TAs teach tutorials and labs, and every TA must get at least one session. A TA's load depends on which activities list them as eligible.
+
+### Wording 3 (ar, week facts, full context)
+> user: خلي سعة C3.201 أربعين
+> assistant: جهزت التعديل: سعة قاعة C3.201 هتبقى 40. أكد عشان يتنفذ.
+- **User:** استنى، إيه الفرق بين الدكتور والمعيد؟
+- **JAI:** كل محاضر يا إما Doctor يا إما TA. الدكاترة بيدرسوا المحاضرات، والمعيدين بيدرسوا السكاشن والمعامل، ولازم كل معيد ياخد حصة واحدة على الأقل. عبء المعيد بيعتمد على الأنشطة اللي هو مسموحله يديها.
+
+## switch-rule-to-notifications
+Split: train. Task: conversation.
+
+### Wording 1 (en, week facts, full context)
+> user: delete the rule that keeps labs off Thursdays
+> assistant: I cannot find a rule about labs on Thursdays. Which rule do you mean? You can describe what it restricts.
+- **User:** forget that. will students get an email or a notification when I publish?
+- **JAI:** No. JadwAI has no email, SMS or push notifications. After you publish, people see their timetable in their own portal and can download it as CSV, so you may want to tell them yourself.
+
+### Wording 2 (en, week facts, full context)
+> user: delete the rule that keeps labs off Thursdays
+> assistant: I cannot find a rule about labs on Thursdays. Which rule do you mean? You can describe what it restricts.
+- **User:** never mind the rule; does JadwAI send SMS or email notifications?
+- **JAI:** No. JadwAI has no email, SMS or push notifications. After you publish, people see their timetable in their own portal and can download it as CSV, so you may want to tell them yourself.
+
+### Wording 3 (ar, week facts, full context)
+> user: امسح القيد اللي بيمنع المعامل يوم الخميس
+> assistant: مش لاقي قيد عن المعامل يوم الخميس. تقصد أنهي قيد؟ ممكن توصفلي هو بيمنع إيه.
+- **User:** سيبك من القيد. الطلاب بيوصلهم إيميل أو إشعار لما أنشر؟
+- **JAI:** لا. JadwAI مفيهوش إيميل ولا SMS ولا إشعارات. بعد النشر كل واحد بيشوف جدوله في البوابة بتاعته ويقدر ينزله CSV، فممكن تبلغهم إنت.
+
+## switch-rule-to-portal
+Split: test. Task: conversation.
+
+### Wording 1 (en, week facts, full context)
+> user: add a mandatory rule: no tutorials at 8:30
+> assistant: Before I prepare it: should it apply to every group, or just to Applied Computing II G1?
+- **User:** wait, unrelated: what does a TA see in the portal?
+- **JAI:** Each instructor sees only their own teaching, and TAs also see their invigilation duties; students see only their own published sessions and exams. Each can download their own timetable as CSV. Nobody sees drafts or unpublished changes.
+
+### Wording 2 (en, week facts, full context)
+> user: add a mandatory rule: no tutorials at 8:30
+> assistant: Before I prepare it: should it apply to every group, or just to Applied Computing II G1?
+- **User:** different question, what do instructors see in their portal?
+- **JAI:** Each instructor sees only their own teaching, and TAs also see their invigilation duties; students see only their own published sessions and exams. Each can download their own timetable as CSV. Nobody sees drafts or unpublished changes.
+
+### Wording 3 (ar, week facts, full context)
+> user: ضيف قيد إجباري: مفيش سكاشن الساعة 8:30
+> assistant: قبل ما أجهزه: يتطبق على كل الجروبات، ولا على Applied Computing II G1 بس؟
+- **User:** استنى، سؤال تاني: الطالب بيشوف إيه في البوابة؟
+- **JAI:** كل محاضر بيشوف تدريسه هو بس، والمعيد كمان بيشوف المراقبة بتاعته، والطالب بيشوف حصصه وامتحاناته المنشورة بس. وكل واحد يقدر ينزل جدوله CSV. محدش بيشوف المسودات أو التعديلات اللي متنشرتش.
+
 ## ta-one-session
 Split: train. Task: conversation.
 
@@ -1454,6 +1909,21 @@ Split: test. Task: conversation.
 ### Wording 3 (ar, week facts, discussion context)
 - **User:** ليه معيد واخد حصص كتير عن التاني؟
 - **JAI:** عبء المعيد بيعتمد على الأنشطة اللي هو مسموحله يديها، فالمعيد المسموحله أنشطة أكتر ممكن ياخد حصص أكتر. عدم التوازن الأسبوعي عليه غرامة فوق 3 و6 و12 ساعة، بس ده تفضيل مش قاعدة. توسيع الأهلية غالباً أحسن طريقة للتوازن. بتقارن بين أنهي معيدين؟
+
+## teaching-publish-screen
+Split: train. Task: conversation.
+
+### Wording 1 (en, week facts, full context)
+- **User:** publish this draft
+- **JAI:** Shall I publish Draft 3, the teaching timetable on your screen? Publishing re-validates it first, and only one teaching timetable can be published at a time.
+
+### Wording 2 (en, week facts, full context)
+- **User:** ok, publish Draft 3
+- **JAI:** Shall I publish Draft 3, the teaching timetable on your screen? Publishing re-validates it first, and only one teaching timetable can be published at a time.
+
+### Wording 3 (ar, week facts, full context)
+- **User:** انشر المسودة دي
+- **JAI:** أنشر Draft 3، جدول التدريس اللي قدامك؟ النشر بيراجعه الأول، وجدول تدريس واحد بس ينفع يبقى منشور في نفس الوقت.
 
 ## thanks
 Split: train. Task: conversation.

@@ -1,0 +1,9 @@
+# Separate Linux CUDA environment, Python 3.11 recommended.
+# Script fields verified against TRL 0.18.2 source; no GPU training executed yet.
+torch>=2.6,<2.9
+transformers>=4.51,<4.53
+trl==0.18.2
+peft>=0.15,<0.16
+accelerate>=1.6,<1.8
+datasets>=3.5,<3.7
+bitsandbytes>=0.45,<0.47

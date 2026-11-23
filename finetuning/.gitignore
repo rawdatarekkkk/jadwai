@@ -1,0 +1,9 @@
+__pycache__/
+exports/
+runs/
+models/
+*.safetensors
+*.gguf
+reviews.local.json
+jai-lora/
+jai-lora*.zip

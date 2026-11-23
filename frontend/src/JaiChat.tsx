@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, ApiError, type RecordKind, type Workspace } from "./api";
 import {examOnScreen,selectExamRun} from "./examSelection";
 import { showTimetableFilter, timetableOnScreen } from "./Timetable";
+import { BidiLine, textDir } from "./bidi";
 
 export type JaiAction =
   | { type: "website_request"; method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"; path: string; body: unknown; label: string; operation: string; version?: number }
@@ -48,7 +49,6 @@ type NewMessage = Message extends infer M ? (M extends Message ? Omit<M, "id"> &
 type ChatSummary = { id: string; title: string; updated_at: string };
 export type JaiTarget = "timetable" | "exams" | "constraints" | "data" | "overview" | "accounts" | "activity" | "evaluation" | "proposals" | "settings" | "import" | "advising";
 
-const ARABIC = /[؀-ۿ]/;
 const CURRENT = "jadwai-jai-chat";
 let localId = 1;
 const remembered = () => { try { return localStorage.getItem(CURRENT); } catch { return null; } };
@@ -475,8 +475,8 @@ export function JaiChat({ ws, lang, hidden, close, go, refresh, screen }: {
           {!chats.length && <p className="jai-source">{say("No chats yet.", "لا توجد محادثات بعد.")}</p>}
           {chats.map(c => (
             <div key={c.id} className={`jai-chat-row ${c.id === chatId ? "current" : ""}`}>
-              <button type="button" onClick={() => void openChat(c.id)} dir={ARABIC.test(c.title) ? "rtl" : "ltr"}>
-                <span>{c.title}</span><small>{when(c.updated_at)}</small>
+              <button type="button" onClick={() => void openChat(c.id)} dir={textDir(c.title)}>
+                <span><BidiLine text={c.title} /></span><small>{when(c.updated_at)}</small>
               </button>
               <button type="button" className="jai-delete" aria-label={say(`Delete chat ${c.title}`, `حذف المحادثة ${c.title}`)} onClick={() => void removeChat(c)}>×</button>
             </div>
@@ -492,9 +492,9 @@ export function JaiChat({ ws, lang, hidden, close, go, refresh, screen }: {
             </div>
           )}
           {messages.map((m, i) => m.from === "you"
-            ? <div key={m.id} className="jai-msg you" dir={ARABIC.test(m.text) ? "rtl" : "ltr"}>{m.text}</div>
-            : <div key={m.id} className={`jai-msg jai ${m.error ? "failed" : ""} ${m.pending ? "pending" : ""}`} dir={m.text.some(l => ARABIC.test(l)) ? "rtl" : "ltr"}>
-                {m.text.map((line, j) => <p key={j}>{line}</p>)}
+            ? <div key={m.id} className="jai-msg you" dir={textDir(m.text)}><BidiLine text={m.text} /></div>
+            : <div key={m.id} className={`jai-msg jai ${m.error ? "failed" : ""} ${m.pending ? "pending" : ""}`} dir={textDir(m.text.join(" "))}>
+                {m.text.map((line, j) => <p key={j} dir={textDir(line)}><BidiLine text={line} /></p>)}
                 {m.pending && <p className="jai-thinking" role="status">{say("This can take a minute or two on this computer…", "قد يستغرق ذلك دقيقة أو اثنتين على هذا الجهاز…")}</p>}
                 {m.source === "local-model" && <small className="jai-source">{say("Understood by the local model", "فهمه النموذج المحلي")}</small>}
                 {m.action && !m.done && (

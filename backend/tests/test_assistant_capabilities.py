@@ -145,3 +145,30 @@ def test_room_programme_restriction_is_not_misrouted_as_assignment_lock():
     assert reply['action']['body']['reserved_majors'] == ['Business Administration']
     assert reply['action']['body']['capacity'] == 60
     assert set(json.loads(sent[0]['messages'][-1]['content'])['contract']['record_bodies']) == {'rooms'}
+
+
+def test_arabic_question_answered_in_english_is_rewritten_in_arabic():
+    replies = [{'operation': '', 'reply': 'Draft 3 has 212 sessions. Which group do you mean?'},
+               {'reply': 'Draft 3 فيها 212 حصة. تقصد أنهي جروب؟'}]
+    sent = []
+    def handler(req):
+        sent.append(json.loads(req.content))
+        return httpx.Response(200, json={'done': True, 'message': {'content': json.dumps(replies.pop(0), ensure_ascii=False)}})
+    reply = asyncio.run(converse('الجدول ده زحمة أوي، ممكن تقولي ليه؟', VIEW, [], ('local', 'http://127.0.0.1:11434', 5), app, transport=httpx.MockTransport(handler)))
+    assert reply['text'] == ['Draft 3 فيها 212 حصة. تقصد أنهي جروب؟'] and len(sent) == 2
+    assert 'Egyptian Arabic' in sent[1]['messages'][0]['content'] and 'Draft 3 has 212' in sent[1]['messages'][1]['content']
+
+
+def test_language_rewrite_keeps_original_when_not_needed_or_it_fails():
+    from app.assistant_capabilities import in_user_language
+    settings = ('local', 'http://127.0.0.1:11434', 5)
+    def never(req):
+        raise AssertionError('no rewrite expected')
+    for raw, reply in [('Why is it crowded?', 'Because Draft 3 has 212 sessions.'),
+                       ('ليه الجدول زحمة؟', 'عشان Draft 3 فيها 212 حصة.'),
+                       ('اشرحلي بالانجليزي', 'It has 212 sessions.')]:
+        assert asyncio.run(in_user_language(raw, reply, settings, httpx.MockTransport(never))) == reply
+    english = lambda req: httpx.Response(200, json={'done': True, 'message': {'content': json.dumps({'reply': 'Still English.'})}})
+    broken = lambda req: httpx.Response(500)
+    for handler in (english, broken):
+        assert asyncio.run(in_user_language('ليه الجدول زحمة؟', 'It has 212 sessions.', settings, httpx.MockTransport(handler))) == 'It has 212 sessions.'

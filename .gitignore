@@ -14,3 +14,10 @@ reports/
 
 # Demo-only sign-ins (local demo app); never commit
 demo-accounts.json
+
+# Fine-tuning outputs: runs, exports, reviews and model files stay local
+finetuning/runs/
+finetuning/exports/
+finetuning/models/
+finetuning/reviews.local.json
+*.gguf

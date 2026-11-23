@@ -495,8 +495,8 @@ export function JaiChat({ ws, lang, hidden, close, go, refresh, screen }: {
             ? <div key={m.id} className="jai-msg you" dir={textDir(m.text)}><BidiLine text={m.text} /></div>
             : <div key={m.id} className={`jai-msg jai ${m.error ? "failed" : ""} ${m.pending ? "pending" : ""}`} dir={textDir(m.text.join(" "))}>
                 {m.text.map((line, j) => <p key={j} dir={textDir(line)}><BidiLine text={line} /></p>)}
-                {m.pending && <p className="jai-thinking" role="status">{say("This can take a minute or two on this computer…", "قد يستغرق ذلك دقيقة أو اثنتين على هذا الجهاز…")}</p>}
-                {m.source === "local-model" && <small className="jai-source">{say("Understood by the local model", "فهمه النموذج المحلي")}</small>}
+                {m.pending && <p className="jai-thinking" role="status" dir={ar ? "rtl" : "ltr"}>{say("This can take a minute or two on this computer…", "قد يستغرق ذلك دقيقة أو اثنتين على هذا الجهاز…")}</p>}
+                {m.source === "local-model" && <small className="jai-source" dir={ar ? "rtl" : "ltr"}>{say("Understood by the local model", "فهمه النموذج المحلي")}</small>}
                 {m.action && !m.done && (
                   <div className="jai-action">
                     <button type="button" className="btn primary" disabled={busy} onClick={() => void run(m.id, m.action!)}>{m.action.label}</button>
@@ -504,7 +504,7 @@ export function JaiChat({ ws, lang, hidden, close, go, refresh, screen }: {
                       <button type="button" className="btn white" disabled={busy} onClick={() => void settle(m.id, [say("Cancelled.", "تم الإلغاء.")], true)}>{say("Cancel", "إلغاء")}</button>}
                   </div>
                 )}
-                {m.done && <small className="jai-source">{m.cancelled ? say("Cancelled", "أُلغي") : `✓ ${say("Done", "تم")}`}</small>}
+                {m.done && <small className="jai-source" dir={ar ? "rtl" : "ltr"}>{m.cancelled ? say("Cancelled", "أُلغي") : `✓ ${say("Done", "تم")}`}</small>}
                 {!!m.choices?.length && i === messages.length - 1 && (
                   <div className="jai-choices" role="group" aria-label={say("Possible answers", "إجابات مقترحة")}>
                     {m.choices.map(c => <button type="button" key={c.text} disabled={busy} onClick={() => void send(c.text)}>{c.label}</button>)}

@@ -172,3 +172,11 @@ def test_language_rewrite_keeps_original_when_not_needed_or_it_fails():
     broken = lambda req: httpx.Response(500)
     for handler in (english, broken):
         assert asyncio.run(in_user_language('ليه الجدول زحمة؟', 'It has 212 sessions.', settings, httpx.MockTransport(handler))) == 'It has 212 sessions.'
+
+
+def test_reply_drifting_into_chinese_keeps_only_complete_sentences_before_it():
+    from app.assistant_capabilities import clean_reply
+    drifted = 'أنا فاهم إنك متضايق. ساعات مفيش قاعات كفاية لحد. زيادة القاعات أو الأيام بتحل好多，我来用埃及阿拉伯语回复。{'
+    assert clean_reply(drifted) == 'أنا فاهم إنك متضايق. ساعات مفيش قاعات كفاية لحد.'
+    assert clean_reply('Sure好的') == ''
+    assert clean_reply('Room H12 fits 40 students.') == 'Room H12 fits 40 students.'

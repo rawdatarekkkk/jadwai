@@ -70,10 +70,20 @@ def facts(view):
 SENTENCE_END = re.compile(r'(?<=[.!?؟])\s+|\n+')
 
 
+CJK = re.compile(r'[　-〿぀-ヿ㐀-䶿一-鿿가-힯＀-￯]')
+
+
 def clean_reply(text):
-    """Drop sentences the local model already said: small models sometimes loop on one sentence."""
+    """Drop sentences the local model already said: small models sometimes loop on one sentence.
+    Qwen models can also drift into Chinese mid-sentence; cut there and keep only complete sentences."""
+    text = text or ''
+    drift = CJK.search(text)
+    if drift:
+        before = text[:drift.start()]
+        complete = re.match(r'(?s).*[.!?؟]', before)
+        text = complete.group(0) if complete else ''
     seen, kept = set(), []
-    for sentence in SENTENCE_END.split(text or ''):
+    for sentence in SENTENCE_END.split(text):
         key = re.sub(r'\W+', ' ', sentence).strip().lower()
         if key and key not in seen:
             seen.add(key)

@@ -22,6 +22,6 @@ finetuning/models/
 finetuning/reviews.local.json
 *.gguf
 
-# Thesis build outputs (rebuild from thesis/giu)
-thesis/thesis-giu-overleaf.zip
-thesis/thesis-giu-draft.pdf
+# Thesis: figures zip is rebuilt by thesis/build.sh; thesis-giu-overleaf/ is a local unzipped copy
+thesis/thesis-giu-overleaf/
+thesis/overleaf.zip

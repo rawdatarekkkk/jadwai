@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Keep the thesis outputs in step with its source, the GIU template folder thesis/overleaf.
+# When anything under thesis/overleaf/ is committed, rebuild thesis/thesis-draft.pdf and the
+# generated single-file thesis/main.tex, and add both to the same commit. A failed build stops the commit.
+staged=$(git diff --cached --name-only)
+if echo "$staged" | grep -qx 'thesis/main.tex' && ! echo "$staged" | grep -q '^thesis/overleaf/'; then
+  echo "pre-commit: thesis/main.tex is generated from thesis/overleaf/ -- edit the files there, then run bash thesis/build.sh." >&2
+  exit 1
+fi
+if echo "$staged" | grep -q '^thesis/overleaf/'; then
+  echo "pre-commit: thesis source changed, rebuilding thesis-draft.pdf and main.tex ..."
+  bash thesis/build.sh || { echo "pre-commit: thesis build failed, commit stopped." >&2; exit 1; }
+  git add thesis/thesis-draft.pdf thesis/main.tex
+fi

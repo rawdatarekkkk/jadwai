@@ -1,143 +1,207 @@
-% Options for packages loaded elsewhere
-\PassOptionsToPackage{unicode}{hyperref}
-\PassOptionsToPackage{hyphens}{url}
-\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
-%
-\documentclass[
-  11pt,a4paper,oneside]{report}
-\usepackage{amsmath,amssymb}
-\usepackage{iftex}
-\ifPDFTeX
-  \usepackage[T1]{fontenc}
-  \usepackage[utf8]{inputenc}
-  \usepackage{textcomp} % provide euro and other symbols
-\else % if luatex or xetex
-  \usepackage{unicode-math} % this also loads fontspec
-  \defaultfontfeatures{Scale=MatchLowercase}
-  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
-\fi
+% GENERATED FILE -- do not edit. The thesis source is the GIU template folder thesis/overleaf/
+% (main file bachelor.tex). Run `bash thesis/build.sh` to rebuild this file and thesis/thesis-draft.pdf.
+% This single file contains the whole thesis for pasting into Overleaf; upload figures/ for the images.
+\documentclass[12pt, a4paper]{book}%, oneside
+
+\usepackage[headings]{fullpage}
+\usepackage{setspace}
+% ---- Added for this thesis: encoding, maths, long tables, special characters, URLs ----
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
 \usepackage{lmodern}
-\ifPDFTeX\else
-  % xetex/luatex font selection
-\fi
-% Use upquote if available, for straight quotes in verbatim environments
-\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
-\IfFileExists{microtype.sty}{% use microtype if available
-  \usepackage[]{microtype}
-  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
-}{}
-\makeatletter
-\@ifundefined{KOMAClassName}{% if non-KOMA class
-  \IfFileExists{parskip.sty}{%
-    \usepackage{parskip}
-  }{% else
-    \setlength{\parindent}{0pt}
-    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
-}{% if KOMA class
-  \KOMAoptions{parskip=half}}
-\makeatother
-\usepackage{xcolor}
-\usepackage[margin=2.5cm]{geometry}
-\usepackage{color}
-\usepackage{fancyvrb}
-\newcommand{\VerbBar}{|}
-\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
-\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
-% Add ',fontsize=\small' for more characters per line
-\newenvironment{Shaded}{}{}
-\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
-\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
-\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
-\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
-\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
-\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
-\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
-\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
-\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
-\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
-\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
-\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
-\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
-\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
-\newcommand{\ExtensionTok}[1]{#1}
-\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
-\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
-\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
-\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
-\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
-\newcommand{\NormalTok}[1]{#1}
-\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
-\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
-\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
-\newcommand{\RegionMarkerTok}[1]{#1}
-\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
-\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
-\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
-\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
-\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
-\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
-\usepackage{longtable,booktabs,array}
-\usepackage{calc} % for calculating minipage widths
-% Correct order of tables after \paragraph or \subparagraph
+\usepackage{amsmath,amssymb}
+\usepackage{longtable,calc}
 \usepackage{etoolbox}
 \makeatletter
 \patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
 \makeatother
-% Allow footnotes in longtable head/foot
-\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\usepackage{footnotehyper}
 \makesavenoteenv{longtable}
-\setlength{\emergencystretch}{3em} % prevent overfull lines
-\providecommand{\tightlist}{%
-  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
-\usepackage{booktabs}
-\usepackage{xurl}
-\setlength{\parskip}{4pt}
-\setcounter{secnumdepth}{3}
-\renewcommand{\arraystretch}{1.15}
+\usepackage{xcolor}
 \usepackage{fvextra}
 \fvset{breaklines=true}
 \usepackage{newunicodechar}
-\usepackage{graphicx}
-\graphicspath{{figures/}}
 \newunicodechar{†}{$\dagger$}\newunicodechar{κ}{$\kappa$}\newunicodechar{≥}{$\geq$}\newunicodechar{≤}{$\leq$}\newunicodechar{→}{$\rightarrow$}\newunicodechar{↔}{$\leftrightarrow$}\newunicodechar{±}{$\pm$}\newunicodechar{✔}{Y}\newunicodechar{≠}{$\neq$}
-\ifLuaTeX
-  \usepackage{selnolig}  % disable illegal ligatures
-\fi
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
-\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
-\urlstyle{same}
-\hypersetup{
-  colorlinks=true,
-  linkcolor={Maroon},
-  filecolor={Maroon},
-  citecolor={Blue},
-  urlcolor={Blue},
-  pdfcreator={LaTeX via pandoc}}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setlength{\emergencystretch}{3em}
+\renewcommand{\arraystretch}{1.15}
+\usepackage{xurl}
+% ---- end of additions ----
 
-\author{}
-\date{}
+% \usepackage[top=1.5cm,right=1.5cm,bottom=1.5cm,left=1.5cm]{geometry}
+% \usepackage{fancyhdr}
+% \setlength{\headheight}{20pt} 
+% \usepackage{graphics}
+\usepackage{graphicx}
+\graphicspath{{figures/}} % added: screenshots live in figures/
+% Images: shown when the figures/ folder is next to this file; otherwise a labelled box appears.
+\newcommand{\thesisimage}[2][]{\IfFileExists{figures/#2}{\includegraphics[#1]{figures/#2}}{\fbox{\parbox[c][3cm][c]{0.6\textwidth}{\centering\small Image \texttt{\detokenize{#2}} not found: upload the \texttt{figures} folder.}}}}
+\usepackage{float}
+\usepackage{subfig}
+\usepackage{array}
+% \usepackage{xtab}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{appendix}
+\usepackage[pdfborder={0 0 0}, colorlinks=true, linkcolor=black, citecolor=blue, urlcolor=blue]{hyperref}
+% printonlyused removed: the list of abbreviations is printed in full; nohyperlinks avoids broken links
+\usepackage[nohyperlinks]{acronym}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{ifpdf}
+% \setlength{\parindent}{0pt}
+
+\newcommand{\submissionDay}{5}
+\newcommand{\submissionMonth}{January}
+\newcommand{\submissionYear}{2027}
+\newcommand{\submissionDate}{\submissionDay~\submissionMonth,~\submissionYear}
+\newcommand{\typeOfThesis}{Bachelor Thesis}
+
+\newcommand{\titleOfThesisOne}{JadwAI: AI-Assisted University Timetabling Through Natural-Language Constraint Extraction}
+
+\newcommand{\authorOfThesis}{Rawda Yassin}
+\newcommand{\supervisorOne}{Dr. John Zaki}
+\newcommand{\supervisorTwo}{}
+\newcommand{\supervisorThree}{}
+
+\newcommand{\includefig}[4]{
+    \begin{figure}[ht]
+     \centering
+      \thesisimage[width=#1\textwidth]{#2}
+      \caption{#3}
+      \label{#4}
+    \end{figure}
+}
+
+\newcommand{\includefigWSC}[5]{
+    \begin{figure}[ht]
+     \centering
+      \thesisimage[width=#1\textwidth]{#2}
+      \caption[#3]{#4}
+      \label{#5}
+    \end{figure}
+}
+
+\newcommand{\includeeps}[4]{
+\includefig{#1}{#2.eps}{#3}{#4}
+}
+
+\newcommand{\includeepsWSC}[5]{
+\includefigWSC{#1}{#2.eps}{#3}{#4}{#5}
+}
+
+
+\ifpdf
+\pdfinfo {
+	/Author (\authorOfThesis)
+	/Title (\titleOfThesisOne)
+	/Subject (\typeOfThesis)
+	/Keywords ()
+	/CreationDate (D:20090707085533)
+}
+\fi
 
 \begin{document}
+% \overfullrule=5pt
+\pagestyle{plain}
+\pagenumbering{Roman}
 
-\begin{titlepage}
-\centering
-{\large [University name --- German International University]\par\medskip [Faculty / Department --- ICS - Software Engineering]\par}
-\vspace{2.5cm}
-{\Huge\bfseries JadwAI: AI-Assisted University Timetabling Through Natural-Language Constraint Extraction\par}
-\vspace{1.5cm}
-{\Large Bachelor Thesis --- Working Draft\par}
+\clearpage
+% ======== title_page.tex ========
+\newcommand{\titlePage}{
+
+\thispagestyle{empty}
+\begin{center}
+	\thesisimage[width=3.5cm]{giu_logo.png}\\[2mm]
+	\textbf{German International University}\\[2mm]
+		% NOTE: check the exact faculty name (old draft said "ICS - Software Engineering")
+		\textbf{Faculty of Informatics and Computer Science}\\[1mm]
+
+	
+	\vspace{2cm}
+	\doublespacing
+	{\Huge \textbf{\titleOfThesisOne}}\\
+	\singlespacing
+	\vspace{2cm}
+	{\large \textbf{\typeOfThesis}}\\
+	
+	\vfill
+	\parbox{1cm}{
+  		\begin{large}
+    			\begin{tabbing}
+       			Author: \hspace{2cm}  
+        			\=\authorOfThesis\\[2mm]
+      			Supervisor: 
+        			\>\supervisorOne\\[2mm]
+      			Submission Date: 
+        			\>\submissionDate\\
+    			\end{tabbing}
+  		\end{large}
+	}\\
+\end{center}
+\clearpage
+}
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\titlePage
+\thispagestyle{empty}\ \clearpage
+\titlePage
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\thispagestyle{empty}
+This is to certify that:
+\begin{itemize}
+\item[(i)] the thesis comprises only my original work toward the Bachelor Degree
+\item[(ii)] due acknowledgement has been made in the text to all other material used
+\end{itemize}
+
 \vspace{2cm}
-{\large Author: [Name --- Rawda Yassin]\par Supervisor: [Name --- Dr. John Zaki]\par [Month Year --- TBD]\par}
-\vfill
-\fbox{\parbox{0.85\textwidth}{\small\textbf{Draft status.} Chapters 1--3 only (Introduction, Literature Review, Methodology). Updated 25 October 2026. JadwAI has completed its locally verified Phase~4 manual scheduling baseline and has begun Phase~5 with a synthetic multilingual draft corpus and offline scorer. Student draft access and PDF exports are implemented. JAI extraction and final publication remain unfinished. The methodology describes a \emph{proposed} study: no research experiments have been run and no research results are reported. Template, citation style, language and length are provisional (English, author--year) until the university requirements are confirmed. Items in square brackets are undecided.}}
-\end{titlepage}
-\chapter*{Abstract}
-\addcontentsline{toc}{chapter}{Abstract}
-[TBD --- to be written once results exist.]
-\tableofcontents
+\begin{flushright}
+\rule[0mm]{6cm}{0.2mm}\\
+\authorOfThesis\\
+\submissionDay~\submissionMonth,~\submissionYear\\
+\end{flushright}
+\clearpage
 \clearpage
 
+
+\clearpage
+% ======== acknowledgments.tex ========
+\chapter*{Acknowledgments}
+\addcontentsline{toc}{chapter}{Acknowledgments}
+\label{chap:ack}
+% TO WRITE, in your own words: supervisor, anyone who helped, and any funding.
+[Acknowledgments to be written.]
+\clearpage
+
+
+\clearpage
+% ======== abstract.tex ========
+\chapter*{Abstract}
+% \addcontentsline{toc}{chapter}{Abstract}
+\label{chap:abstract}
+% TO WRITE LAST, in your own words, about 250-300 words in three parts (How to Write a Better Thesis, ch. 11):
+% (1) why the work was done and what it aimed to achieve;
+% (2) what was built and how it was evaluated, with the main results;
+% (3) what was concluded.
+[Abstract to be written.]
+\clearpage
+
+\tableofcontents
+% \addcontentsline{toc}{chapter}{Contents}
+\clearpage 
+
+\pagestyle{headings}
+\pagenumbering{arabic}
+
+% \setlength\parskip{15pt}
+\setlength\parskip{.5\baselineskip plus .2\baselineskip
+	minus .4\baselineskip}
+% \setlength\parskip{.5\baselineskip \@plus .1\baselineskip \@minus ..1\baselineskip}
+
+
+\clearpage
+% ======== sections/introduction.tex ========
+% NOTE (migration 23 Nov 2026): Text moved unchanged from main.tex. Much of it was drafted with AI assistance; rewrite it in your own words before submission (the supervisor runs AI checks).
+% NOTE (migration 23 Nov 2026): Update 'Organisation of the thesis' to the seven chapters and the appendices; Scope still lists exams and repair as deferred although they are implemented.
 \hypertarget{introduction}{%
 \chapter{Introduction}\label{introduction}}
 
@@ -149,66 +213,6 @@ experiments. Placeholders in square brackets mark values not yet decided
 or measured.
 \end{quote}
 
-\hypertarget{university-timetabling}{%
-\section{University timetabling}\label{university-timetabling}}
-
-University timetabling shapes whether students can attend required classes and assessments and whether staff can deliver them within the institution's available time and facilities. An overlapping required lecture can prevent attendance; an unsuitable room can prevent a planned laboratory activity; poorly coordinated examination dates can conflict with local assessment rules. These are educational and administrative problems before they are computational ones. Course timetabling organises repeated teaching activities, while examination timetabling organises assessment events, with different room and calendar requirements~\cite{petrovic2004university}.
-
-The five retained timetabling papers illustrate different priorities. Sobh, Cousens and Patel~\cite{sobh_course_scheduler} focus on offering course combinations that meet students' degree requirements. Müller, Rudová and Müllerová~\cite{muller2025itc} describe the need to attend compatible lectures, seminars and laboratories, including travel between locations. Abdennadher and Edward~\cite{abdennadher_guc_exams} consider examination clashes, retakes, core-exam limits and spacing between difficult examinations at GUC. Kaya~\cite{kaya2026drl} includes institutional-scale examination revision and coordinator control.
-
-A mandatory rule protects a requirement that the institution has decided must hold, such as avoiding simultaneous classes for the same student group. A preference expresses a desirable arrangement, such as a preferred teaching period, which may compete with other needs. These categories and their priorities must be agreed locally. The papers primarily evaluate scheduling results; they do not justify assuming that a conflict-free timetable automatically improves learning or graduation. This study accordingly treats educational access and administrative usability as motivations and measures the outcomes within its actual scope.
-
-\hypertarget{the-constraint-entry-problem}{%
-\section{The constraint-entry
-problem}\label{the-constraint-entry-problem}}
-
-Solvers need explicit rules: entities, parameters, severities and
-weights. Administrators, by contrast, express requirements informally
-and often in several rules at once. A statement such as "Dr Ahmed cannot
-teach on Tuesdays and prefers morning classes" contains a mandatory
-unavailability and a preference; "morning" has no meaning to a solver
-until an institution defines it. A wrong reading --- treating the
-preference as mandatory, resolving the name to the wrong person, or
-choosing an arbitrary definition of "morning" --- can produce a
-timetable that satisfies the formal model while failing the
-administrator\textquotesingle s intention.
-
-In the five timetabling papers reviewed, this translation step is not itself
-studied. Constraints are encoded by developers in declarative programs
-\cite{abdennadher_guc_exams},
-supplied in standard benchmark formats~\cite{muller2025itc}, formalised
-by researchers for a given institution~\cite{kaya2026drl}, set as weights by
-the timetable officer~\cite{petrovic2004university}, or entered by
-instructors choosing time slots~\cite{sobh_course_scheduler}.
-Existing systems offer form-based entry, which is precise but laborious.
-An observation recorded in the project specification from a walkthrough
-of the public UniTime demonstration on 4 October 2026 (a sample dataset
-and a single session, not a systematic evaluation, and not independently
-re-checked here) illustrates the effort: recording that one instructor
-prefers no teaching after 3 PM required navigating to the instructor,
-opening preferences, choosing a severity and marking 15 half-hour cells
-across five weekdays. This observation motivates the project but is not
-evidence about any deployed system.
-
-\hypertarget{motivation-for-ai-assisted-extraction}{%
-\section{Motivation for AI-assisted
-extraction}\label{motivation-for-ai-assisted-extraction}}
-
-Large language models can read free text and, when constrained to a
-schema, produce structured output. This suggests a workflow in which an
-administrator writes a requirement, a model proposes formal rules, and
-the administrator reviews them. The suggestion carries risks that the
-design must address rather than assume away: schema-valid output is not
-necessarily a correct interpretation; models may invent entities or
-silently choose thresholds; and a correct extraction does not make a
-schedule valid. Recent work on LLMs in scheduling indicates that wording
-affects constraint faithfulness when models are asked to \emph{produce}
-schedules from text~\cite{sharma2026schedbench} (preprint), and that
-small-scale attempts to convert user preferences into optimisation
-constraints in other domains are still preliminary~\cite{sanguinetti2025preferences}
-(preprint). These sources concern different tasks
-and settings; they motivate care and measurement, not a conclusion about
-university timetabling.
 
 \hypertarget{problem-statement}{%
 \section{Problem statement}\label{problem-statement}}
@@ -323,8 +327,82 @@ dataset and annotation, experimental conditions, metrics, analysis,
 reproducibility, ethics and threats to validity. Subsequent chapters,
 not drafted here, would describe the system, report results, and discuss
 and conclude.
+\clearpage
 
-\chapter{Literature Review}\label{literature-review}
+\clearpage
+% ======== sections/background.tex ========
+\chapter{Background}\label{chap:background}
+
+% NOTE (migration 23 Nov 2026): Text moved unchanged from main.tex. Much of it was drafted with AI assistance; rewrite it in your own words before submission (the supervisor runs AI checks).
+% NOTE (migration 23 Nov 2026): Sections below were moved from the Introduction. Still to add in your own words: constraint programming and CP-SAT; large language models, local hosting (Ollama) and QLoRA fine-tuning; right-to-left and mixed-direction text. Cite sources for each.
+\hypertarget{university-timetabling}{%
+\section{University timetabling}\label{university-timetabling}}
+
+University timetabling shapes whether students can attend required classes and assessments and whether staff can deliver them within the institution's available time and facilities. An overlapping required lecture can prevent attendance; an unsuitable room can prevent a planned laboratory activity; poorly coordinated examination dates can conflict with local assessment rules. These are educational and administrative problems before they are computational ones. Course timetabling organises repeated teaching activities, while examination timetabling organises assessment events, with different room and calendar requirements~\cite{petrovic2004university}.
+
+The five retained timetabling papers illustrate different priorities. Sobh, Cousens and Patel~\cite{sobh_course_scheduler} focus on offering course combinations that meet students' degree requirements. Müller, Rudová and Müllerová~\cite{muller2025itc} describe the need to attend compatible lectures, seminars and laboratories, including travel between locations. Abdennadher and Edward~\cite{abdennadher_guc_exams} consider examination clashes, retakes, core-exam limits and spacing between difficult examinations at GUC. Kaya~\cite{kaya2026drl} includes institutional-scale examination revision and coordinator control.
+
+A mandatory rule protects a requirement that the institution has decided must hold, such as avoiding simultaneous classes for the same student group. A preference expresses a desirable arrangement, such as a preferred teaching period, which may compete with other needs. These categories and their priorities must be agreed locally. The papers primarily evaluate scheduling results; they do not justify assuming that a conflict-free timetable automatically improves learning or graduation. This study accordingly treats educational access and administrative usability as motivations and measures the outcomes within its actual scope.
+
+\hypertarget{the-constraint-entry-problem}{%
+\section{The constraint-entry
+problem}\label{the-constraint-entry-problem}}
+
+Solvers need explicit rules: entities, parameters, severities and
+weights. Administrators, by contrast, express requirements informally
+and often in several rules at once. A statement such as "Dr Ahmed cannot
+teach on Tuesdays and prefers morning classes" contains a mandatory
+unavailability and a preference; "morning" has no meaning to a solver
+until an institution defines it. A wrong reading --- treating the
+preference as mandatory, resolving the name to the wrong person, or
+choosing an arbitrary definition of "morning" --- can produce a
+timetable that satisfies the formal model while failing the
+administrator\textquotesingle s intention.
+
+In the five timetabling papers reviewed, this translation step is not itself
+studied. Constraints are encoded by developers in declarative programs
+\cite{abdennadher_guc_exams},
+supplied in standard benchmark formats~\cite{muller2025itc}, formalised
+by researchers for a given institution~\cite{kaya2026drl}, set as weights by
+the timetable officer~\cite{petrovic2004university}, or entered by
+instructors choosing time slots~\cite{sobh_course_scheduler}.
+Existing systems offer form-based entry, which is precise but laborious.
+An observation recorded in the project specification from a walkthrough
+of the public UniTime demonstration on 4 October 2026 (a sample dataset
+and a single session, not a systematic evaluation, and not independently
+re-checked here) illustrates the effort: recording that one instructor
+prefers no teaching after 3 PM required navigating to the instructor,
+opening preferences, choosing a severity and marking 15 half-hour cells
+across five weekdays. This observation motivates the project but is not
+evidence about any deployed system.
+
+\hypertarget{motivation-for-ai-assisted-extraction}{%
+\section{Motivation for AI-assisted
+extraction}\label{motivation-for-ai-assisted-extraction}}
+
+Large language models can read free text and, when constrained to a
+schema, produce structured output. This suggests a workflow in which an
+administrator writes a requirement, a model proposes formal rules, and
+the administrator reviews them. The suggestion carries risks that the
+design must address rather than assume away: schema-valid output is not
+necessarily a correct interpretation; models may invent entities or
+silently choose thresholds; and a correct extraction does not make a
+schedule valid. Recent work on LLMs in scheduling indicates that wording
+affects constraint faithfulness when models are asked to \emph{produce}
+schedules from text~\cite{sharma2026schedbench} (preprint), and that
+small-scale attempts to convert user preferences into optimisation
+constraints in other domains are still preliminary~\cite{sanguinetti2025preferences}
+(preprint). These sources concern different tasks
+and settings; they motivate care and measurement, not a conclusion about
+university timetabling.
+\clearpage
+
+
+% add more chapters here
+\clearpage
+% ======== sections/related_work.tex ========
+% NOTE (migration 23 Nov 2026): Text moved unchanged from main.tex. Much of it was drafted with AI assistance; rewrite it in your own words before submission (the supervisor runs AI checks).
+\chapter{Related Work}\label{literature-review}
 
 \section{Purpose and review approach}
 This chapter examines university timetabling from an educational and administrative perspective. The main questions are what problem each paper addresses, who benefits, what capabilities were implemented or studied, which educational requirements were considered, what the evaluation establishes, and what remains missing. Algorithms are mentioned only where necessary to understand a capability or a limitation.
@@ -352,7 +430,7 @@ The review is a focused reading of five retained timetabling papers and one addi
 
 \textbf{Implications for this project.} The proposed system should make its supported educational requirements explicit and assess them against the approved institutional policy. Initial group-based conflict checking is a deliberate simplification of individual sectioning. Travel-time checking, irregular week patterns, and student sectioning should not be claimed as implemented features of the prototype without corresponding requirements and tests.
 
-\section{Examination access, workload and institutional coordination}
+\section[Examination access and workload]{Examination access, workload and institutional coordination}
 \subsection{Abdennadher and Edward: examination timetabling at GUC}
 \textbf{Educational problem and beneficiaries.} Abdennadher and Edward~\cite{abdennadher_guc_exams} describe examination scheduling at the German University in Cairo. At the time described, manual course scheduling reportedly took about three weeks and examination scheduling about one week. Shared courses and resources across faculties made separate faculty schedules unsuitable. Examination administrators are the direct users; students benefit from schedules that allow them to sit their examinations, including examinations retaken from earlier semesters (supplied PDF, pp.~1--3).
 
@@ -393,7 +471,7 @@ The review is a focused reading of five retained timetabling papers and one addi
 
 \textbf{Implications for this project.} This is a close conceptual precedent for converting everyday requirements into a restricted constraint vocabulary, but it does not establish that the proposed university application will work. The thesis will consequently assess complete semantic interpretation and individual fields separately, including time boundaries, entity references and mandatory versus preferred status. Requirements will be evaluated from the full statement, with the supplied institutional context; manually highlighted spans will not be assumed in the main evaluation. Review and targeted clarification are proposed safeguards whose effectiveness must be measured. The human comparison will assess final interpretation correctness alongside time and corrections, rather than treating a fluent response or a valid timetable as evidence that the administrator's intent was understood. These implications support the existing SRS requirements for entity resolution, named periods, clarification, review and evaluation (FR-016--FR-020, FR-049 and FR-050); they add no appliance-related functions to the project.
 
-\section{Cross-paper synthesis and implications for the proposed system}
+\section[Cross-paper synthesis]{Cross-paper synthesis and implications for the proposed system}
 \textbf{Access and progression.} Sobh et al. emphasise course requirements and degree progression, Müller et al. emphasise attendance across compatible class combinations, and the GUC study explicitly considers retake students. Together, they show that avoiding clashes has educational meaning: students must be able to attend required teaching or assessment. However, offering selection, individual sectioning and group-based conflict prevention are different capabilities. The proposed prototype initially addresses the last of these.
 
 \textbf{Workload and assessment organisation.} GUC's core-exam and difficulty-spacing requirements show how assessment policy affects scheduling. These rules are institution-specific; they do not establish an optimal universal spacing policy. Course gaps, late sessions and daily-load balance are related concerns for the proposed course prototype, but their thresholds and priority require local agreement.
@@ -411,10 +489,14 @@ The additional study by Sanguinetti et al.~\cite{sanguinetti2025preferences} dir
 
 \section{Summary}
 The reviewed literature identifies three priorities for the proposed study: protecting access to required teaching, expressing institution-specific scheduling needs, and keeping administrators informed and in control. Existing evidence mainly establishes scheduling capabilities and operational results. The methodology therefore evaluates both the correctness of recorded requirements and the effort and understanding involved in the administrative workflow, without claiming unmeasured improvements in student learning.
+\clearpage
 
+\clearpage
+% ======== sections/methodology.tex ========
+% NOTE (migration 23 Nov 2026): Text moved unchanged from main.tex. Much of it was drafted with AI assistance; rewrite it in your own words before submission (the supervisor runs AI checks).
+% NOTE (migration 23 Nov 2026): This chapter still describes a PROPOSED study in the future tense, with [TBD] items. Rewrite it as the method actually followed, once the research-question decisions in RQ-EVIDENCE.md are agreed; mention the fine-tuning method (now in Implementation) and remove the statement that fine-tuning is out of scope.
 \hypertarget{methodology-proposed-study}{%
-\chapter{Methodology (proposed
-study)}\label{methodology-proposed-study}}
+\chapter{Methodology}\label{methodology-proposed-study}}
 
 \begin{quote}
 \textbf{Updated 25 October 2026 for supervisor review. This chapter describes a
@@ -497,7 +579,7 @@ Supporting engineering question & Verification & Test outcomes
 (Section\textasciitilde3.11) \\
 \end{longtable}
 
-\section{Users, educational needs and proposed functional workflow}\label{system-architecture-and-separation-of-concerns}
+\section[Users, needs and workflow]{Users, educational needs and proposed functional workflow}\label{system-architecture-and-separation-of-concerns}
 The primary user is the timetable administrator. Instructors supply availability and preferences through the administrator in the initial scope; instructors and students view the published timetable within their authorised scope. Direct instructor submission is an optional extension. A researcher evaluates interpretation and task effort using approved study records. These roles should not be assumed to have identical access.
 
 Before constructing the evaluation tasks, the supervisor and, where feasible, staff with timetabling experience will review the proposed needs: access to required activities, avoidance of group and staff clashes, suitable teaching facilities, feasible availability, and understandable reporting of incomplete or conflicting schedules. This consultation is planned, not completed. Any agreed requirement must fit the supported scope; new capabilities require an explicit scope decision.
@@ -662,7 +744,7 @@ agreement}\label{annotation-protocol-disagreement-and-agreement}}
 \end{enumerate}
 
 \hypertarget{development--validation--held-out-separation-and-leakage-prevention}{%
-\section{Development / validation / held-out separation and leakage
+\section[Data separation and leakage]{Development / validation / held-out separation and leakage
 prevention}\label{development--validation--held-out-separation-and-leakage-prevention}}
 
 \begin{itemize}
@@ -901,7 +983,7 @@ requests}\label{clarification-and-unsupported-requests}}
   bound, in a researcher-simulated review).
 \item
   \textbf{Correction effort:} number of fields changed and constraints
-  added/removed/rejected per statement (field-level diff between raw and
+  added/\allowbreak removed/\allowbreak rejected per statement (field-level diff between raw and
   approved); reviewer decision counts; review time.
 \item
   \textbf{Residual error after review:} gold versus approved set, to
@@ -1211,8 +1293,15 @@ specific model versions on specific dates. Validity of a schedule is
 relative to the supported rules and supplied data. Extraction accuracy
 on the benchmark does not imply correct schedules in deployment, and
 valid schedules do not imply correct extraction.
+\clearpage
 
-\section{JadwAI implementation status and phased delivery (25 October 2026)}\label{implementation-status}
+\clearpage
+% ======== sections/implementation.tex ========
+\chapter{Implementation}\label{chap:implementation}
+
+% NOTE (migration 23 Nov 2026): Text moved unchanged from main.tex. Much of it was drafted with AI assistance; rewrite it in your own words before submission (the supervisor runs AI checks).
+% NOTE (migration 23 Nov 2026): Add an overview of the architecture (frontend, API, worker, database, solver, validator, assistant) with a diagram, in your own words. The status section below dates from 25 October 2026 and is out of date: the requirements appendix has the current status.
+\section[Implementation status]{JadwAI implementation status and phased delivery (25 October 2026)}\label{implementation-status}
 \emph{Measured evidence from 8 November 2026, including university-scale generation, repair suggestions and the rule-based baseline, is reported in Chapter~\ref{evidence}.}
 
 JadwAI is a new application, separate from the earlier prototype; UniTime is a reference rather than a fork. Its architecture uses React/TypeScript, Python/FastAPI, PostgreSQL, SQLAlchemy/Alembic, a separate scheduling worker, OR-Tools CP-SAT~\cite{google_cpsat} and an independently implemented validator. Phase~4 is complete for the explicitly supported weekly manual scheduling baseline. This milestone does not mean that every proposed SRS variant or the complete research project is finished. Phase~5 evaluation preparation is in progress. JAI currently provides guided interface navigation, not LLM extraction.
@@ -1282,81 +1371,40 @@ No extraction benchmark, independent annotation-agreement study or participant s
 \end{enumerate}
 Supervisor decisions now concern independent annotation/review, final dataset scale and definitions, development-pilot success thresholds, model/budget selection, participant-study feasibility and the delivery deadline. The teaching-hour unit and six-hour demonstration daily caps have been decided; their suitability as institutional policy still requires agreement. No research result is inferred from implementation or scorer self-tests.
 
-\hypertarget{timeline}{%
-\section{Timeline}\label{timeline}}
 
-No deadline has been provided, so no dates are proposed (OQ-14). The
-order of work is set out in SRS Section\textasciitilde16 and refined in a
-current phased implementation roadmap that places
-the annotation guide and evaluation data before AI extraction.
+\section[The JAI assistant]{The JAI assistant and its locally hosted model (23 November 2026)}\label{evidence-jai}
 
-\hypertarget{proposed-deliverables-of-the-study}{%
-\section{Proposed deliverables of the
-study}\label{proposed-deliverables-of-the-study}}
+\paragraph{What was built.} JAI is a chat panel in JadwAI. Built-in patterns in English, formal Arabic and Egyptian Arabic answer common questions directly. Other messages go to a model served by Ollama on the same machine; nothing is sent to an external provider. The model may explain the supplied facts, discuss trade-offs and prepare at most one website action, which runs only after the administrator confirms it; every proposed action is validated against the same contract as the corresponding page. The base model is \texttt{qwen2.5:7b-instruct} (Qwen2.5-7B-Instruct, 4-bit quantised). On the laptop described above, one answer takes between one and six minutes, so the measurements below concern behaviour, not interactive speed.
 
-Constraint vocabulary and schema; annotation guide; annotated dataset
-(shareable portion, if permitted); frozen prompts and configurations;
-raw outputs; analysis scripts; results with limitations; the prototype;
-the thesis.
+\paragraph{Verified guide.} A first evaluation showed that the model invented details about JadwAI (for example a ``third-party provider'' and instructors who ``can edit'' a published timetable). A guide of 25 short statements, each checked against the application code, was therefore added. For each message the (at most three) statements whose keywords match are included in the prompt, and the instructions require the model to use only those facts for questions about JadwAI and otherwise to say that it is not sure. The application also removes repeated sentences, keeps the complete sentences of a reply that was cut off, rewrites a reply once into Egyptian Arabic when an Arabic message received an English reply, and cuts a reply at the first Chinese, Japanese or Korean character (an observed failure of the base model).
 
-\hypertarget{consistency-with-the-srs-traceability}{%
-\section{Consistency with the SRS
-(traceability)}\label{consistency-with-the-srs-traceability}}
+\paragraph{Fine-tuning method.} Training examples are fictional conversations in English, formal Arabic and Egyptian Arabic, grouped in \emph{families} (one intent with several wordings) and split into training and held-out families, so that no held-out family is seen in training. The examples were drafted with an AI assistant and approved by the project owner in bulk after reading a change list; this is not an independent item-by-item review. Adapters were trained with QLoRA (rank~16) on Qwen2.5-7B-Instruct on a free cloud T4 GPU, with the loss computed only on JAI's final answer. Because Ollama does not load such adapters for this model, each adapter was merged into Ollama's own 4-bit weights. A first merge back to the original 4-bit format erased about 98\% of the training, because the changes are smaller than the quantisation steps; re-quantising each tensor to a different format (4-bit blocks to 6-bit, 6-bit to 5-bit) preserved it, and a check over every trained matrix found on average 94--97\% of the trained change present per tensor type (lowest single matrix 82\%). Table~\ref{tab:jai-rounds} summarises the training rounds.
 
-\begin{longtable}[]{@{}p{\dimexpr(\linewidth-4\tabcolsep)/2\relax}p{\dimexpr(\linewidth-4\tabcolsep)/2\relax}@{}}
-\toprule\noalign{}
-Methodology element & Specified feature or research procedure \\
-\midrule\noalign{}
-\endhead
-\bottomrule\noalign{}
-\endlastfoot
-Extraction with schema-constrained output & FR-015, FR-022 \\
-Entity resolution; invented entities & FR-016 \\
-Parameters, named periods & FR-001, FR-017 \\
-Negation, polarity, hard/soft & FR-018 \\
-Clarification and unsupported handling & FR-019 \\
-Review; raw versus post-review & FR-020 (stores raw and approved) \\
-Approval gate & FR-021 \\
-Experiment harness; metrics incl. paraphrase and run-to-run consistency;
-versioned development records; frozen held-out configuration; held-out
-isolation and access log & FR-049 \\
-Annotator rating of clarification-question usefulness; inter-annotator
-agreement; sample-size and statistics & research procedures
-(dataset/analysis), no FR \\
-Audit of model, prompt, cost, latency & FR-023 \\
-Manual-entry baseline & FR-010 \\
-Manual versus assisted timing and corrections & FR-050 \\
-Scheduling measures & FR-024--FR-029, FR-031 \\
-Seeded-violation and differential tests of the validator & FR-031 (SRS
-EV-7; research procedure) \\
-Coverage statements & FR-030, FR-032 \\
-System-behaviour tests & SRS AC-01--AC-23 \\
-Concurrent changes and publication consistency & FR-059; AC-16 \\
-Interrupted operations and recovery & FR-060; AC-17 \\
-Duplicate requests and bounded retries & FR-061; AC-18 \\
-Incomplete results and cancellation completion & FR-062; AC-19 \\
-Validator failures and publication blocking & FR-063; AC-20 \\
-Session expiry and permission changes & FR-064; AC-21 \\
-Reproducibility records & FR-023--FR-025, FR-046; NFR-016 \\
-Differential testing against the solver model & research procedure
-(Section\textasciitilde3.11); requires the validator and model to be
-separately callable (NFR-002) \\
-Rule-based baseline (optional) & research procedure; \textbf{no FR} ---
-it is a test-time artefact, not a product feature \\
-\end{longtable}
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lp{0.33\textwidth}rrrp{0.22\textwidth}@{}}
+\toprule
+Round & Training data & Rows & Epochs & Loss & Outcome \\
+\midrule
+v1 & Original examples, no guide in the prompts & 210 & 2 & 1.62 & Better behaviour, still invents facts \\
+v2 & Same answers, guide added to the prompts & 210 & 3 & 1.11 & Worse; not used \\
+v3 & Answers rewritten to follow the guide; ``not sure'' examples & 243 & 2 & 1.18 & Preferred in blind rating \\
+\bottomrule
+\end{tabular}
+\caption{JAI fine-tuning rounds (training rows; held-out rows were 69, 69 and 72).}
+\label{tab:jai-rounds}
+\end{table}
 
-Instructor eligibility, locks and continuity are covered by AC-22; four-language input and the bilingual RTL interface by AC-23. These identifiers refer to the revised scope and do not imply that the older exported SRS has been synchronised. Fixed-assignment solver/validator cross-checks must fix instructor variables too. Infeasibility reporting provides available conflict details; automatic repair remains deferred.
 
-Items marked "research procedure" are deliberately not product
-requirements. Every other evaluated capability has an FR.
+\paragraph{Mixed-direction text.} Arabic replies that contain English names, codes and times were displayed in a confusing order: a range such as 08:30--10:00 inside an Arabic sentence was shown as 10:00--08:30. The chat now chooses each line's direction from its main language and isolates every English or numeric run, which keeps such runs in reading order.
+\clearpage
 
-\hypertarget{decisions-needed-to-finalise-this-chapter}{%
-\section{Decisions needed to finalise this
-chapter}\label{decisions-needed-to-finalise-this-chapter}}
-
-The remaining decisions concern complete constraint semantics; university template and length; dataset source, size and annotators; success targets; participant study and ethics; model selection and approved cost cap; data/provider policy; institutional workload values and additional daily-limit variants; partial diagnostic result sources; and the submission deadline. Exams, language scope, group-based conflict checking and elapsed-teaching-hour units have been resolved as stated in Chapter~1. The citation style has been resolved as IEEE (BibTeX style \texttt{ieeetr}, numbered in order of first citation). The initial corpus remains unreviewed, so its current size and labels do not resolve the final research sampling or annotation decisions.
-
-\chapter{Implementation and System Evaluation Evidence (8 November 2026)}\label{evidence}
+\clearpage
+% ======== sections/results.tex ========
+% NOTE (migration 23 Nov 2026): Text moved unchanged from main.tex. Much of it was drafted with AI assistance; rewrite it in your own words before submission (the supervisor runs AI checks).
+% NOTE (migration 23 Nov 2026): Add the full local-model extraction run (144 statements, thesis/evidence/2026-11-23-full) next to the rule-based baseline when it has finished. Update the test counts in the last section.
+\chapter{Results}\label{evidence}
 
 \section{Purpose and boundary}
 This chapter records measured evidence about the implemented JadwAI system as of 8 November 2026. It concerns the scheduling engine, its independent validator, the repair diagnosis for impossible timetables, reports and exports, and a rule-based interpretation baseline. It does \emph{not} answer the research questions about large-language-model interpretation (RQ1--RQ3): no model was called, no paid provider was used, and the multilingual corpus labels remain draft and unreviewed (Section~\ref{dataset-construction}). Engineering checks and research results are kept separate, as in Section~\ref{implementation-status}. Section~\ref{evidence-jai}, added on 23 November 2026, reports the conversational assistant JAI and the fine-tuning of its locally hosted model; those measurements concern assistant behaviour on development cases, not the constraint-extraction questions.
@@ -1471,29 +1519,8 @@ Testing the interpretation workflow on the demonstration workspace also found th
 \section{Reports and exports}
 The statistics report for the published draft was recomputed independently from the saved assignments; every figure matched (448/448 sessions, sessions per day, zero overlaps, 65/65 rooms, 123/123 instructors, 22.97\% room time, no extra teaching hours). The review found that seat use ignored advising students, that unset limits were printed as ``None'', and that a report could not be limited to one group; all three were corrected. Timetable PDFs are now generated on the server as landscape A4 pages with short descriptive names (for example ``BA Y3 G7 Schedule'') because browser printing in one environment rotated the page and named the file after the application window.
 
-\section{The JAI assistant and its locally hosted model (23 November 2026)}\label{evidence-jai}
 
-\paragraph{What was built.} JAI is a chat panel in JadwAI. Built-in patterns in English, formal Arabic and Egyptian Arabic answer common questions directly. Other messages go to a model served by Ollama on the same machine; nothing is sent to an external provider. The model may explain the supplied facts, discuss trade-offs and prepare at most one website action, which runs only after the administrator confirms it; every proposed action is validated against the same contract as the corresponding page. The base model is \texttt{qwen2.5:7b-instruct} (Qwen2.5-7B-Instruct, 4-bit quantised). On the laptop described above, one answer takes between one and six minutes, so the measurements below concern behaviour, not interactive speed.
-
-\paragraph{Verified guide.} A first evaluation showed that the model invented details about JadwAI (for example a ``third-party provider'' and instructors who ``can edit'' a published timetable). A guide of 25 short statements, each checked against the application code, was therefore added. For each message the (at most three) statements whose keywords match are included in the prompt, and the instructions require the model to use only those facts for questions about JadwAI and otherwise to say that it is not sure. The application also removes repeated sentences, keeps the complete sentences of a reply that was cut off, rewrites a reply once into Egyptian Arabic when an Arabic message received an English reply, and cuts a reply at the first Chinese, Japanese or Korean character (an observed failure of the base model).
-
-\paragraph{Fine-tuning method.} Training examples are fictional conversations in English, formal Arabic and Egyptian Arabic, grouped in \emph{families} (one intent with several wordings) and split into training and held-out families, so that no held-out family is seen in training. The examples were drafted with an AI assistant and approved by the project owner in bulk after reading a change list; this is not an independent item-by-item review. Adapters were trained with QLoRA (rank~16) on Qwen2.5-7B-Instruct on a free cloud T4 GPU, with the loss computed only on JAI's final answer. Because Ollama does not load such adapters for this model, each adapter was merged into Ollama's own 4-bit weights. A first merge back to the original 4-bit format erased about 98\% of the training, because the changes are smaller than the quantisation steps; re-quantising each tensor to a different format (4-bit blocks to 6-bit, 6-bit to 5-bit) preserved it, and a check over every trained matrix found on average 94--97\% of the trained change present per tensor type (lowest single matrix 82\%). Table~\ref{tab:jai-rounds} summarises the training rounds.
-
-\begin{table}[h]
-\centering
-\small
-\begin{tabular}{@{}lp{0.33\textwidth}rrrp{0.22\textwidth}@{}}
-\toprule
-Round & Training data & Rows & Epochs & Loss & Outcome \\
-\midrule
-v1 & Original examples, no guide in the prompts & 210 & 2 & 1.62 & Better behaviour, still invents facts \\
-v2 & Same answers, guide added to the prompts & 210 & 3 & 1.11 & Worse; not used \\
-v3 & Answers rewritten to follow the guide; ``not sure'' examples & 243 & 2 & 1.18 & Preferred in blind rating \\
-\bottomrule
-\end{tabular}
-\caption{JAI fine-tuning rounds (training rows; held-out rows were 69, 69 and 72).}
-\label{tab:jai-rounds}
-\end{table}
+\section{The JAI assistant: evaluation}\label{evidence-jai-results}
 
 \paragraph{Automatic checks on held-out cases.} Each candidate answered the same held-out cases with the production prompt, at temperature~0. The automatic checks cover only whether the reply is valid, whether it wrongly proposes an action, whether it is in the user's language and whether it stays under 80 words; they do not judge correctness. Table~\ref{tab:jai-auto} reports the conversation cases with the guide in the prompt.
 
@@ -1541,7 +1568,6 @@ The largest gains were in Arabic: an Arabic privacy question that v1 answered in
 
 \paragraph{Live use.} With v3 in the running application, four questions taken from the weakest cases were asked in the chat. The display of mixed Arabic and English text was correct after a fix described below, but the answers were weak: an Arabic question about laboratories with GPUs used wrong words for rooms; the poem request produced a poem; a frustrated Arabic message drifted into Chinese mid-sentence; and a question about connecting to the university's student information system, asked after the complaint, was answered with a request for a rule identifier from the previous topic. The held-out measurements therefore overstate live reliability, particularly for topic changes within one conversation. These cases were used to write a fourth round of training examples (off-topic requests, topic changes, Arabic room vocabulary and examination publishing), which had not been trained at the time of writing.
 
-\paragraph{Mixed-direction text.} Arabic replies that contain English names, codes and times were displayed in a confusing order: a range such as 08:30--10:00 inside an Arabic sentence was shown as 10:00--08:30. The chat now chooses each line's direction from its main language and isolates every English or numeric run, which keeps such runs in reading order.
 
 \paragraph{Limits.} The examples and contexts are fictional and were drafted with AI assistance; approvals were bulk approvals by the project owner. The held-out sets are small (16--19 conversation cases and 5 action cases), the automatic checks do not measure correctness, and the human rating had one rater who was not independent of the project. All runs used one machine, one random seed and temperature~0. These results describe the development of a local assistant; they are not estimates of constraint-extraction accuracy (RQ1).
 
@@ -1549,9 +1575,62 @@ The largest gains were in Arabic: an Arabic privacy question that v1 answered in
 At the time of writing the automated suites pass: 393 backend tests, 71 frontend tests and 47 evaluation-harness tests. They include regression tests for every fault reported in this chapter.
 
 The evidence has the following limits. All measurements come from one machine and one random seed; repeated runs and other hardware may differ, and parallel search can produce different valid timetables from identical inputs. The university-scale run used adjusted data, so it demonstrates the mechanism rather than a timetable for the university. The demonstration workspace is derived from real course structures but uses invented names and advising students. The repair diagnosis returns a minimal rather than a minimum set of changes, depends on time budgets, and on large timetables searches locally first. The interpretation baseline uses draft labels reviewed by no human, a single development release and a parser written by the same author who wrote the corpus. Research results for RQ1--RQ3 still require the reviewed corpus, frozen configurations and the human-in-the-loop study described in Chapter~3.
+\clearpage
 
 
+\clearpage
+% ======== sections/conclusion.tex ========
+\chapter{Conclusion and Future Work}\label{chap:conclusion}
+
+% TO WRITE (in your own words): answer each research question from the evidence in the Results chapter;
+% state the contributions; limitations; future work (participant study if not done, independent annotation,
+% round-4 training, larger evaluation). Keep it short: two to four pages.
+
+\section{Summary of findings}
+[To be written.]
+
+\section{Contributions}
+[To be written.]
+
+\section{Limitations}
+[To be written.]
+
+\section{Future work}
+[To be written.]
+\clearpage
+
+\clearpage
+% ======== appendix.tex ========
 \appendix
+\renewcommand{\appendixtocname}{Appendix}
+\renewcommand{\appendixpagename}{\appendixtocname}
+\addappheadtotoc
+\setboolean{@twoside}{false}
+\appendixpage
+
+\chapter{Lists}
+\addcontentsline{toc}{section}{List of Abbreviations}
+\begin{acronym}[\hspace{3cm}]
+  \acro{API}{Application Programming Interface}
+  \acro{CP-SAT}{Constraint Programming / Boolean Satisfiability solver (Google OR-Tools)}
+  \acro{CSV}{Comma-Separated Values}
+  \acro{JAI}{The JadwAI assistant}
+  \acro{LLM}{Large Language Model}
+  \acro{LoRA}{Low-Rank Adaptation}
+  \acro{NFR}{Non-Functional Requirement}
+  \acro{FR}{Functional Requirement}
+  \acro{QLoRA}{Quantised Low-Rank Adaptation}
+  \acro{RQ}{Research Question}
+  \acro{SRS}{Software Requirements Specification}
+  \acro{TA}{Teaching Assistant}
+\end{acronym}
+\clearpage
+\listoffigures
+\addcontentsline{toc}{section}{List of Figures}
+\listoftables
+\addcontentsline{toc}{section}{List of Tables}
+
+% ---- appendix_content.tex ----
 \chapter{Functional and Non-Functional Requirements}\label{app:requirements}
 
 The complete list of requirements, with a one-sentence summary and the prototype status of each, is kept with the source code:
@@ -1566,7 +1645,7 @@ It is derived from the project's Software Requirements Specification (SRS) v0.4 
 
 Table~\ref{tab:fr-areas} groups the 78 functional requirements by area. Of these, 55 are implemented, 17 partly implemented and 6 not started.
 
-\begin{longtable}{@{}p{0.27\textwidth}p{0.16\textwidth}p{0.13\textwidth}p{0.36\textwidth}@{}}
+\begin{longtable}{@{}p{0.26\textwidth}p{0.17\textwidth}p{0.155\textwidth}p{0.33\textwidth}@{}}
 \caption{Functional requirements by area.}\label{tab:fr-areas}\\
 \toprule
 Area & Requirements & Status & Main gaps \\
@@ -1623,121 +1702,219 @@ Observability, licensing & NFR-022, 023 & Partial; licence list not yet checked 
 \bottomrule
 \end{longtable}
 
-
 \chapter{Screenshots of the Prototype}\label{app:screenshots}
 
 The following screenshots were taken from the running prototype on 23 November 2026 in the demonstration workspace (a browser window of 1440$\times$900 pixels). All names of people are demonstration placeholders. Further screenshots are in the repository folder \texttt{docs/screenshots}.
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=\textwidth]{02-overview.jpg}
+\thesisimage[width=\textwidth]{02-overview.jpg}
 \caption{Overview page of the administrator workspace: counts of activities, instructors, rooms and student groups, the setup path and recent activity.}
 \label{fig:shot-overview}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=\textwidth]{03-academic-data.jpg}
+\thesisimage[width=\textwidth]{03-academic-data.jpg}
 \caption{Academic data: teaching activities of each course, with separate tabs for instructors, student groups and rooms, and CSV import.}
 \label{fig:shot-academic-data}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=\textwidth]{04-constraints.jpg}
+\thesisimage[width=\textwidth]{04-constraints.jpg}
 \caption{Constraints: a requirement can be typed in English or Arabic and is interpreted as a proposal; approved rules are listed below with their strength (preference or mandatory).}
 \label{fig:shot-constraints}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=\textwidth]{09-proposal-review.jpg}
+\thesisimage[width=\textwidth]{09-proposal-review.jpg}
 \caption{Proposal review: a requirement is interpreted by the locally hosted model and shown beside the original text for correction before any rule is created.}
 \label{fig:shot-proposal-review}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=\textwidth]{13-teaching-timetable-top.jpg}
+\thesisimage[width=\textwidth]{13-teaching-timetable-top.jpg}
 \caption{Teaching timetable: generation from approved rules only, building in parts, input checks, search settings and the list of saved drafts.}
 \label{fig:shot-teaching-timetable-top}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=\textwidth]{15-teaching-timetable-2.jpg}
+\thesisimage[width=\textwidth]{15-teaching-timetable-2.jpg}
 \caption{Part of a published teaching timetable: each session shows time, course, activity, instructor and room, with an option to keep it fixed in later regenerations.}
 \label{fig:shot-teaching-timetable-2}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=\textwidth]{16-exam-timetable.jpg}
+\thesisimage[width=\textwidth]{16-exam-timetable.jpg}
 \caption{Examination timetable: midterms by day and time with hall, capacity and invigilator; the summary reports back-to-back examination days across groups.}
 \label{fig:shot-exam-timetable}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=\textwidth]{18-jai-chat.jpg}
+\thesisimage[width=\textwidth]{18-jai-chat.jpg}
 \caption{The JAI chat panel beside the exam settings: example questions and tasks; a proposed change runs only after the administrator confirms it.}
 \label{fig:shot-jai-chat}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=\textwidth]{11-overview-arabic.jpg}
+\thesisimage[width=\textwidth]{11-overview-arabic.jpg}
 \caption{Arabic interface: the same overview page with right-to-left layout.}
 \label{fig:shot-overview-arabic}
 \end{figure}
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=\textwidth]{12-timetable-arabic.jpg}
+\thesisimage[width=\textwidth]{12-timetable-arabic.jpg}
 \caption{Arabic interface: the examination settings page.}
 \label{fig:shot-timetable-arabic}
 \end{figure}
 
 \clearpage
 
+\chapter{Planning Records from the Proposal}\label{app:planning}
+
+% NOTE (migration 23 Nov 2026): Text moved unchanged from main.tex. Much of it was drafted with AI assistance; rewrite it in your own words before submission (the supervisor runs AI checks).
+% NOTE (migration 23 Nov 2026): These sections came from the proposed-methodology chapter. Keep only what still helps the reader, or remove this appendix.
+\hypertarget{timeline}{%
+\section{Timeline}\label{timeline}}
+
+No deadline has been provided, so no dates are proposed (OQ-14). The
+order of work is set out in SRS Section\textasciitilde16 and refined in a
+current phased implementation roadmap that places
+the annotation guide and evaluation data before AI extraction.
+
+\hypertarget{proposed-deliverables-of-the-study}{%
+\section{Proposed deliverables of the
+study}\label{proposed-deliverables-of-the-study}}
+
+Constraint vocabulary and schema; annotation guide; annotated dataset
+(shareable portion, if permitted); frozen prompts and configurations;
+raw outputs; analysis scripts; results with limitations; the prototype;
+the thesis.
+
+\hypertarget{consistency-with-the-srs-traceability}{%
+\section{Consistency with the SRS
+(traceability)}\label{consistency-with-the-srs-traceability}}
+
+\begin{longtable}[]{@{}p{\dimexpr(\linewidth-4\tabcolsep)/2\relax}p{\dimexpr(\linewidth-4\tabcolsep)/2\relax}@{}}
+\toprule\noalign{}
+Methodology element & Specified feature or research procedure \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Extraction with schema-constrained output & FR-015, FR-022 \\
+Entity resolution; invented entities & FR-016 \\
+Parameters, named periods & FR-001, FR-017 \\
+Negation, polarity, hard/soft & FR-018 \\
+Clarification and unsupported handling & FR-019 \\
+Review; raw versus post-review & FR-020 (stores raw and approved) \\
+Approval gate & FR-021 \\
+Experiment harness; metrics incl. paraphrase and run-to-run consistency;
+versioned development records; frozen held-out configuration; held-out
+isolation and access log & FR-049 \\
+Annotator rating of clarification-question usefulness; inter-annotator
+agreement; sample-size and statistics & research procedures
+(dataset/analysis), no FR \\
+Audit of model, prompt, cost, latency & FR-023 \\
+Manual-entry baseline & FR-010 \\
+Manual versus assisted timing and corrections & FR-050 \\
+Scheduling measures & FR-024--FR-029, FR-031 \\
+Seeded-violation and differential tests of the validator & FR-031 (SRS
+EV-7; research procedure) \\
+Coverage statements & FR-030, FR-032 \\
+System-behaviour tests & SRS AC-01--AC-23 \\
+Concurrent changes and publication consistency & FR-059; AC-16 \\
+Interrupted operations and recovery & FR-060; AC-17 \\
+Duplicate requests and bounded retries & FR-061; AC-18 \\
+Incomplete results and cancellation completion & FR-062; AC-19 \\
+Validator failures and publication blocking & FR-063; AC-20 \\
+Session expiry and permission changes & FR-064; AC-21 \\
+Reproducibility records & FR-023--FR-025, FR-046; NFR-016 \\
+Differential testing against the solver model & research procedure
+(Section\textasciitilde3.11); requires the validator and model to be
+separately callable (NFR-002) \\
+Rule-based baseline (optional) & research procedure; \textbf{no FR} ---
+it is a test-time artefact, not a product feature \\
+\end{longtable}
+
+Instructor eligibility, locks and continuity are covered by AC-22; four-language input and the bilingual RTL interface by AC-23. These identifiers refer to the revised scope and do not imply that the older exported SRS has been synchronised. Fixed-assignment solver/validator cross-checks must fix instructor variables too. Infeasibility reporting provides available conflict details; automatic repair remains deferred.
+
+Items marked "research procedure" are deliberately not product
+requirements. Every other evaluated capability has an FR.
+
+\hypertarget{decisions-needed-to-finalise-this-chapter}{%
+\section{Decisions needed to finalise this
+chapter}\label{decisions-needed-to-finalise-this-chapter}}
+
+The remaining decisions concern complete constraint semantics; university template and length; dataset source, size and annotators; success targets; participant study and ethics; model selection and approved cost cap; data/provider policy; institutional workload values and additional daily-limit variants; partial diagnostic result sources; and the submission deadline. Exams, language scope, group-based conflict checking and elapsed-teaching-hour units have been resolved as stated in Chapter~1. The citation style has been resolved as IEEE (BibTeX style \texttt{ieeetr}, numbered in order of first citation). The initial corpus remains unreviewed, so its current size and labels do not resolve the final research sampling or annotation decisions.
+
+\clearpage
+
+
+
+% References (IEEE style), generated by BibTeX from overleaf/references.bib.
 \renewcommand{\bibname}{References}
 \cleardoublepage\phantomsection
 \addcontentsline{toc}{chapter}{References}
-% Formatted in IEEE transactions style (as BibTeX's ieeetr would), numbered in order of
-% first citation, and embedded so no BibTeX run is needed. Source records: references.bib.
 \begin{thebibliography}{10}
 
-\bibitem{petrovic2004university}
-S.~Petrovic and E.~K. Burke, ``University timetabling,'' in {\em Handbook of Scheduling: Algorithms, Models, and Performance Analysis} (J.~Y.-T. Leung, ed.), ch.~45, Chapman \& Hall/CRC, 2004.
-\newblock Publisher and year not verified from a record.
-
-\bibitem{sobh_course_scheduler}
-T.~Sobh, R.~Cousens, and S.~Patel, ``Course {Scheduler}: An automated schedule generator.'' University of Bridgeport, n.d.
-\newblock Supplied paper; venue and year not verified.
-
-\bibitem{muller2025itc}
-T.~M{\"u}ller, H.~Rudov{\'a}, and Z.~M{\"u}llerov{\'a}, ``Real-world university course timetabling at the {International Timetabling Competition} 2019,'' {\em Journal of Scheduling}, vol.~28, pp.~247--267, 2025.
-\newblock doi: 10.1007/s10951-023-00801-w.
-
-\bibitem{abdennadher_guc_exams}
-S.~Abdennadher and M.~Edward, ``Constraint-based examination timetabling for the {German University in Cairo}.'' n.d.
-\newblock Supplied paper; venue and year not verified.
-
-\bibitem{kaya2026drl}
-M.~Kaya, ``Constraint-aware deep {Q}-network with greedy fallback for large-scale multi-campus university examination scheduling,'' {\em Array}, vol.~31, p.~101140, 2026.
-\newblock doi: 10.1016/j.array.2026.101140.
-
 \bibitem{sharma2026schedbench}
-S.~S. Sharma and A.~Sharma, ``{SCHEDBench}: A benchmark for evaluating {LLM} constraint faithfulness in natural-language combinatorial scheduling.'' arXiv preprint arXiv:2608.00991, 2026.
+S.~S. Sharma and A.~Sharma, ``{SCHEDBench}: A benchmark for evaluating {LLM}
+  constraint faithfulness in natural-language combinatorial scheduling.'' arXiv
+  preprint arXiv:2608.00991, 2026.
 \newblock \url{https://arxiv.org/abs/2608.00991}.
 
 \bibitem{sanguinetti2025preferences}
-M.~Sanguinetti, A.~Perniciano, L.~Zedda, A.~Loddo, C.~{Di Ruberto}, and M.~Atzori, ``From user preferences to optimization constraints using large language models.'' arXiv preprint arXiv:2503.21360, 2025.
-\newblock Submitted 27 March 2025; the supplied manuscript carries an ITADATA2024 header; final proceedings record not verified. \url{https://arxiv.org/abs/2503.21360}.
+M.~Sanguinetti, A.~Perniciano, L.~Zedda, A.~Loddo, C.~{Di Ruberto}, and
+  M.~Atzori, ``From user preferences to optimization constraints using large
+  language models.'' arXiv preprint arXiv:2503.21360, 2025.
+\newblock Submitted 27 March 2025; the supplied manuscript carries an
+  ITADATA2024 header; final proceedings record not verified.
+  \url{https://arxiv.org/abs/2503.21360}.
 
 \bibitem{michailidis2025cpbench}
-K.~Michailidis, D.~Tsouros, and T.~Guns, ``{CP-Bench} (later renamed {DCP-Bench-Open}): A benchmark of {LLMs} writing constraint models from natural-language problem descriptions.'' arXiv preprint arXiv:2506.06052, 2025.
-\newblock Version 2 dated 4 September 2025; title as recorded in the project bibliography. \url{https://arxiv.org/abs/2506.06052}.
+K.~Michailidis, D.~Tsouros, and T.~Guns, ``{CP-Bench} (later renamed
+  {DCP-Bench-Open}): A benchmark of {LLMs} writing constraint models from
+  natural-language problem descriptions.'' arXiv preprint arXiv:2506.06052,
+  2025.
+\newblock Version 2 dated 4 September 2025; title as recorded in the project
+  bibliography. \url{https://arxiv.org/abs/2506.06052}.
+
+\bibitem{petrovic2004university}
+S.~Petrovic and E.~K. Burke, ``University timetabling,'' in {\em Handbook of
+  Scheduling: Algorithms, Models, and Performance Analysis} (J.~Y.-T. Leung,
+  ed.), ch.~45, Chapman \& Hall/CRC, 2004.
+\newblock Publisher and year not verified from a record.
+
+\bibitem{sobh_course_scheduler}
+T.~Sobh, R.~Cousens, and S.~Patel, ``Course {Scheduler}: An automated schedule
+  generator.'' University of Bridgeport, n.d.
+\newblock Supplied paper; venue and year not verified.
+
+\bibitem{muller2025itc}
+T.~M{\"u}ller, H.~Rudov{\'a}, and Z.~M{\"u}llerov{\'a}, ``Real-world university
+  course timetabling at the {International Timetabling Competition} 2019,''
+  {\em Journal of Scheduling}, vol.~28, pp.~247--267, 2025.
+\newblock doi: 10.1007/s10951-023-00801-w.
+
+\bibitem{abdennadher_guc_exams}
+S.~Abdennadher and M.~Edward, ``Constraint-based examination timetabling for
+  the {German University in Cairo},'' n.d.
+\newblock Supplied paper; venue and year not verified.
+
+\bibitem{kaya2026drl}
+M.~Kaya, ``Constraint-aware deep {Q}-network with greedy fallback for
+  large-scale multi-campus university examination scheduling,'' {\em Array},
+  vol.~31, p.~101140, 2026.
+\newblock doi: 10.1016/j.array.2026.101140.
 
 \bibitem{openai_gpt6_luna}
 {OpenAI}, ``{GPT-6 Luna} model documentation.''
@@ -1752,7 +1929,8 @@ K.~Michailidis, D.~Tsouros, and T.~Guns, ``{CP-Bench} (later renamed {DCP-Bench-
 \newblock Accessed 8 October 2026.
 
 \bibitem{google_cpsat}
-{Google}, ``{CP-SAT} solver.'' OR-Tools documentation, \url{https://developers.google.com/optimization/cp/cp_solver}.
+{Google}, ``{CP-SAT} solver.'' OR-Tools documentation,
+  \url{https://developers.google.com/optimization/cp/cp_solver}.
 \newblock Accessed 8 October 2026.
 
 \end{thebibliography}

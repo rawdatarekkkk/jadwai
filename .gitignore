@@ -21,3 +21,7 @@ finetuning/exports/
 finetuning/models/
 finetuning/reviews.local.json
 *.gguf
+
+# Thesis build outputs (rebuild from thesis/giu)
+thesis/thesis-giu-overleaf.zip
+thesis/thesis-giu-draft.pdf

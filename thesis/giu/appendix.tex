@@ -1,0 +1,30 @@
+\appendix
+\renewcommand{\appendixtocname}{Appendix}
+\renewcommand{\appendixpagename}{\appendixtocname}
+\addappheadtotoc
+\setboolean{@twoside}{false}
+\appendixpage
+
+\chapter{Lists}
+\addcontentsline{toc}{section}{List of Abbreviations}
+\begin{acronym}[\hspace{3cm}]
+  \acro{API}{Application Programming Interface}
+  \acro{CP-SAT}{Constraint Programming / Boolean Satisfiability solver (Google OR-Tools)}
+  \acro{CSV}{Comma-Separated Values}
+  \acro{JAI}{The JadwAI assistant}
+  \acro{LLM}{Large Language Model}
+  \acro{LoRA}{Low-Rank Adaptation}
+  \acro{NFR}{Non-Functional Requirement}
+  \acro{FR}{Functional Requirement}
+  \acro{QLoRA}{Quantised Low-Rank Adaptation}
+  \acro{RQ}{Research Question}
+  \acro{SRS}{Software Requirements Specification}
+  \acro{TA}{Teaching Assistant}
+\end{acronym}
+\clearpage
+\listoffigures
+\addcontentsline{toc}{section}{List of Figures}
+\listoftables
+\addcontentsline{toc}{section}{List of Tables}
+
+\input{appendix_content}

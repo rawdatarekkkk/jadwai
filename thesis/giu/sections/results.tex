@@ -1,0 +1,173 @@
+% NOTE (migration 23 Nov 2026): Text moved unchanged from main.tex. Much of it was drafted with AI assistance; rewrite it in your own words before submission (the supervisor runs AI checks).
+% NOTE (migration 23 Nov 2026): Add the full local-model extraction run (144 statements, thesis/evidence/2026-11-23-full) next to the rule-based baseline when it has finished. Update the test counts in the last section.
+\chapter{Results}\label{evidence}
+
+\section{Purpose and boundary}
+This chapter records measured evidence about the implemented JadwAI system as of 8 November 2026. It concerns the scheduling engine, its independent validator, the repair diagnosis for impossible timetables, reports and exports, and a rule-based interpretation baseline. It does \emph{not} answer the research questions about large-language-model interpretation (RQ1--RQ3): no model was called, no paid provider was used, and the multilingual corpus labels remain draft and unreviewed (Section~\ref{dataset-construction}). Engineering checks and research results are kept separate, as in Section~\ref{implementation-status}. Section~\ref{evidence-jai}, added on 23 November 2026, reports the conversational assistant JAI and the fine-tuning of its locally hosted model; those measurements concern assistant behaviour on development cases, not the constraint-extraction questions.
+
+All runs used one laptop (Intel Core i5-1038NG7, 4~cores and 8~threads, 16\,GB memory, macOS~26.5.1), Python~3.14.5 and OR-Tools CP-SAT~9.15.6755~\cite{google_cpsat} with eight search workers and random seed~42. Times are wall-clock seconds on that machine and depend on hardware. Every timetable reported as valid passed JadwAI's independent validator, which recomputes completeness, eligibility, the doctor/TA split, room suitability and capacity, resource overlaps, approved rules, locks, workload and daily policies without using the solver's model. The code is at commits \texttt{e4771a1} and \texttt{4137b96} of the project repository plus the parser correction described in Section~\ref{evidence-baseline}. Scripts and logs are kept in \texttt{thesis/evidence/2026-11-08/}.
+
+\section{Teaching timetable at department scale}\label{evidence-department}
+The demonstration workspace contains 448 weekly sessions, 93 student groups in eight programmes, 123 instructors, 65 rooms and 60 advising students (students whose courses differ from their group's, for example a retake, a section change or an elective from another programme). The calendar has six teaching days with five 90-minute periods, a student limit of 7.5 teaching hours per day and at most four consecutive periods.
+
+\begin{itemize}
+\tightlist
+\item \textbf{One run.} Generation with the convenience objective completed in 253\,s and passed independent validation. None of the 60 advising students has two of their own sessions at the same time. Evaluated on the same timetable without modelling them, 24 of the 60 would have had a clash.
+\item \textbf{Published draft.} A later run (222.9\,s) placed all 448 sessions with zero room, instructor and group overlap pairs. All 65 rooms are used by more than one programme, so the absence of room double-booking is a cross-programme property rather than a per-programme one. Room time used was 23.0\% and seats filled 66.2\%, counting advising students who join or drop sessions.
+\item \textbf{Two parts.} Built as Applied Computer Science and Informatics (217 sessions) followed by the remaining seven programmes (231 sessions) with the first part fixed, the parts took 128\,s and 129\,s, each passed validation as a combined timetable, and only the complete draft could be published.
+\end{itemize}
+
+\section{Teaching timetable at university scale}\label{evidence-university}
+The Winter 2026 workbook, entered through the data template, yields 2{,}711 weekly sessions for 349 groups, 669 staff and 65 rooms. This exceeds the 600-session limit of a single run, so the timetable is generated in parts of one or more programme years, each part placed around the fixed sessions of earlier parts (Engineering alone has 912 sessions).
+
+\paragraph{What the input checks found.} Before any search, the input checks identify why the data as entered cannot produce a timetable:
+\begin{itemize}
+\tightlist
+\item 23 of 446 teaching assistants cannot be given an activity of their own, contradicting the rule that every TA teaches;
+\item eight lectures for 300--350 students have no room large enough;
+\item sessions needing laboratories require 1{,}160 teaching hours a week, while the 18 laboratories provide 810; lecture and tutorial sessions require 2{,}907 hours against 2{,}115;
+\item two courses (X118 and ENGN101) each need 87 hours a week from two TAs who have 75 hours between them;
+\item every Engineering Year~3 group needs 34.5 of the 36 hours its week can hold under the daily limits (a near-full week rather than an impossibility).
+\end{itemize}
+The TA names in the entered workbook are placeholders and the 65 rooms appear to cover one building, so these findings describe the entered data rather than the university.
+
+\paragraph{Generation in parts with documented adjustments.} To test the part mechanism at full scale, the experiment set aside the eight oversized lectures and the 23 idle TAs, added 32 placeholder TAs (so no TA pool exceeds half its capacity) and 86 placeholder rooms (25 laboratories, 61 lecture rooms; about 60\% room load), and switched off the daily policies. Table~\ref{tab:parts} reports the result with 120\,s per part.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}rrrrl@{}}
+\toprule
+Part & New sessions & Scheduled so far & Time (s) & Validation \\
+\midrule
+1 & 328 & 328 & 125 & passed \\
+2 & 584 & 912 & 127 & passed \\
+3 & 572 & 1{,}484 & 127 & passed \\
+4 & 581 & 2{,}065 & 128 & passed \\
+5 & 598 & 2{,}663 & 130 & passed \\
+6 & 40 & 2{,}703 & 128 & passed \\
+\bottomrule
+\end{tabular}
+\caption{University-scale teaching timetable built in six parts (adjusted data; see text).}
+\label{tab:parts}
+\end{table}
+
+Every earlier session was unchanged in each later part, and the final timetable also passed validation as one whole timetable without the part plan. Two observations qualify the result. First, with the daily policies switched on, Engineering Year~3 alone found no timetable within 300\,s, while without them it was solved in 3\,s; this is consistent with the near-full week reported above. Second, convenience is optimised within each part around fixed sessions, so earlier parts are never improved by later ones; the order of parts matters.
+
+\section{Examination timetable}
+For all 203 courses of the workbook, the examination model first computes a proven lower bound on the number of back-to-back examination days that any timetable over the given dates must contain (372). It reached that bound within 20\,s; the previous formulation found no timetable within 20\,s and 423 back-to-back days within 120\,s. Allowing two examinations per day reduced back-to-back days to 302 at the cost of 35 days with two examinations; adding four examination dates reduced them to 51. In the demonstration workspace, 35 examinations over ten days were scheduled in halls with TA invigilators; no advising student has two examinations at the same time, and the one student whose courses cannot be spread further within the dates is named for the administrator.
+
+\section{Repair suggestions for impossible timetables}\label{evidence-repair}
+When the approved inputs cannot all hold, JadwAI relaxes what an administrator could change---each approved rule, each fixed session, each instructor's day off and each daily limit---and restores them a chunk at a time while a timetable still exists. The remaining set is minimal (no single member can be restored), not necessarily the smallest possible. The affected sessions are reported from a repaired timetable that the independent validator checks against everything else. Physical data limits (rooms, eligible instructors, ``every TA teaches'', the calendar) are never relaxed. Table~\ref{tab:repair} lists the deliberately impossible cases tested.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}p{0.42\textwidth}p{0.48\textwidth}@{}}
+\toprule
+Injected problem & Diagnosis \\
+\midrule
+Two sessions of one group locked to the same time & Move one session; new day, time and room given; verified \\
+The only eligible instructor unavailable all week & Relax that rule; the one affected session listed; verified \\
+Instructor's day off is the group's only free day & Either the day off or the group rule (one change); verified \\
+Daily limit of 2 hours with 4 hours of teaching in one day & Relax the limit; ``needs 4\,h on Sunday''; verified \\
+Two courses on separate days with one teaching day & Relax the rule; both sessions listed; verified \\
+Five teaching hours in a four-hour week & No relaxation helps; data must change; overloaded group named \\
+\midrule
+Demonstration (448 sessions): an instructor unavailable all week and a G7 session locked inside the group's blocked time & Exactly these two causes, the locked session moved to another slot; 49\,s, 19 feasibility solves, 138 sessions examined locally, verified on the whole timetable \\
+\bottomrule
+\end{tabular}
+\caption{Repair diagnosis on impossible timetables.}
+\label{tab:repair}
+\end{table}
+
+On timetables above 80 sessions a complete diagnosis is too slow (one feasibility solve on the 448-session workspace takes 18--73\,s), so the search starts with the sessions the failure points at and those sharing a group or instructor with them, then proves the fix on the whole timetable within a 240\,s budget. An early version kept a limit that was not needed because a five-second check had ended without a result; inconclusive checks are now retried with more time before a candidate is declared necessary. An inconclusive search is never reported as proof.
+
+\section{Rule-based interpretation baseline}\label{evidence-baseline}
+Section~\ref{baselines} lists an optional rule-based extraction baseline for RQ1. JadwAI's built-in parser (deterministic patterns for English, formal Arabic and Egyptian Arabic) was run on all 144 statements of the development release (36 intent families, four language variants each) and scored with the project's offline scorer, which validates each output against the contract and the synthetic context before comparing it with the expected answer. The parser received only entity names as stored in JadwAI (English), not the context's Arabic aliases. A format adapter wrote whole hours as integers (10 rather than 10.0), which the contract requires; half-hour values were left unchanged.
+
+The parser was measured twice. The first measurement exposed that its clarification codes differed from annotation guide~v2 and that it guessed in three situations where the guide requires a question. The parser was then changed, and the second measurement is the one reported in Table~\ref{tab:baseline}. The changes were: (1)~clarification codes renamed to the guide's stable codes (for example \texttt{ambiguous\_instructor} instead of \texttt{ambiguous\_name:ahmed}, and \texttt{unknown\_instructor}); (2)~a mandatory time without a day, a statement naming no rule type (``Nour Hassan, Sunday, 08:00--10:00''), and vague times such as ``early'' now produce questions (\texttt{day\_required}, \texttt{rule\_type\_and\_strength\_required}, \texttt{undefined\_early}) instead of an assumed interpretation; (3)~common Egyptian and English negations that were missing (for example the Egyptian equivalents of ``not available'' and ``cannot'', and ``do not schedule'') were added, together with ``must fit'' and ``no other times''; and (4)~``Monday and Tuesday \ldots{} on each day'' is read as those two days rather than every day. Change~(3) mattered for safety: before it, a statement such as ``Nour Hassan [not available] Sunday 08:00--10:00'' fell through to the ``only'' interpretation and produced the opposite rule. Because these changes were made after inspecting development errors, the reported figures are optimistic for this release and are not evidence of performance on unseen statements.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lrrl@{}}
+\toprule
+Measure & First run & Reported & 95\% interval (reported) \\
+\midrule
+End-to-end exact output & 0.153 (22/144) & 0.326 (47/144) & 0.215--0.458 \\
+Decision accuracy & 0.521 & 0.597 & 0.465--0.736 \\
+Proposal precision / recall & 0.222 / 0.315 & 0.448 / 0.361 & \\
+Proposal F1 & 0.261 & 0.400 & 0.295--0.515 \\
+Field F1 & 0.451 & 0.605 & 0.474--0.712 \\
+Clarification F1 & 0.000 & 0.351 & 0.141--0.576 \\
+Unsupported-request F1 & 0.000 & 0.000 & \\
+\bottomrule
+\end{tabular}
+\caption{Rule-based baseline on the draft development labels before and after aligning the parser with annotation guide~v2 (intervals: percentile bootstrap over intent families, 1{,}000 replicates).}
+\label{tab:baseline}
+\end{table}
+
+In the reported run, exact outputs by language were 20/36 (English), 12/36 (mixed), 8/36 (formal Arabic) and 7/36 (Egyptian Arabic); decision accuracy was 0.69, 0.67, 0.53 and 0.50 respectively, and all 144 outputs were contract-valid. Unsupported-request F1 remains zero for two reasons: the parser has no proposals for weekly teaching loads or locks (12 expected), and it deliberately differs from guide~v2 on minute-precise times. The guide labels a closure such as 10:15--11:45 as unsupported; the application stores half hours and rounds closures outwards (10:00--12:00), which suits the 15--30-minute breaks between the institution's teaching periods. This is a recorded design difference, not an error in either. Because the labels are draft and unreviewed, the families are synthetic and the release is development material, these figures describe a baseline on development data only; they are not a confirmatory result and do not compare any language model.
+
+Testing the interpretation workflow on the demonstration workspace also found three faults that were then corrected: a closure ending at 15:15 was stored as ending at 15:00 (closures are now rounded outwards and permitted or preferred windows inwards); the review editor could not show a 10:30 interpretation (it now offers half hours); and Arabic statements could not name instructors stored in English (names are now compared by consonant sounds in both scripts, with Egyptian and classical readings, and a shared first name triggers a clarification).
+
+\section{Reports and exports}
+The statistics report for the published draft was recomputed independently from the saved assignments; every figure matched (448/448 sessions, sessions per day, zero overlaps, 65/65 rooms, 123/123 instructors, 22.97\% room time, no extra teaching hours). The review found that seat use ignored advising students, that unset limits were printed as ``None'', and that a report could not be limited to one group; all three were corrected. Timetable PDFs are now generated on the server as landscape A4 pages with short descriptive names (for example ``BA Y3 G7 Schedule'') because browser printing in one environment rotated the page and named the file after the application window.
+
+
+\section{The JAI assistant: evaluation}\label{evidence-jai-results}
+
+\paragraph{Automatic checks on held-out cases.} Each candidate answered the same held-out cases with the production prompt, at temperature~0. The automatic checks cover only whether the reply is valid, whether it wrongly proposes an action, whether it is in the user's language and whether it stays under 80 words; they do not judge correctness. Table~\ref{tab:jai-auto} reports the conversation cases with the guide in the prompt.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+16 held-out conversation cases & Base & v1 & v2 & v3 \\
+\midrule
+Valid reply & 16 & 16 & 16 & 16 \\
+No wrongly proposed action & 15 & 16 & 15 & 16 \\
+Reply in the user's language & 16 & 13 & 12 & 14 \\
+At most 80 words & 14 & 16 & 12 & 14 \\
+\midrule
+Action choice (5 separate cases) & 3 & 5 & 5 & 4 \\
+\bottomrule
+\end{tabular}
+\caption{Automatic checks. Base, v1 and v2 were run on 22 November; v3 on 23 November with the extended guide, where v1 re-run on identical prompts gave 13 replies in the user's language and 16 under 80 words.}
+\label{tab:jai-auto}
+\end{table}
+
+Round~2 is a negative result worth recording. Its training answers had been written before the guide existed and were left unchanged when the guide was added to the prompts, so the model was trained to receive the guide and then answer in its own words; it invented more than v1 (``snapshots on the cloud'', solver settings that do not exist). Lower training loss with an extra epoch reflected memorisation of 210 rows rather than better answers. Round~3 rewrote the answers so that every statement about JadwAI comes from the guide entries present in that example's prompt, and the dataset builder now refuses an example whose prompt lacks the guide entries its answer relies on.
+
+\paragraph{Blind human rating.} For v1 and v3, the 19 held-out conversation answers (16 cases and three wordings of a new ``not sure'' question) were placed side by side in random order, without model names, and scored from 1 to 5 on correctness, logic, helpfulness and natural language (Table~\ref{tab:jai-rating}). The rater was the project owner, who had read a short summary of some replies beforehand, so the rating is neither independent nor fully blind.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+19 cases, 4 criteria, 1--5 each & v1 & v3 \\
+\midrule
+Total (maximum 380) & 244 & 274 \\
+Mean per case (maximum 20) & 12.8 & 14.4 \\
+Correct / logical / helpful / natural (means) & 3.3 / 3.3 / 3.1 / 3.2 & 3.7 / 3.6 / 3.6 / 3.5 \\
+Cases won (8 ties) & 3 & 8 \\
+\bottomrule
+\end{tabular}
+\caption{Blind side-by-side rating of fine-tuned v1 and v3.}
+\label{tab:jai-rating}
+\end{table}
+
+The largest gains were in Arabic: an Arabic privacy question that v1 answered in English, and a request for ``no classes at 08:30'' that v1 answered by claiming such classes were forbidden, while v3 correctly said no mandatory rule prevents them. Six cases received the minimum score for both models, including an off-topic request for a poem and an Arabic question about shared lectures.
+
+\paragraph{Live use.} With v3 in the running application, four questions taken from the weakest cases were asked in the chat. The display of mixed Arabic and English text was correct after a fix described below, but the answers were weak: an Arabic question about laboratories with GPUs used wrong words for rooms; the poem request produced a poem; a frustrated Arabic message drifted into Chinese mid-sentence; and a question about connecting to the university's student information system, asked after the complaint, was answered with a request for a rule identifier from the previous topic. The held-out measurements therefore overstate live reliability, particularly for topic changes within one conversation. These cases were used to write a fourth round of training examples (off-topic requests, topic changes, Arabic room vocabulary and examination publishing), which had not been trained at the time of writing.
+
+
+\paragraph{Limits.} The examples and contexts are fictional and were drafted with AI assistance; approvals were bulk approvals by the project owner. The held-out sets are small (16--19 conversation cases and 5 action cases), the automatic checks do not measure correctness, and the human rating had one rater who was not independent of the project. All runs used one machine, one random seed and temperature~0. These results describe the development of a local assistant; they are not estimates of constraint-extraction accuracy (RQ1).
+
+\section{Automated tests and limitations of this evidence}
+At the time of writing the automated suites pass: 393 backend tests, 71 frontend tests and 47 evaluation-harness tests. They include regression tests for every fault reported in this chapter.
+
+The evidence has the following limits. All measurements come from one machine and one random seed; repeated runs and other hardware may differ, and parallel search can produce different valid timetables from identical inputs. The university-scale run used adjusted data, so it demonstrates the mechanism rather than a timetable for the university. The demonstration workspace is derived from real course structures but uses invented names and advising students. The repair diagnosis returns a minimal rather than a minimum set of changes, depends on time budgets, and on large timetables searches locally first. The interpretation baseline uses draft labels reviewed by no human, a single development release and a parser written by the same author who wrote the corpus. Research results for RQ1--RQ3 still require the reviewed corpus, frozen configurations and the human-in-the-loop study described in Chapter~3.

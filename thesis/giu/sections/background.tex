@@ -1,0 +1,64 @@
+\chapter{Background}\label{chap:background}
+
+% NOTE (migration 23 Nov 2026): Text moved unchanged from main.tex. Much of it was drafted with AI assistance; rewrite it in your own words before submission (the supervisor runs AI checks).
+% NOTE (migration 23 Nov 2026): Sections below were moved from the Introduction. Still to add in your own words: constraint programming and CP-SAT; large language models, local hosting (Ollama) and QLoRA fine-tuning; right-to-left and mixed-direction text. Cite sources for each.
+\hypertarget{university-timetabling}{%
+\section{University timetabling}\label{university-timetabling}}
+
+University timetabling shapes whether students can attend required classes and assessments and whether staff can deliver them within the institution's available time and facilities. An overlapping required lecture can prevent attendance; an unsuitable room can prevent a planned laboratory activity; poorly coordinated examination dates can conflict with local assessment rules. These are educational and administrative problems before they are computational ones. Course timetabling organises repeated teaching activities, while examination timetabling organises assessment events, with different room and calendar requirements~\cite{petrovic2004university}.
+
+The five retained timetabling papers illustrate different priorities. Sobh, Cousens and Patel~\cite{sobh_course_scheduler} focus on offering course combinations that meet students' degree requirements. Müller, Rudová and Müllerová~\cite{muller2025itc} describe the need to attend compatible lectures, seminars and laboratories, including travel between locations. Abdennadher and Edward~\cite{abdennadher_guc_exams} consider examination clashes, retakes, core-exam limits and spacing between difficult examinations at GUC. Kaya~\cite{kaya2026drl} includes institutional-scale examination revision and coordinator control.
+
+A mandatory rule protects a requirement that the institution has decided must hold, such as avoiding simultaneous classes for the same student group. A preference expresses a desirable arrangement, such as a preferred teaching period, which may compete with other needs. These categories and their priorities must be agreed locally. The papers primarily evaluate scheduling results; they do not justify assuming that a conflict-free timetable automatically improves learning or graduation. This study accordingly treats educational access and administrative usability as motivations and measures the outcomes within its actual scope.
+
+\hypertarget{the-constraint-entry-problem}{%
+\section{The constraint-entry
+problem}\label{the-constraint-entry-problem}}
+
+Solvers need explicit rules: entities, parameters, severities and
+weights. Administrators, by contrast, express requirements informally
+and often in several rules at once. A statement such as "Dr Ahmed cannot
+teach on Tuesdays and prefers morning classes" contains a mandatory
+unavailability and a preference; "morning" has no meaning to a solver
+until an institution defines it. A wrong reading --- treating the
+preference as mandatory, resolving the name to the wrong person, or
+choosing an arbitrary definition of "morning" --- can produce a
+timetable that satisfies the formal model while failing the
+administrator\textquotesingle s intention.
+
+In the five timetabling papers reviewed, this translation step is not itself
+studied. Constraints are encoded by developers in declarative programs
+\cite{abdennadher_guc_exams},
+supplied in standard benchmark formats~\cite{muller2025itc}, formalised
+by researchers for a given institution~\cite{kaya2026drl}, set as weights by
+the timetable officer~\cite{petrovic2004university}, or entered by
+instructors choosing time slots~\cite{sobh_course_scheduler}.
+Existing systems offer form-based entry, which is precise but laborious.
+An observation recorded in the project specification from a walkthrough
+of the public UniTime demonstration on 4 October 2026 (a sample dataset
+and a single session, not a systematic evaluation, and not independently
+re-checked here) illustrates the effort: recording that one instructor
+prefers no teaching after 3 PM required navigating to the instructor,
+opening preferences, choosing a severity and marking 15 half-hour cells
+across five weekdays. This observation motivates the project but is not
+evidence about any deployed system.
+
+\hypertarget{motivation-for-ai-assisted-extraction}{%
+\section{Motivation for AI-assisted
+extraction}\label{motivation-for-ai-assisted-extraction}}
+
+Large language models can read free text and, when constrained to a
+schema, produce structured output. This suggests a workflow in which an
+administrator writes a requirement, a model proposes formal rules, and
+the administrator reviews them. The suggestion carries risks that the
+design must address rather than assume away: schema-valid output is not
+necessarily a correct interpretation; models may invent entities or
+silently choose thresholds; and a correct extraction does not make a
+schedule valid. Recent work on LLMs in scheduling indicates that wording
+affects constraint faithfulness when models are asked to \emph{produce}
+schedules from text~\cite{sharma2026schedbench} (preprint), and that
+small-scale attempts to convert user preferences into optimisation
+constraints in other domains are still preliminary~\cite{sanguinetti2025preferences}
+(preprint). These sources concern different tasks
+and settings; they motivate care and measurement, not a conclusion about
+university timetabling.

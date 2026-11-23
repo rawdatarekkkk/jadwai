@@ -1,0 +1,101 @@
+\documentclass[12pt, a4paper]{book}%, oneside
+
+% GIU Bachelor Thesis template (supervisor-provided), with the packages the thesis content needs.
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage[headings]{fullpage}
+\usepackage{setspace}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{float}
+\usepackage{subfig}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{longtable,booktabs,calc}
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\usepackage{footnotehyper}
+\makesavenoteenv{longtable}
+\usepackage{xcolor}
+\usepackage{fvextra}
+\fvset{breaklines=true}
+\usepackage{newunicodechar}
+\newunicodechar{†}{$\dagger$}\newunicodechar{κ}{$\kappa$}\newunicodechar{≥}{$\geq$}\newunicodechar{≤}{$\leq$}\newunicodechar{→}{$\rightarrow$}\newunicodechar{↔}{$\leftrightarrow$}\newunicodechar{±}{$\pm$}\newunicodechar{✔}{Y}\newunicodechar{≠}{$\neq$}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setlength{\emergencystretch}{3em}
+\renewcommand{\arraystretch}{1.15}
+\usepackage{appendix}
+\usepackage{xurl}
+\usepackage[pdfborder={0 0 0}, colorlinks=true, linkcolor=black, citecolor=blue, urlcolor=blue]{hyperref}
+\usepackage[nohyperlinks]{acronym}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{ifpdf}
+
+\newcommand{\submissionDay}{5}
+\newcommand{\submissionMonth}{January}
+\newcommand{\submissionYear}{2027}
+\newcommand{\submissionDate}{\submissionDay~\submissionMonth,~\submissionYear}
+\newcommand{\typeOfThesis}{Bachelor Thesis}
+
+\newcommand{\titleOfThesisOne}{JadwAI: AI-Assisted University Timetabling Through Natural-Language Constraint Extraction}
+
+\newcommand{\authorOfThesis}{Rawda Yassin}
+\newcommand{\supervisorOne}{Dr. John Zaki}
+\newcommand{\supervisorTwo}{}
+\newcommand{\supervisorThree}{}
+
+\newcommand{\includefig}[4]{
+    \begin{figure}[ht]
+     \centering
+      \includegraphics[width=#1\textwidth]{#2}
+      \caption{#3}
+      \label{#4}
+    \end{figure}
+}
+
+\ifpdf
+\pdfinfo {
+	/Author (\authorOfThesis)
+	/Title (\titleOfThesisOne)
+	/Subject (\typeOfThesis)
+	/Keywords ()
+}
+\fi
+
+\begin{document}
+\pagestyle{plain}
+\pagenumbering{Roman}
+
+\include{title_page}
+
+\include{acknowledgments}
+
+\include{abstract}
+\tableofcontents
+\clearpage
+
+\pagestyle{headings}
+\pagenumbering{arabic}
+
+\setlength\parskip{.5\baselineskip plus .2\baselineskip
+	minus .4\baselineskip}
+
+\include{sections/introduction}
+\include{sections/background}
+\include{sections/related_work}
+\include{sections/methodology}
+\include{sections/implementation}
+\include{sections/results}
+\include{sections/conclusion}
+\include{appendix}
+
+\bibliographystyle{ieeetr}
+\bibliography{references}
+\addcontentsline{toc}{chapter}{References}
+
+\end{document}

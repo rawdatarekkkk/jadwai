@@ -1357,7 +1357,7 @@ The remaining decisions concern complete constraint semantics; university templa
 \chapter{Implementation and System Evaluation Evidence (8 November 2026)}\label{evidence}
 
 \section{Purpose and boundary}
-This chapter records measured evidence about the implemented JadwAI system as of 8 November 2026. It concerns the scheduling engine, its independent validator, the repair diagnosis for impossible timetables, reports and exports, and a rule-based interpretation baseline. It does \emph{not} answer the research questions about large-language-model interpretation (RQ1--RQ3): no model was called, no paid provider was used, and the multilingual corpus labels remain draft and unreviewed (Section~\ref{dataset-construction}). Engineering checks and research results are kept separate, as in Section~\ref{implementation-status}.
+This chapter records measured evidence about the implemented JadwAI system as of 8 November 2026. It concerns the scheduling engine, its independent validator, the repair diagnosis for impossible timetables, reports and exports, and a rule-based interpretation baseline. It does \emph{not} answer the research questions about large-language-model interpretation (RQ1--RQ3): no model was called, no paid provider was used, and the multilingual corpus labels remain draft and unreviewed (Section~\ref{dataset-construction}). Engineering checks and research results are kept separate, as in Section~\ref{implementation-status}. Section~\ref{evidence-jai}, added on 23 November 2026, reports the conversational assistant JAI and the fine-tuning of its locally hosted model; those measurements concern assistant behaviour on development cases, not the constraint-extraction questions.
 
 All runs used one laptop (Intel Core i5-1038NG7, 4~cores and 8~threads, 16\,GB memory, macOS~26.5.1), Python~3.14.5 and OR-Tools CP-SAT~9.15.6755~\cite{google_cpsat} with eight search workers and random seed~42. Times are wall-clock seconds on that machine and depend on hardware. Every timetable reported as valid passed JadwAI's independent validator, which recomputes completeness, eligibility, the doctor/TA split, room suitability and capacity, resource overlaps, approved rules, locks, workload and daily policies without using the solver's model. The code is at commits \texttt{e4771a1} and \texttt{4137b96} of the project repository plus the parser correction described in Section~\ref{evidence-baseline}. Scripts and logs are kept in \texttt{thesis/evidence/2026-11-08/}.
 
@@ -1469,10 +1469,157 @@ Testing the interpretation workflow on the demonstration workspace also found th
 \section{Reports and exports}
 The statistics report for the published draft was recomputed independently from the saved assignments; every figure matched (448/448 sessions, sessions per day, zero overlaps, 65/65 rooms, 123/123 instructors, 22.97\% room time, no extra teaching hours). The review found that seat use ignored advising students, that unset limits were printed as ``None'', and that a report could not be limited to one group; all three were corrected. Timetable PDFs are now generated on the server as landscape A4 pages with short descriptive names (for example ``BA Y3 G7 Schedule'') because browser printing in one environment rotated the page and named the file after the application window.
 
+\section{The JAI assistant and its locally hosted model (23 November 2026)}\label{evidence-jai}
+
+\paragraph{What was built.} JAI is a chat panel in JadwAI. Built-in patterns in English, formal Arabic and Egyptian Arabic answer common questions directly. Other messages go to a model served by Ollama on the same machine; nothing is sent to an external provider. The model may explain the supplied facts, discuss trade-offs and prepare at most one website action, which runs only after the administrator confirms it; every proposed action is validated against the same contract as the corresponding page. The base model is \texttt{qwen2.5:7b-instruct} (Qwen2.5-7B-Instruct, 4-bit quantised). On the laptop described above, one answer takes between one and six minutes, so the measurements below concern behaviour, not interactive speed.
+
+\paragraph{Verified guide.} A first evaluation showed that the model invented details about JadwAI (for example a ``third-party provider'' and instructors who ``can edit'' a published timetable). A guide of 25 short statements, each checked against the application code, was therefore added. For each message the (at most three) statements whose keywords match are included in the prompt, and the instructions require the model to use only those facts for questions about JadwAI and otherwise to say that it is not sure. The application also removes repeated sentences, keeps the complete sentences of a reply that was cut off, rewrites a reply once into Egyptian Arabic when an Arabic message received an English reply, and cuts a reply at the first Chinese, Japanese or Korean character (an observed failure of the base model).
+
+\paragraph{Fine-tuning method.} Training examples are fictional conversations in English, formal Arabic and Egyptian Arabic, grouped in \emph{families} (one intent with several wordings) and split into training and held-out families, so that no held-out family is seen in training. The examples were drafted with an AI assistant and approved by the project owner in bulk after reading a change list; this is not an independent item-by-item review. Adapters were trained with QLoRA (rank~16) on Qwen2.5-7B-Instruct on a free cloud T4 GPU, with the loss computed only on JAI's final answer. Because Ollama does not load such adapters for this model, each adapter was merged into Ollama's own 4-bit weights. A first merge back to the original 4-bit format erased about 98\% of the training, because the changes are smaller than the quantisation steps; re-quantising each tensor to a different format (4-bit blocks to 6-bit, 6-bit to 5-bit) preserved it, and a check over every trained matrix found on average 94--97\% of the trained change present per tensor type (lowest single matrix 82\%). Table~\ref{tab:jai-rounds} summarises the training rounds.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lp{0.33\textwidth}rrrp{0.22\textwidth}@{}}
+\toprule
+Round & Training data & Rows & Epochs & Loss & Outcome \\
+\midrule
+v1 & Original examples, no guide in the prompts & 210 & 2 & 1.62 & Better behaviour, still invents facts \\
+v2 & Same answers, guide added to the prompts & 210 & 3 & 1.11 & Worse; not used \\
+v3 & Answers rewritten to follow the guide; ``not sure'' examples & 243 & 2 & 1.18 & Preferred in blind rating \\
+\bottomrule
+\end{tabular}
+\caption{JAI fine-tuning rounds (training rows; held-out rows were 69, 69 and 72).}
+\label{tab:jai-rounds}
+\end{table}
+
+\paragraph{Automatic checks on held-out cases.} Each candidate answered the same held-out cases with the production prompt, at temperature~0. The automatic checks cover only whether the reply is valid, whether it wrongly proposes an action, whether it is in the user's language and whether it stays under 80 words; they do not judge correctness. Table~\ref{tab:jai-auto} reports the conversation cases with the guide in the prompt.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+16 held-out conversation cases & Base & v1 & v2 & v3 \\
+\midrule
+Valid reply & 16 & 16 & 16 & 16 \\
+No wrongly proposed action & 15 & 16 & 15 & 16 \\
+Reply in the user's language & 16 & 13 & 12 & 14 \\
+At most 80 words & 14 & 16 & 12 & 14 \\
+\midrule
+Action choice (5 separate cases) & 3 & 5 & 5 & 4 \\
+\bottomrule
+\end{tabular}
+\caption{Automatic checks. Base, v1 and v2 were run on 22 November; v3 on 23 November with the extended guide, where v1 re-run on identical prompts gave 13 replies in the user's language and 16 under 80 words.}
+\label{tab:jai-auto}
+\end{table}
+
+Round~2 is a negative result worth recording. Its training answers had been written before the guide existed and were left unchanged when the guide was added to the prompts, so the model was trained to receive the guide and then answer in its own words; it invented more than v1 (``snapshots on the cloud'', solver settings that do not exist). Lower training loss with an extra epoch reflected memorisation of 210 rows rather than better answers. Round~3 rewrote the answers so that every statement about JadwAI comes from the guide entries present in that example's prompt, and the dataset builder now refuses an example whose prompt lacks the guide entries its answer relies on.
+
+\paragraph{Blind human rating.} For v1 and v3, the 19 held-out conversation answers (16 cases and three wordings of a new ``not sure'' question) were placed side by side in random order, without model names, and scored from 1 to 5 on correctness, logic, helpfulness and natural language (Table~\ref{tab:jai-rating}). The rater was the project owner, who had read a short summary of some replies beforehand, so the rating is neither independent nor fully blind.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+19 cases, 4 criteria, 1--5 each & v1 & v3 \\
+\midrule
+Total (maximum 380) & 244 & 274 \\
+Mean per case (maximum 20) & 12.8 & 14.4 \\
+Correct / logical / helpful / natural (means) & 3.3 / 3.3 / 3.1 / 3.2 & 3.7 / 3.6 / 3.6 / 3.5 \\
+Cases won (8 ties) & 3 & 8 \\
+\bottomrule
+\end{tabular}
+\caption{Blind side-by-side rating of fine-tuned v1 and v3.}
+\label{tab:jai-rating}
+\end{table}
+
+The largest gains were in Arabic: an Arabic privacy question that v1 answered in English, and a request for ``no classes at 08:30'' that v1 answered by claiming such classes were forbidden, while v3 correctly said no mandatory rule prevents them. Six cases received the minimum score for both models, including an off-topic request for a poem and an Arabic question about shared lectures.
+
+\paragraph{Live use.} With v3 in the running application, four questions taken from the weakest cases were asked in the chat. The display of mixed Arabic and English text was correct after a fix described below, but the answers were weak: an Arabic question about laboratories with GPUs used wrong words for rooms; the poem request produced a poem; a frustrated Arabic message drifted into Chinese mid-sentence; and a question about connecting to the university's student information system, asked after the complaint, was answered with a request for a rule identifier from the previous topic. The held-out measurements therefore overstate live reliability, particularly for topic changes within one conversation. These cases were used to write a fourth round of training examples (off-topic requests, topic changes, Arabic room vocabulary and examination publishing), which had not been trained at the time of writing.
+
+\paragraph{Mixed-direction text.} Arabic replies that contain English names, codes and times were displayed in a confusing order: a range such as 08:30--10:00 inside an Arabic sentence was shown as 10:00--08:30. The chat now chooses each line's direction from its main language and isolates every English or numeric run, which keeps such runs in reading order.
+
+\paragraph{Limits.} The examples and contexts are fictional and were drafted with AI assistance; approvals were bulk approvals by the project owner. The held-out sets are small (16--19 conversation cases and 5 action cases), the automatic checks do not measure correctness, and the human rating had one rater who was not independent of the project. All runs used one machine, one random seed and temperature~0. These results describe the development of a local assistant; they are not estimates of constraint-extraction accuracy (RQ1).
+
 \section{Automated tests and limitations of this evidence}
 At the time of writing the automated suites pass: 393 backend tests, 71 frontend tests and 47 evaluation-harness tests. They include regression tests for every fault reported in this chapter.
 
 The evidence has the following limits. All measurements come from one machine and one random seed; repeated runs and other hardware may differ, and parallel search can produce different valid timetables from identical inputs. The university-scale run used adjusted data, so it demonstrates the mechanism rather than a timetable for the university. The demonstration workspace is derived from real course structures but uses invented names and advising students. The repair diagnosis returns a minimal rather than a minimum set of changes, depends on time budgets, and on large timetables searches locally first. The interpretation baseline uses draft labels reviewed by no human, a single development release and a parser written by the same author who wrote the corpus. Research results for RQ1--RQ3 still require the reviewed corpus, frozen configurations and the human-in-the-loop study described in Chapter~3.
+
+
+\appendix
+\chapter{Functional and Non-Functional Requirements}\label{app:requirements}
+
+The complete list of requirements, with a one-sentence summary and the prototype status of each, is kept with the source code:
+
+\begin{center}
+\url{https://github.com/rawdatarekkkk/jadwai/blob/main/docs/REQUIREMENTS.md}
+\end{center}
+
+It is derived from the project's Software Requirements Specification (SRS) v0.4 of 18 November 2026, which defines the inputs, outputs, error behaviour and acceptance criteria of every requirement. SRS v0.2 was reviewed by the supervisor; v0.3 and v0.4 carry the project owner's approval only. The status is the owner's record of the prototype on 23 November 2026, not a supervisor acceptance or a research result: \emph{implemented} means working in the prototype with automated tests, \emph{partial} that a working subset exists.
+
+\section{Functional requirements}
+
+Table~\ref{tab:fr-areas} groups the 78 functional requirements by area. Of these, 55 are implemented, 17 partly implemented and 6 not started.
+
+\begin{longtable}{@{}p{0.27\textwidth}p{0.16\textwidth}p{0.13\textwidth}p{0.36\textwidth}@{}}
+\caption{Functional requirements by area.}\label{tab:fr-areas}\\
+\toprule
+Area & Requirements & Status & Main gaps \\
+\midrule
+\endfirsthead
+\toprule
+Area & Requirements & Status & Main gaps \\
+\midrule
+\endhead
+Term data and records & FR-001--FR-008 & Partial & One term only; no aliases or dated availability exceptions \\
+Constraint vocabulary and lifecycle & FR-009--FR-013 & Partial & No supersession history or weight editing \\
+AI extraction and review & FR-014--FR-023, FR-073, FR-074 & Partial & Extraction quality not yet measured; no audit export with cost \\
+Scheduling & FR-024--FR-030, FR-065--FR-070 & Implemented & --- \\
+Validation & FR-031--FR-033 & Implemented & --- \\
+Scenarios and editing & FR-034--FR-039 & Partial & No explicit-variation scenarios (FR-037) \\
+Publication and views & FR-040--FR-043, FR-078 & Implemented & --- \\
+Export & FR-044, FR-045 & Implemented & --- \\
+Traceability, accounts, audit & FR-046--FR-048 & Partial & Partial requirement-to-publication trace \\
+Evaluation support & FR-049, FR-050 & Partial & No human annotations; no participant study \\
+Examinations & FR-051, FR-071, FR-072 & Implemented & --- \\
+Ask JAI & FR-075--FR-077 & Implemented & --- \\
+Infeasibility explanation & FR-058 & Implemented & --- \\
+Extensions & FR-052--FR-057 & Mostly not started & Arabic extraction (FR-054) works but is unmeasured \\
+Exception handling & FR-059--FR-064 & Partial & Cancelled results are not retained \\
+\bottomrule
+\end{longtable}
+
+\section{Non-functional requirements}
+
+The SRS defines 23 non-functional requirements and invents no numeric targets; values that depend on later decisions remain open. Table~\ref{tab:nfr} summarises them.
+
+\begin{longtable}{@{}p{0.19\textwidth}p{0.17\textwidth}p{0.56\textwidth}@{}}
+\caption{Non-functional requirements and prototype status.}\label{tab:nfr}\\
+\toprule
+Category & Requirements & Status \\
+\midrule
+\endfirsthead
+\toprule
+Category & Requirements & Status \\
+\midrule
+\endhead
+Correctness & NFR-001--003 & Met in tests: separate validator; publication refused on any violation; a time limit is never reported as infeasibility \\
+Security & NFR-004, 005 & Server-side permissions; no secrets in the repository. Passwords use scrypt instead of the specified Argon2id (recorded deviation) \\
+Privacy & NFR-006, 007 & With the local model no text leaves the server; applicable data-protection rules still to be confirmed \\
+Accessibility & NFR-008 & Labelled, keyboard-operable controls; no formal audit \\
+Reliability & NFR-009, 010 & Timeouts, retries, malformed output and cancellation tested; recovery objectives open \\
+Performance and scale & NFR-011--013 & Runtime, outcome and tested scale recorded with every result; no numeric targets \\
+Usability & NFR-014, 015 & Checked manually; not measured (no participant study) \\
+Reproducibility & NFR-016 & Versions, seeds and dates recorded for runs and fine-tuning \\
+Maintainability & NFR-017 & Separate modules; model provider chosen by configuration \\
+Compatibility, retention, backup & NFR-018--020 & Open; local backups before destructive changes \\
+Localisation & NFR-021 & English and Arabic interface with right-to-left layout; mixed Arabic/English text kept in reading order \\
+Observability, licensing & NFR-022, 023 & Partial; licence list not yet checked \\
+\bottomrule
+\end{longtable}
 
 \renewcommand{\bibname}{References}
 \cleardoublepage\phantomsection

@@ -311,7 +311,7 @@ administrative effort.
 
 The solver is intended to choose instructors, times and rooms. Eligibility is recorded separately for lecture, tutorial and laboratory activities. Each activity retains one instructor across its weekly occurrences; instructor, time and room assignments may be locked. Mandatory weekly instructor workload limits and configurable mandatory or preferred daily limits for instructors and groups are in scope. The confirmed unit is elapsed teaching hours: a 90-minute session contributes 1.5 hours, counted once per instructor irrespective of how many groups attend; fixed breaks are excluded. Configured weekly instructor maxima and global hard daily caps are implemented. Preferred daily-limit variants and entity-specific daily overrides remain proposed extensions.
 
-\textbf{Added during the project:} examination timetabling (quizzes, midterms and finals, with halls and TA invigilators), repair suggestions for impossible timetables (proposed to the administrator, never applied automatically), and generation in parts for university-scale data. \textbf{Deferred extensions:} individual enrolments, minimal-change regeneration, calendar feeds and notifications. \textbf{Excluded:} native mobile applications, attendance, payroll, full student-information-system integration, automated registration or sectioning, and institution-wide production deployment. Approved scope is distinguished from implemented behaviour in Section~\ref{implementation-status}.
+\textbf{Added during the project:} examination timetabling (quizzes, midterms and finals, with halls and TA invigilators), repair suggestions for impossible timetables (proposed to the administrator, never applied automatically), and generation in parts for university-scale data. \textbf{Deferred extensions:} individual enrolments, minimal-change regeneration, calendar feeds and notifications. \textbf{Excluded:} native mobile applications, attendance, payroll, full student-information-system integration, automated registration or sectioning, and institution-wide production deployment. The implementation status of each requirement is listed in Appendix~\ref{app:requirements}.
 
 \hypertarget{organisation-of-the-thesis}{%
 \section{Organisation of the thesis}\label{organisation-of-the-thesis}}
@@ -723,86 +723,170 @@ The evaluation is a development-level study: it uses draft labels, synthetic dat
 % ======== sections/implementation.tex ========
 \chapter{Implementation}\label{chap:implementation}
 
-% NOTE (migration 23 Nov 2026): Text moved unchanged from main.tex. Much of it was drafted with AI assistance; rewrite it in your own words before submission (the supervisor runs AI checks).
-% NOTE (migration 23 Nov 2026): Add an overview of the architecture (frontend, API, worker, database, solver, validator, assistant) with a diagram, in your own words. The status section below dates from 25 October 2026 and is out of date: the requirements appendix has the current status.
-\section[Implementation status]{JadwAI implementation status and phased delivery (25 October 2026)}\label{implementation-status}
-\emph{Measured evidence from 8 November 2026, including university-scale generation, repair suggestions and the rule-based baseline, is reported in Chapter~\ref{evidence}.}
+% NOTE (24 Nov 2026): Rewritten from the 25 October status log into a description of the system as built. Drafted with AI assistance at the owner's request; reword in your own words before submission. A drawn architecture diagram can replace Table 5.1 if wanted (the template has no TikZ; an image in figures/ works).
+% NOTE (24 Nov 2026): The v4 row of the fine-tuning table is waiting for the round-4 evaluation (finetuning/runs/eval-round4.log).
 
-JadwAI is a new application, separate from the earlier prototype; UniTime is a reference rather than a fork. Its architecture uses React/TypeScript, Python/FastAPI, PostgreSQL, SQLAlchemy/Alembic, a separate scheduling worker, OR-Tools CP-SAT~\cite{google_cpsat} and an independently implemented validator. Phase~4 is complete for the explicitly supported weekly manual scheduling baseline. This milestone does not mean that every proposed SRS variant or the complete research project is finished. Phase~5 evaluation preparation is in progress. JAI currently provides guided interface navigation, not LLM extraction.
+This chapter describes JadwAI as implemented at the end of the project. It covers the architecture, the data the administrator enters, how rules are entered and approved, the timetable solver, the independent validator, examinations, publication, and the JAI assistant with its locally hosted model. Each requirement's implementation status is listed in Appendix~\ref{app:requirements}, and screenshots of the interface are in Appendix~\ref{app:screenshots}. Measurements are reported in Chapter~\ref{evidence}.
 
-\subsection{Academic data, access and approval}
-The local foundation includes administrator, viewer and student accounts; password setup/recovery and expiring sessions; login rate limits; restricted database roles; transactional audit records; and optimistic concurrency checks. Normalised academic records cover instructors, rooms, student groups and teaching activities, instructor eligibility, attending-group references and room-equipment requirements. Groups are organised by study year, major and group. Academic CSV imports provide previews, errors, atomic commits and stale-version rejection. Calendar settings are editable; a full parent-course/component hierarchy and rule-replacement history remain unfinished.
+\section{Architecture}\label{implementation-status}
 
-The owner-selected calendar has five 90-minute periods: 08:30--10:00, 10:15--11:45, 12:00--13:30, 13:45--15:15 and 15:45--17:15. New runs exclude intervening breaks. Historical drafts retain their original calendars and are not silently relabelled.
+JadwAI is a web application built for this project. It is not a fork of an existing timetabling system; UniTime~\cite{muller2025itc} served only as a reference. Table~\ref{tab:architecture} lists its parts.
 
-Manual rule entry supports mandatory instructor, room and group unavailability; preferred instructor teaching windows; and mandatory activity/group permitted windows. Rules start as drafts and require administrator approval. Approved permitted windows for one target form a union across the week; restrictions on different activity/group targets intersect. Each session must fit entirely inside an allowed window, and a day without a permitted window is excluded for that target. Approved closures prohibit overlapping sessions. The current manual rule schema uses integer-hour boundaries; an exact minute-based natural-language rule must be disclosed as unsupported rather than rounded, even though teaching periods themselves can begin at quarter-hour boundaries.
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}p{0.22\textwidth}p{0.27\textwidth}p{0.43\textwidth}@{}}
+\toprule
+Part & Technology & Role \\
+\midrule
+Web interface & React, TypeScript (Vite) & All administrator pages, the student and instructor portals, the JAI chat; English and Arabic with right-to-left layout \\
+API server & Python, FastAPI & Authentication, permissions, data entry, rule review and approval, publication, exports, the JAI assistant \\
+Database & PostgreSQL, SQLAlchemy, Alembic & Academic records, rules, saved inputs, timetables, audit events \\
+Worker & Separate Python process & Runs generation jobs outside web requests \\
+Solver & Google OR-Tools CP-SAT~\cite{google_cpsat} & Builds teaching and examination timetables \\
+Validator & Separate Python module & Rechecks every timetable without using the solver's model \\
+Language model & Ollama, Qwen2.5-7B-Instruct & Interprets typed rules and answers in the JAI chat, on the same server \\
+\bottomrule
+\end{tabular}
+\caption{Parts of JadwAI.}
+\label{tab:architecture}
+\end{table}
 
-\subsection{Workload, practical-day policies and assignment locks}
-Teaching load is measured in elapsed teaching hours: one 90-minute session is 1.5 hours. It is counted once per instructor, not once per attending group; fixed breaks are excluded. Instructors can have an optional maximum weekly teaching load in half-hour steps. A configured maximum is mandatory; zero prohibits teaching, while a missing value is explicitly unconfigured. The current demonstration leaves weekly maxima unconfigured rather than inventing institutional policy.
+The design follows one principle: every component that can make a mistake is checked by a component that does not share its logic. The language model or the rule parser only \emph{proposes} rules, and an administrator approves them. The solver only \emph{proposes} timetables, and the validator checks them. The browser carries out actions that JAI prepares only after the administrator confirms them, through the same endpoints the pages use, so every permission and validation check still applies.
 
-Configurable global hard daily caps for students and instructors are implemented, with owner-selected demonstration values of six hours each. The practical-day policy can spread an activity's weekly occurrences across different days, limit consecutive teaching periods and cap internal idle teaching periods. Consecutive periods are adjacent named teaching periods; an internal idle period is an unoccupied teaching period between a resource's first and last session on that day. Fixed breaks are excluded. Preferred daily caps, entity-specific overrides and other proposed institutional variants remain unfinished.
+\paragraph{Accounts and security.} There are administrator, viewer, instructor and student accounts.
+\begin{itemize}
+\item \textbf{Passwords and sessions.} Passwords are hashed with scrypt, and sessions expire. Sign-in attempts are rate-limited.
+\item \textbf{Permissions.} Every request is checked on the server for the user's current permissions, and changing a user's permissions ends their sessions.
+\item \textbf{Concurrent changes.} Changes carry a version number, so an outdated save is refused instead of overwriting a newer one.
+\item \textbf{Repeated requests.} An operation repeated with the same request key is not applied twice.
+\item \textbf{Audit.} Approvals, data changes, generation jobs and publications are recorded as audit events in the same database transaction as the change.
+\end{itemize}
 
-Administrators can copy instructor, day/time and room assignments from a validated saved draft into a draft lock, selecting any nonempty subset. Explicit approval makes the lock mandatory in later generation; it does not modify the source timetable. References are checked against current inputs, contradictory same-target approvals are rejected, and broader contradictions may make generation infeasible. An instructor lock applies to all weekly occurrences of the activity to preserve continuity. Approved locks must be revoked before removal. Input changes mark older drafts stale rather than automatically repairing them.
+\section{Academic data}
 
-\subsection{Generation, preliminary diagnostics and independent validation}
-Generation runs as a persistent background job. The solver assigns eligible instructors, times and suitable rooms, retaining instructor continuity across each activity's weekly occurrences. Supported hard checks cover completeness and full duration; exact calendar/period fit; capacity, room type and equipment; shared-room, instructor and group non-overlap; approved closures and permitted windows; approved assignment locks; configured weekly maxima; and the configured practical-day policy. Group identifiers represent disjoint cohorts, not individual enrolments. Intervals exclude their end points, so adjoining sessions do not overlap.
+The administrator enters the data in a fixed order: semester settings, rooms, instructors, student groups, then courses with their lectures, tutorials and laboratories. CSV import loads the same data with a preview and a list of errors, and it commits either everything or nothing.
 
-On-demand input checks and automatic worker-side preflight distinguish proven local blockers from missing optional limits. Diagnostics identify affected activities, resources and rule identifiers, count available local teaching slots, and detect cases such as unsuitable rooms, exhausted windows, inconsistent locks and excessive group weekly demand. Passing these necessary checks does not establish global feasibility: the solver can still prove the combined resource-allocation problem infeasible.
+\begin{itemize}
+\item \textbf{Calendar.} Teaching days, the first and last hour, and named teaching periods. The demonstration calendar has six days and five 90-minute periods (08:30--10:00, 10:15--11:45, 12:00--13:30, 13:45--15:15, 15:45--17:15). A session may start at a period only if the consecutive periods from there cover exactly its length, so the breaks between periods are never used for teaching.
+\item \textbf{Rooms} have a capacity, a type and features, for example a laboratory with GPUs. Rooms with the same capacity, type and features are treated as interchangeable, which reduces the solver's work.
+\item \textbf{Instructors} are either doctors, who teach lectures, or teaching assistants (TAs), who teach tutorials and laboratories. Each course lists its eligible instructors separately for each kind of activity. Every TA must be given at least one session.
+\item \textbf{Student groups} are organised as year, programme and group. Groups are the unit for student clashes: two sessions of one group never overlap.
+\item \textbf{Advising students} are students whose courses differ from their group's, for example because of a retake. Each keeps the group's sessions except dropped courses and joins another group's session for each added course. Their personal sessions must not overlap, which the solver treats as a hard rule.
+\end{itemize}
 
-The independent validator does not import solver model-building code. Saved reports include occurrence/resource/time/rule details for violations, per-check evaluated counts, explicit not-applicable and not-configured states, and the disclosed conflict basis. Structural input failure is labelled not evaluated. An invalid, incomplete or errored candidate cannot become a completed validated draft. This is engineering evidence for the supported vocabulary, not proof of correctness for every conceivable scheduling requirement.
+\section{Rules, interpretation and approval}
 
-Two versioned objectives are available: minimise sessions outside the assigned instructor's union of preferred windows before minimising internal idle teaching periods, or use a configurable positive-integer weighted sum of these components. A session with applicable windows contributes one preference penalty if it fits none; instructors without such windows contribute no preference penalty. Idle minimisation requires the compact-day policy. The worker independently recalculates preference penalties, idle penalties when active, and the total selected objective before retaining a completed result. Optimality is reported for the selected objective, not for an undefined overall timetable-quality measure.
+\paragraph{Rule types.} The supported rules are:
+\begin{itemize}
+\item instructor, room and group unavailability;
+\item instructor preferred times;
+\item permitted times for an activity or a group;
+\item permitted or preferred times for all lectures, tutorials or laboratories;
+\item a required room for an activity;
+\item activities that must not share a day;
+\item lectures before tutorials;
+\item daily-hour and teaching-day limits for instructors and groups;
+\item weekly teaching-hour limits for instructors;
+\item locks that keep an instructor, time or room from an earlier timetable.
+\end{itemize}
+Each rule is mandatory or preferred. A mandatory rule holds in every valid timetable. A preferred rule adds a penalty to the convenience score when it is broken. Several permitted windows for one target are alternatives, while restrictions on different targets must all hold.
 
-\subsection{Saved inputs, job outcomes and reproducibility evidence}
-Each new run retains an immutable approved-input snapshot with schema version~2, input version, calendar, academic records, approved rules and locks. Canonical input/configuration SHA-256 fingerprints are checked before solving. Saved evidence includes the objective profile and weights, explicit solver parameters, OR-Tools/Python/platform versions, model/application-source fingerprints, validator version, elapsed worker time and queued/started/finished timestamps. These hashes identify recorded content; they do not authenticate a source or capture every hardware and environment detail.
+\paragraph{Daily policies.} Global policies limit students' and instructors' teaching hours per day and the number of consecutive periods, and can spread an activity's weekly sessions over different days. Teaching load is measured in elapsed teaching hours: a 90-minute session counts as 1.5 hours, once per instructor, however many groups attend.
 
-Administrators can set a search bound of 1--60 seconds, a seed and 1--4 search workers. The default is ten seconds, seed~42 and two workers. They may explicitly rerun the selected draft's historical inputs; current changes are not substituted, and the new run remains stale when its input version differs from the workspace. Reusing an idempotency key with a different settings/source payload is refused. Parallel search can produce different feasible schedules despite identical inputs and seed.
+\paragraph{Three ways to enter a rule.}
+\begin{itemize}
+\item \textbf{Forms.} Every rule type has a form.
+\item \textbf{Built-in parser.} A typed statement is first read by a deterministic parser with patterns for English, formal Arabic and Egyptian Arabic. Arabic and English names are compared by their consonant sounds, so ``نور حسن'' matches the record ``Nour Hassan''. The parser never guesses: an unknown or ambiguous name, a missing day or an unrecognised request becomes a clarification code or an \emph{unsupported} code.
+\item \textbf{Language model.} If the parser cannot interpret a statement and the language model is enabled, the statement goes to the model. The model receives the text, the calendar and only the records the text mentions. Ollama constrains its reply to the same JSON contract as the parser. The schema lists the proposals before the decision, so the model writes what it found before it decides whether the statement is ready (Section~\ref{baselines}). For statements about times for all classes, the model fills in a small semantic frame, and code does the calendar arithmetic.
+\end{itemize}
 
-Job polling and score-only search progress are implemented. Raw solver outcomes distinguish \texttt{OPTIMAL}, \texttt{FEASIBLE}, \texttt{INFEASIBLE}, \texttt{UNKNOWN} and \texttt{MODEL\_INVALID}; invalid models map to a failed job with an explicit reason. A timeout without a solution is not called proven infeasibility. Cancellation wins when committed before the terminal result write and discards candidates. Interrupted jobs retain an explicit failure reason; the automatic retry limit is zero. Optional retention of a validated cancelled candidate is unavailable. Worker leases and interrupted-job recovery have local tests.
+\paragraph{Review and approval.} Every proposal, whatever its source, is validated against the current records and calendar. It is then shown beside the original statement with every field editable, and any clarification questions are listed. An approved proposal becomes a draft rule, and only rules the administrator then approves enter the inputs of the next generation. Approved rules can be revoked but not silently changed. Input changes never alter an existing timetable; instead, older drafts are marked as generated before the latest change.
 
-\subsection{Timetable views, student access and exports}
-The administrator can display days on the left or across the top and filter by year, major and group. The print layout groups days into rows and teaching periods into columns, accommodates simultaneous sessions and identifies free periods. Schedule PDFs are saved through the browser/system print dialog.
+\paragraph{External model adapter.} An adapter for a commercial model (GPT-5.4 mini) uses the same contract. It is switched off by default and was never called (Section~\ref{baselines}).
 
-Students can retrieve only their assigned group's timetable. Server-side filtering excludes unrelated activities/groups, manual rules, full administrative snapshots and aggregate statistics; group-permission changes revoke sessions. This is explicitly labelled validated-draft access with stale-input warnings. Publication is unavailable, so this is not the proposed published-only service. Instructor/researcher-specific views and individual-enrolment schedules are not implemented.
+\section{Timetable generation}
 
-Statistics are stored with completed validated runs. Reports are optional downloads, not automatic generation side effects. A one-page PDF uses vector charts for daily sessions, applicable preference satisfaction and resource use. It separately reports room, instructor and group overlap-pair counts; these categories may overlap and are not added as unique conflicts. Unused instructors' preference rules are not applicable rather than satisfied. Room-time use excludes breaks, while occupied-seat use is duration-weighted and excludes unused room periods. These ratios are not an overall efficiency, fairness or educational-benefit score. Reports cover the full saved run; timetable exports respect filters. Suggested filenames describe semester, department, scope/type, draft status, version, date and a short run ID; system print-dialog behaviour still affects final timetable filenames.
+\paragraph{Saved inputs.} Generation starts by saving an unchangeable copy of every input: calendar, records, approved rules and locks, objective profile and solver settings. The copy is stored with a fingerprint. The worker solves from this copy, so a timetable can always be traced to exactly the inputs it was built from.
 
-\subsection{Phase 5 corpus and offline scorer}
-A separate synthetic extraction corpus, distinct from the academic scheduling fixture, is now implemented. Release \texttt{0.1.0-draft} has 128 statements in 32 translated intent families: 96 development and 32 reserved statements, with English, formal Arabic, Egyptian Arabic and mixed language represented equally within each split. The annotation guide and output contract are versioned. Packaging is reproducible; a manifest hashes the data, guide, contract and scorer/authoring code. Development exports omit expected labels. Default operations do not read reserved cases, while explicit reserved access requires a logged reason.
+\paragraph{Solver model.} Each session has separate decisions for its time, its room and, per activity, its instructor. This avoids a variable for every combination of time, room and instructor. An activity keeps one instructor for all its weekly sessions. No-overlap constraints keep the sessions of each room, instructor, group and advising student apart. Times are minutes from the start of the teaching week. The hard rules cover:
+\begin{itemize}
+\item complete assignment of every session;
+\item fitting the teaching periods;
+\item room capacity, type and features;
+\item eligible instructors, with doctors for lectures and TAs for tutorials and laboratories;
+\item every approved rule and lock;
+\item weekly limits and the daily policies.
+\end{itemize}
 
-The reserved split is not blind or independently adjudicated. Its author has seen its labels and can access its source. Family-ID and normalized-text checks detect some leakage but do not establish semantic independence. Human multilingual review, supervisor agreement on sampling and definitions, a development pilot, frozen acceptance thresholds and fresh confirmatory data are still required. No model was selected or called, and no paid API run took place.
+\paragraph{Objective.} The default objective, \texttt{convenience-v1}, minimises a weighted sum of penalties. In decreasing weight these are:
+\begin{itemize}
+\item sessions outside an instructor's preferred times;
+\item repeated sessions of one activity on the same day;
+\item empty periods between a group's first and last session of a day, and the same for instructors;
+\item the number of days on which students and instructors must come to campus;
+\item each group's busiest day;
+\item sessions in the first or last period;
+\item long teaching days;
+\item uneven instructor workload.
+\end{itemize}
+Workload is penalised in rising steps, so that moving a session from a busy instructor to a quiet one is always worthwhile and teaching beyond the 12-hour standard load is a last resort. After solving, the worker recomputes every penalty from the timetable itself and checks the total against the solver's value.
 
-The offline scorer preserves full-case denominators, flags invalid or missing predictions, compares complete proposal multisets and reports separate decision, clarification, unsupported-content, entity-reference and family-consistency diagnostics. Raw and declared post-review files remain separate. It hashes supplied configuration and predictions and reports only available measured telemetry; absent cost or latency is unknown. Tests that copy expected labels check scorer arithmetic only and must not be reported as AI accuracy findings.
+\paragraph{Search settings and outcomes.} Default settings are 30~seconds and four search workers, or 240~seconds and eight workers for more than 150 weekly sessions. The solver first finds a valid timetable and then improves its score until the time limit. Its outcome is recorded as \emph{optimal}, \emph{feasible}, \emph{infeasible}, \emph{unknown} or \emph{model invalid}. A time limit reached without a timetable is reported as unknown, never as proof that no timetable exists. Jobs can be cancelled, and an interrupted job is recorded as failed with a reason.
 
-\subsection{Verification evidence and limits}
-The latest full application regression run passed 194 backend tests; the frontend suite passed 30 tests and the TypeScript/Vite production build passed. A separate evaluator suite passed 18 tests, including backend schema compatibility for both corpus splits, reproducible packaging, manifest mismatch detection, reserved-access controls, gold-free exports, malformed/duplicate/missing predictions, numeric limits and scoring behaviour. The application and evaluation counts refer to distinct suites; they do not represent independent research observations.
+\paragraph{Large timetables in parts.} One run places at most 600 sessions. A larger timetable is therefore built in parts of one or more programme years. Each part is solved around the fixed sessions of earlier parts, and every hard check runs on the combined timetable. Only a complete timetable can be published.
 
-The labelled synthetic scheduling fixture has 64 activities, 28 instructors, 22 rooms, 21 groups and 97 weekly occurrences. The final Phase~4 acceptance run retained all 97 sessions on current input version~12, verified its saved fingerprints and passed independent validation, including recalculation of its selected objective. Its report lists 19 checks, with zero-target checks explicitly not applicable and missing optional weekly maxima disclosed. The live fixture therefore does not demonstrate that every configurable rule was exercised in that one run; seeded and API tests supply additional rule-specific evidence. This is a local engineering example, not a representative benchmark or evidence of superiority over another system.
+\paragraph{Input checks.} Before solving, conservative checks name problems that make a timetable impossible, for example a TA who cannot be given any session, an activity that no room can host, or more teaching hours than the suitable rooms provide. Passing these checks does not prove that a timetable exists.
 
-Additional checks cover small exhaustive scheduling oracles, global infeasibility after passing local checks, invalid-model versus timeout outcomes, concurrency, request-payload retries, cancellation races, failed validation, student scope, report arithmetic and descriptive filenames. The chart PDF was rendered and visually checked, and browser verification exercised input diagnostics, settings and validation coverage. Existing records were backed up before migration~0015. Full backup/restore rehearsal, production container verification, remote CI, deployment, broad cross-browser testing and accessibility conformance remain unestablished.
+\paragraph{Repair suggestions.} When no timetable exists, JadwAI looks for what the administrator could change: approved rules, locks, instructors' days off and daily limits. It relaxes all of them and then restores them a few at a time while a timetable still exists. What remains is a minimal set of changes, which is checked with the validator on a repaired timetable. The suggestions are only shown; they are never applied automatically. Physical limits, such as rooms, eligible instructors and the calendar, are never relaxed.
 
-No extraction benchmark, independent annotation-agreement study or participant study has been conducted. No administrative-effort improvement, scalability claim, learning outcome or real model-performance result is inferred from these tests. Detailed evidence is retained in the project's acceptance, verification and feature-checklist records.
+\section{Independent validation}
 
-\subsection{Remaining work and phase status}
+The validator is a separate module that does not import the solver's model-building code. It recomputes completeness, period fit, eligibility, the doctor/TA split, room suitability and capacity, overlaps for rooms, instructors, groups and advising students, approved rules, locks, weekly limits and daily policies. It works directly from the saved timetable and the saved inputs. Its report gives each violation with the sessions, resources, times and rules involved. It also lists how many items each check evaluated, which checks did not apply, and which limits were not configured. A check that could not run counts as not evaluated, never as passed. An incomplete or invalid result is never kept as a validated draft.
+
+\section{Editing, comparison and publication}
+
+Saved timetables are never changed. A manual move or a change of instructor creates a new draft from the same saved inputs, and the draft is kept only if the validator passes it. Two drafts can be compared session by session, and drafts can be named. Publication runs the validator again against the \emph{current} approved inputs, under an exclusive lock on the workspace. A database index guarantees that exactly one teaching timetable and one examination timetable are published at a time. The administrator can also publish one group's week from a draft: those groups' sessions, including shared lectures, are merged with the published timetable, and the merged result is validated before it replaces it.
+
+Students and instructors see only the published timetable, and only their own sessions. Timetables are exported as server-generated landscape PDF pages with descriptive names, and as CSV. A statistics report gives sessions per day, overlap counts, room use and preference satisfaction.
+
+\section{Examination timetables}
+
+Each course has an exam plan: a number of quizzes, a midterm, an optional second-chance midterm and a final. Each exam type has its own length and start times. The number of students per exam is the sum of its groups' sizes, and each advising student is a cohort of their own. The examination model:
+\begin{itemize}
+\item assigns each exam to dates and halls whose seats cover its students, splitting a large exam over several halls when needed;
+\item gives every hall in use a TA invigilator;
+\item prevents any cohort, hall or invigilator from having overlapping exams.
+\end{itemize}
+It then minimises, in order of weight: extra exams for advising students, two exams on one day, exams on consecutive days, the busiest exam slot, and the number of halls in use. A lower bound on unavoidable consecutive-day exams is computed first. When the dates cannot avoid them, the administrator is told how many are unavoidable and what would reduce them, such as more exam dates or two exams per day.
+
+\section{The JAI assistant}\label{evidence-jai}
+
+JAI is a chat panel in JadwAI that answers questions and prepares tasks.
+
+\paragraph{How a message is handled.}
 \begin{enumerate}
-\item \textbf{Scope and foundation:} initial design reconciliation, local application foundation and master checklist exist; remote CI, deployment and final institutional acceptance remain pending.
-\item \textbf{Academic data and constraint extensions:} core data and the supported manual vocabulary work; parent-course hierarchy, rule-replacement history, preferred/entity-specific daily-limit variants and additional soft types remain unfinished.
-\item \textbf{Phase 4 manual scheduling baseline:} complete and locally accepted for its declared supported vocabulary, including workload/daily policies, permitted windows, locks, diagnostics, independent checks and recorded run evidence. This does not complete every broader SRS requirement.
-\item \textbf{Phase 5 evaluation preparation:} in progress with the synthetic draft corpus, annotation contract, split/access controls and offline scorer. Human annotation/adjudication, final study sampling, pilot-based thresholds and fresh confirmatory data remain pending.
-\item \textbf{Phase 6 JAI extraction:} provider adapter, entity resolution, clarification/review and approval integration remain planned; model selection and spending approval are open.
-\item \textbf{Later timetable workflow:} manual scenario editing, comparison, revision-level revalidation, assignment CSV, instructor/researcher views and atomic publication remain unfinished. Publication is absent, not an implemented gate claimed to have passed acceptance.
-\item \textbf{Research and thesis completion:} frozen model runs, any approved participant study, analysis, results and discussion remain planned.
+\item \textbf{Built-in patterns.} Patterns in English, formal Arabic and Egyptian Arabic recognise common questions and commands immediately. Examples are whether a room or instructor is free, a group's timetable, when a course meets, free rooms, generating a timetable for a programme or year, exam timetables, PDFs and the state of the latest run.
+\item \textbf{Chat memory.} Each chat remembers the last room, instructor, group, course, days, time and timetable it discussed. A follow-up such as ``and on Monday?'' can be completed from this memory.
+\item \textbf{The local model.} Messages that the patterns do not cover go to the local model. It may explain the facts supplied to it, discuss trade-offs and prepare at most one action. Every action is validated against the same contract as the corresponding page and is carried out only after the administrator confirms it.
 \end{enumerate}
-Supervisor decisions now concern independent annotation/review, final dataset scale and definitions, development-pilot success thresholds, model/budget selection, participant-study feasibility and the delivery deadline. The teaching-hour unit and six-hour demonstration daily caps have been decided; their suitability as institutional policy still requires agreement. No research result is inferred from implementation or scorer self-tests.
+The model runs on the same server through Ollama, so no message or record leaves the machine. On the laptop used in this project, one model answer takes between one and six minutes. The measurements therefore concern behaviour, not interactive speed.
 
+\paragraph{Verified guide.} A first evaluation showed that the model invented details about JadwAI, for example a ``third-party provider'' and instructors who ``can edit'' a published timetable. A guide of 25 short statements was therefore written, each checked against the application code. For each message, the (at most three) statements whose keywords match are included in the prompt. The instructions require the model to use only those statements for questions about JadwAI and otherwise to say that it is not sure.
 
-\section[The JAI assistant]{The JAI assistant and its locally hosted model (23 November 2026)}\label{evidence-jai}
+\paragraph{Reply safeguards.} Before a reply is shown, the application:
+\begin{itemize}
+\item removes repeated sentences;
+\item keeps the complete sentences of a reply that was cut off mid-loop;
+\item rewrites a reply once into Egyptian Arabic when an Arabic message received an English reply;
+\item cuts a reply at the first Chinese, Japanese or Korean character, a failure observed in the base model.
+\end{itemize}
 
-\paragraph{What was built.} JAI is a chat panel in JadwAI. Built-in patterns in English, formal Arabic and Egyptian Arabic answer common questions directly. Other messages go to a model served by Ollama on the same machine; nothing is sent to an external provider. The model may explain the supplied facts, discuss trade-offs and prepare at most one website action, which runs only after the administrator confirms it; every proposed action is validated against the same contract as the corresponding page. The base model is \texttt{qwen2.5:7b-instruct} (Qwen2.5-7B-Instruct, 4-bit quantised). On the laptop described above, one answer takes between one and six minutes, so the measurements below concern behaviour, not interactive speed.
+\paragraph{Mixed-direction text.} Arabic replies that contain English names, codes and times were displayed in a confusing order. For example, a time range of 08:30--10:00 inside an Arabic sentence appeared as 10:00--08:30. The chat now chooses each line's direction from its main language and isolates every English or numeric run, so such runs stay in reading order.
 
-\paragraph{Verified guide.} A first evaluation showed that the model invented details about JadwAI (for example a ``third-party provider'' and instructors who ``can edit'' a published timetable). A guide of 25 short statements, each checked against the application code, was therefore added. For each message the (at most three) statements whose keywords match are included in the prompt, and the instructions require the model to use only those facts for questions about JadwAI and otherwise to say that it is not sure. The application also removes repeated sentences, keeps the complete sentences of a reply that was cut off, rewrites a reply once into Egyptian Arabic when an Arabic message received an English reply, and cuts a reply at the first Chinese, Japanese or Korean character (an observed failure of the base model).
+\paragraph{Fine-tuning.} Training examples are fictional conversations in English, formal Arabic and Egyptian Arabic, grouped into families (one intent with several wordings). Whole families go either to training or to the held-out set. The prompts are built by the same code as the live chat prompt, including the guide entries. From round~3 onwards, the dataset builder refuses an example whose answer relies on a guide entry that is missing from its prompt. Adapters were trained with QLoRA (rank~16) on Qwen2.5-7B-Instruct on a free T4 GPU, with the loss computed only on JAI's final answer.
 
-\paragraph{Fine-tuning method.} Training examples are fictional conversations in English, formal Arabic and Egyptian Arabic, grouped in \emph{families} (one intent with several wordings) and split into training and held-out families, so that no held-out family is seen in training. The examples were drafted with an AI assistant and approved by the project owner in bulk after reading a change list; this is not an independent item-by-item review. Adapters were trained with QLoRA (rank~16) on Qwen2.5-7B-Instruct on a free cloud T4 GPU, with the loss computed only on JAI's final answer. Because Ollama does not load such adapters for this model, each adapter was merged into Ollama's own 4-bit weights. A first merge back to the original 4-bit format erased about 98\% of the training, because the changes are smaller than the quantisation steps; re-quantising each tensor to a different format (4-bit blocks to 6-bit, 6-bit to 5-bit) preserved it, and a check over every trained matrix found on average 94--97\% of the trained change present per tensor type (lowest single matrix 82\%). Table~\ref{tab:jai-rounds} summarises the training rounds.
+\paragraph{Merging into Ollama.} Ollama does not load such adapters for this model, so each adapter was merged into Ollama's own 4-bit weights. A first merge back to the original 4-bit format erased about 98\% of the training, because the weight changes are smaller than the quantisation steps. Re-quantising each tensor to a different format (4-bit blocks to 6-bit, and 6-bit to 5-bit) preserved the training. A check over every trained matrix found on average 94--97\% of the trained change present per tensor type. Table~\ref{tab:jai-rounds} summarises the rounds, and their evaluation is reported in Section~\ref{evidence-jai-results}.
 
 \begin{table}[h]
 \centering
@@ -814,14 +898,36 @@ Round & Training data & Rows & Epochs & Loss & Outcome \\
 v1 & Original examples, no guide in the prompts & 210 & 2 & 1.62 & Better behaviour, still invents facts \\
 v2 & Same answers, guide added to the prompts & 210 & 3 & 1.11 & Worse; not used \\
 v3 & Answers rewritten to follow the guide; ``not sure'' examples & 243 & 2 & 1.18 & Preferred in blind rating \\
+v4 & v3 plus off-topic declines, topic changes, Arabic room terms, examination publishing & 317 & 2 & 1.07 & Evaluation in progress \\
 \bottomrule
 \end{tabular}
-\caption{JAI fine-tuning rounds (training rows; held-out rows were 69, 69 and 72).}
+\caption{JAI fine-tuning rounds (training rows; held-out rows were 69, 69, 72 and 85).}
 \label{tab:jai-rounds}
 \end{table}
 
+\section{Evaluation tooling}
 
-\paragraph{Mixed-direction text.} Arabic replies that contain English names, codes and times were displayed in a confusing order: a range such as 08:30--10:00 inside an Arabic sentence was shown as 10:00--08:30. The chat now chooses each line's direction from its main language and isolates every English or numeric run, which keeps such runs in reading order.
+The interpretation corpus, its annotation guide and the offline scorer are part of the repository (\texttt{evaluation/}). A manifest stores hashes of the data, the guide, the contract and the scoring code, so a changed file is detected. Default tools never read the reserved statements, and reading them needs a logged reason. The administrator interface has an evaluation workspace for human review, built but not yet used: it offers gold-free review downloads, in-browser annotation, immutable review records, comparison of two reviews with Cohen's $\kappa$, and an adjudication form. The fine-tuning tools (\texttt{finetuning/}) build the dataset from reviewed families, export it with hashes, merge adapters, check the merge, run the held-out evaluation and produce blind rating sheets.
+
+\section{Testing}
+
+The backend, the web interface and the evaluation tools each have an automated test suite, run before every reported measurement. Every fault found during the evaluation received a regression test. The current test counts are given in Chapter~\ref{evidence}.
+
+\section{What is not implemented}
+
+\begin{itemize}
+\item Several terms at once, and a separate parent-course hierarchy.
+\item Instructor aliases, and dated exceptions to availability.
+\item Editable objective weights in the interface.
+\item Scenarios created from a stated variation.
+\item Minimal-change regeneration.
+\item Calendar feeds and change notifications.
+\item Instructors submitting their own availability.
+\item The instrumentation for a participant study.
+\item A complete audit export of model calls.
+\item Formal accessibility and cross-browser checks.
+\end{itemize}
+Remote deployment and production operation were outside the project. The requirement-by-requirement status is in Appendix~\ref{app:requirements}.
 \clearpage
 
 \clearpage
@@ -831,7 +937,7 @@ v3 & Answers rewritten to follow the guide; ``not sure'' examples & 243 & 2 & 1.
 \chapter{Results}\label{evidence}
 
 \section{Purpose and boundary}
-This chapter records measured evidence about the implemented JadwAI system as of 8 November 2026. It concerns the scheduling engine, its independent validator, the repair diagnosis for impossible timetables, reports and exports, and the interpretation results on the development corpus (RQ1, RQ2). The interpretation results are development-level evidence: the corpus labels remain draft and unreviewed (Section~\ref{dataset-construction}), and no paid provider was used. Engineering checks and research results are kept separate, as in Section~\ref{implementation-status}. Section~\ref{evidence-jai}, added on 23 November 2026, reports the conversational assistant JAI and the fine-tuning of its locally hosted model; those measurements concern assistant behaviour on development cases, not the constraint-extraction questions.
+This chapter records measured evidence about the implemented JadwAI system as of 8 November 2026. It concerns the scheduling engine, its independent validator, the repair diagnosis for impossible timetables, reports and exports, and the interpretation results on the development corpus (RQ1, RQ2). The interpretation results are development-level evidence: the corpus labels remain draft and unreviewed (Section~\ref{dataset-construction}), and no paid provider was used. Engineering checks and research results are kept separate. Section~\ref{evidence-jai-results} reports the evaluation of the JAI assistant and the fine-tuning of its locally hosted model (described in Section~\ref{evidence-jai}); those measurements concern assistant behaviour on development cases, not the constraint-extraction questions.
 
 All runs used one laptop (Intel Core i5-1038NG7, 4~cores and 8~threads, 16\,GB memory, macOS~26.5.1), Python~3.14.5 and OR-Tools CP-SAT~9.15.6755~\cite{google_cpsat} with eight search workers and random seed~42. Times are wall-clock seconds on that machine and depend on hardware. Every timetable reported as valid passed JadwAI's independent validator, which recomputes completeness, eligibility, the doctor/TA split, room suitability and capacity, resource overlaps, approved rules, locks, workload and daily policies without using the solver's model. The code is at commits \texttt{e4771a1} and \texttt{4137b96} of the project repository plus the parser correction described in Section~\ref{evidence-baseline}. Scripts and logs are kept in \texttt{thesis/evidence/2026-11-08/}.
 
@@ -990,7 +1096,7 @@ Cases won (8 ties) & 3 & 8 \\
 
 The largest gains were in Arabic: an Arabic privacy question that v1 answered in English, and a request for ``no classes at 08:30'' that v1 answered by claiming such classes were forbidden, while v3 correctly said no mandatory rule prevents them. Six cases received the minimum score for both models, including an off-topic request for a poem and an Arabic question about shared lectures.
 
-\paragraph{Live use.} With v3 in the running application, four questions taken from the weakest cases were asked in the chat. The display of mixed Arabic and English text was correct after a fix described below, but the answers were weak: an Arabic question about laboratories with GPUs used wrong words for rooms; the poem request produced a poem; a frustrated Arabic message drifted into Chinese mid-sentence; and a question about connecting to the university's student information system, asked after the complaint, was answered with a request for a rule identifier from the previous topic. The held-out measurements therefore overstate live reliability, particularly for topic changes within one conversation. These cases were used to write a fourth round of training examples (off-topic requests, topic changes, Arabic room vocabulary and examination publishing), which had not been trained at the time of writing.
+\paragraph{Live use.} With v3 in the running application, four questions taken from the weakest cases were asked in the chat. The display of mixed Arabic and English text was correct after the fix described in Section~\ref{evidence-jai}, but the answers were weak: an Arabic question about laboratories with GPUs used wrong words for rooms; the poem request produced a poem; a frustrated Arabic message drifted into Chinese mid-sentence; and a question about connecting to the university's student information system, asked after the complaint, was answered with a request for a rule identifier from the previous topic. The held-out measurements therefore overstate live reliability, particularly for topic changes within one conversation. These cases were used to write a fourth round of training examples (off-topic requests, topic changes, Arabic room vocabulary and examination publishing), which had not been trained at the time of writing.
 
 
 \paragraph{Limits.} The examples and contexts are fictional and were drafted with AI assistance; approvals were bulk approvals by the project owner. The held-out sets are small (16--19 conversation cases and 5 action cases), the automatic checks do not measure correctness, and the human rating had one rater who was not independent of the project. All runs used one machine, one random seed and temperature~0. These results describe the development of a local assistant; they are not estimates of constraint-extraction accuracy (RQ1).

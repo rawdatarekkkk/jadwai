@@ -98,6 +98,8 @@
 \usepackage{fvextra}
 \fvset{breaklines=true}
 \usepackage{newunicodechar}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
 \newunicodechar{†}{$\dagger$}\newunicodechar{κ}{$\kappa$}\newunicodechar{≥}{$\geq$}\newunicodechar{≤}{$\leq$}\newunicodechar{→}{$\rightarrow$}\newunicodechar{↔}{$\leftrightarrow$}\newunicodechar{±}{$\pm$}\newunicodechar{✔}{Y}\newunicodechar{≠}{$\neq$}
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
@@ -1620,6 +1622,83 @@ Localisation & NFR-021 & English and Arabic interface with right-to-left layout;
 Observability, licensing & NFR-022, 023 & Partial; licence list not yet checked \\
 \bottomrule
 \end{longtable}
+
+
+\chapter{Screenshots of the Prototype}\label{app:screenshots}
+
+The following screenshots were taken from the running prototype on 23 November 2026 in the demonstration workspace (a browser window of 1440$\times$900 pixels). All names of people are demonstration placeholders. Further screenshots are in the repository folder \texttt{docs/screenshots}.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{02-overview.jpg}
+\caption{Overview page of the administrator workspace: counts of activities, instructors, rooms and student groups, the setup path and recent activity.}
+\label{fig:shot-overview}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{03-academic-data.jpg}
+\caption{Academic data: teaching activities of each course, with separate tabs for instructors, student groups and rooms, and CSV import.}
+\label{fig:shot-academic-data}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{04-constraints.jpg}
+\caption{Constraints: a requirement can be typed in English or Arabic and is interpreted as a proposal; approved rules are listed below with their strength (preference or mandatory).}
+\label{fig:shot-constraints}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{09-proposal-review.jpg}
+\caption{Proposal review: a requirement is interpreted by the locally hosted model and shown beside the original text for correction before any rule is created.}
+\label{fig:shot-proposal-review}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{13-teaching-timetable-top.jpg}
+\caption{Teaching timetable: generation from approved rules only, building in parts, input checks, search settings and the list of saved drafts.}
+\label{fig:shot-teaching-timetable-top}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{15-teaching-timetable-2.jpg}
+\caption{Part of a published teaching timetable: each session shows time, course, activity, instructor and room, with an option to keep it fixed in later regenerations.}
+\label{fig:shot-teaching-timetable-2}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{16-exam-timetable.jpg}
+\caption{Examination timetable: midterms by day and time with hall, capacity and invigilator; the summary reports back-to-back examination days across groups.}
+\label{fig:shot-exam-timetable}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{18-jai-chat.jpg}
+\caption{The JAI chat panel beside the exam settings: example questions and tasks; a proposed change runs only after the administrator confirms it.}
+\label{fig:shot-jai-chat}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{11-overview-arabic.jpg}
+\caption{Arabic interface: the same overview page with right-to-left layout.}
+\label{fig:shot-overview-arabic}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth]{12-timetable-arabic.jpg}
+\caption{Arabic interface: the examination settings page.}
+\label{fig:shot-timetable-arabic}
+\end{figure}
+
+\clearpage
 
 \renewcommand{\bibname}{References}
 \cleardoublepage\phantomsection

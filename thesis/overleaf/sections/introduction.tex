@@ -1,15 +1,7 @@
 % NOTE (migration 23 Nov 2026): Text moved unchanged from main.tex. Much of it was drafted with AI assistance; rewrite it in your own words before submission (the supervisor runs AI checks).
-% NOTE (migration 23 Nov 2026): Update 'Organisation of the thesis' to the seven chapters and the appendices; Scope still lists exams and repair as deferred although they are implemented.
+% NOTE (23 Nov 2026): Research questions, scope, contributions and organisation updated to match the rewritten Methodology. RQ3/RQ4 reframing assumes the supervisor accepts RQ-EVIDENCE.md; change it together with Methodology Section 3.1 otherwise.
 \hypertarget{introduction}{%
 \chapter{Introduction}\label{introduction}}
-
-\begin{quote}
-\textbf{Working draft updated 25 October 2026 for supervisor review.} Provisional structure and
-citation style (author--year); see \texttt{README.md}. This chapter
-states a \emph{proposed} study. Nothing here reports completed
-experiments. Placeholders in square brackets mark values not yet decided
-or measured.
-\end{quote}
 
 
 \hypertarget{problem-statement}{%
@@ -17,7 +9,7 @@ or measured.
 
 Administrators must record scheduling requirements accurately enough to protect access to required teaching while accommodating staff availability and suitable facilities. If the system misunderstands a requirement, a timetable can appear acceptable while failing the intended institutional need. The practical problem is therefore how to support clear requirement entry, useful clarification, and informed approval without adding excessive administrative effort.
 
-The five reviewed timetabling papers provide evidence about scheduling needs and capabilities, but do not evaluate ordinary-language requirement entry with this review workflow. The proposed study investigates that task within a limited course-timetabling scope. Its gap claim is bounded by the reviewed sources; a wider documented literature search remains planned.
+The five reviewed timetabling papers provide evidence about scheduling needs and capabilities, but do not evaluate ordinary-language requirement entry with this review workflow. This thesis investigates that task within a limited timetabling scope. Its gap claim is bounded by the reviewed sources; a wider documented literature search remains planned.
 
 \hypertarget{research-gap}{%
 \section{Research gap}\label{research-gap}}
@@ -55,20 +47,21 @@ combination; the use of an LLM is not itself claimed to be novel.
 \item
   \textbf{RQ3.} Does AI-assisted constraint entry with human review
   reduce entry time and the number of corrections compared with manual
-  form entry while preserving correct interpretation? User understanding and feedback will also be assessed, using the same scheduling engine.
+  form entry while preserving correct interpretation?
 \item
-  \textbf{RQ4.} How do candidate LLMs compare in extraction accuracy,
-  latency and cost per successful extraction on the same held-out data?
+  \textbf{RQ4.} How does a locally hosted base language model compare
+  with the same model fine-tuned on reviewed, guide-grounded examples,
+  in answer quality and latency, on the same held-out cases?
 \end{itemize}
 
-RQ1 and RQ2 will be evaluated overall and separately for English, formal Arabic, Egyptian Arabic and mixed Arabic/English. No relative difficulty is assumed. RQ3 remains conditional on approval and feasibility of the participant study; its inclusion is not evidence that recruitment or ethics approval has occurred.
+RQ1 and RQ2 are evaluated overall and separately for English, formal Arabic, Egyptian Arabic and mixed Arabic/English, by comparing a rule-based parser with a locally hosted language model on development data with draft labels. The results are therefore development-level evidence, not a confirmatory held-out result. RQ3 could not be studied, because no participants or ethics approval were available in the project period; it is discussed as future work. RQ4 originally compared several commercial models; because no budget for paid calls was approved, it compares a local base model with its fine-tuned versions (Chapter~\ref{methodology-proposed-study}).
 
 A supporting engineering question concerns whether the surrounding
 system can keep the model honest: \emph{can an independent validator and
 an approval workflow ensure that only reviewed constraints reach the
 solver and that no schedule with a supported hard-rule violation is
-published?} This is verified by testing (Chapter 3,
-Section\textasciitilde3.11), not by statistical inference.
+published?} This is verified by testing
+(Section~\ref{scheduling-validation-and-system-behaviour-evaluation}), not by statistical inference.
 
 \hypertarget{objectives}{%
 \section{Objectives}\label{objectives}}
@@ -94,34 +87,31 @@ Section\textasciitilde3.11), not by statistical inference.
 \section{Contribution (proportional to the
 evidence)}\label{contribution-proportional-to-the-evidence}}
 
-If the proposed study is carried out, the intended contributions are:
-(i) a documented constraint vocabulary and machine-readable schema for
-course-timetabling requirements; (ii) an annotated evaluation set of
-requirements with a published annotation guide, to the extent that
-sharing is permitted; (iii) measurements of raw and post-review
-extraction quality for several candidate models on held-out data, with
-uncertainty; (iv) if the participant study is approved and feasible, a comparison of manual and AI-assisted entry on
-equivalent tasks, reported as a pilot if participant numbers are small;
-and (v) a prototype that demonstrates the end-to-end workflow with an
-independent validator. No performance claim is made in advance. Which
-models perform adequately, and whether review effort falls, are
-empirical questions.
+The contributions are: (i) a documented set of supported rules and a
+machine-readable output contract for timetabling requirements, with
+explicit decisions for clarification, unsupported and conflicting
+requests; (ii) a synthetic development corpus of 144 statements in four
+language categories with a versioned annotation guide, whose labels are
+draft and unreviewed; (iii) a development-level comparison of a
+rule-based parser and a locally hosted language model on that corpus,
+with family-level uncertainty; (iv) a fine-tuning study of a local
+assistant model in three rounds, including a round that made it worse
+and the reason; and (v) a working prototype for teaching and examination
+timetables in which an approval workflow and an independent validator
+keep unreviewed or invalid output from being used. No claim is made
+about accuracy on real administrators' statements or about reduced
+administrative effort.
 
 \hypertarget{scope}{%
 \section{Scope}\label{scope}}
 
-\textbf{Confirmed project scope:} JadwAI supports course timetabling for one department and one semester, using a repeating weekly pattern. Lectures, tutorials and laboratories have durations and weekly occurrences; student groups are the unit of student-conflict checking. Natural-language requirements in English, formal Arabic, Egyptian Arabic and mixed Arabic/English are part of the core research scope, alongside an English/Arabic interface with right-to-left presentation. JAI (pronounced ``jay'') is the identity of the website assistant; the name does not imply that model integration is already complete.
+\textbf{Confirmed project scope:} JadwAI supports course timetabling for one department and one semester, using a repeating weekly pattern. Lectures, tutorials and laboratories have durations and weekly occurrences; student groups are the unit of student-conflict checking. Natural-language requirements in English, formal Arabic, Egyptian Arabic and mixed Arabic/English are part of the core research scope, alongside an English/Arabic interface with right-to-left presentation. JAI (pronounced ``jay'') is the website's chat assistant; its language model runs on the same server as the application.
 
 The solver is intended to choose instructors, times and rooms. Eligibility is recorded separately for lecture, tutorial and laboratory activities. Each activity retains one instructor across its weekly occurrences; instructor, time and room assignments may be locked. Mandatory weekly instructor workload limits and configurable mandatory or preferred daily limits for instructors and groups are in scope. The confirmed unit is elapsed teaching hours: a 90-minute session contributes 1.5 hours, counted once per instructor irrespective of how many groups attend; fixed breaks are excluded. Configured weekly instructor maxima and global hard daily caps are implemented. Preferred daily-limit variants and entity-specific daily overrides remain proposed extensions.
 
-\textbf{Deferred extensions:} examination timetabling, individual enrolments, minimal-change regeneration, automatic repair suggestions, calendar feeds and notifications. \textbf{Excluded:} native mobile applications, attendance, payroll, full student-information-system integration, automated registration or sectioning, and institution-wide production deployment. Approved scope is distinguished from implemented behaviour in the implementation-status section of Chapter~3.
+\textbf{Added during the project:} examination timetabling (quizzes, midterms and finals, with halls and TA invigilators), repair suggestions for impossible timetables (proposed to the administrator, never applied automatically), and generation in parts for university-scale data. \textbf{Deferred extensions:} individual enrolments, minimal-change regeneration, calendar feeds and notifications. \textbf{Excluded:} native mobile applications, attendance, payroll, full student-information-system integration, automated registration or sectioning, and institution-wide production deployment. Approved scope is distinguished from implemented behaviour in Section~\ref{implementation-status}.
 
 \hypertarget{organisation-of-the-thesis}{%
 \section{Organisation of the thesis}\label{organisation-of-the-thesis}}
 
-Chapter 2 reviews the five timetabling papers through educational needs, implemented capabilities and reported evidence, and examines an additional study of natural-language preference interpretation. Chapter 3 presents the
-proposed methodology: the administrative workflow, supported requirements,
-dataset and annotation, experimental conditions, metrics, analysis,
-reproducibility, ethics and threats to validity. Subsequent chapters,
-not drafted here, would describe the system, report results, and discuss
-and conclude.
+Chapter~\ref{chap:background} introduces university timetabling and the constraint-entry problem. Chapter~\ref{literature-review} reviews five timetabling papers through educational needs, implemented capabilities and reported evidence, and examines a study of natural-language preference interpretation. Chapter~\ref{methodology-proposed-study} describes the method followed: the research design, the interpretation contract, the development corpus, the methods compared, the metrics, the fine-tuning of the assistant model, the engineering verification, and the threats to validity. Chapter~\ref{chap:implementation} describes the implemented system and the JAI assistant. Chapter~\ref{evidence} reports the measurements, and Chapter~\ref{chap:conclusion} summarises the findings, limitations and future work. The appendices list the requirements, screenshots of the prototype and planning records from the proposal.

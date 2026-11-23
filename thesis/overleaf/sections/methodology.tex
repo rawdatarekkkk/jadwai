@@ -1,800 +1,234 @@
-% NOTE (migration 23 Nov 2026): Text moved unchanged from main.tex. Much of it was drafted with AI assistance; rewrite it in your own words before submission (the supervisor runs AI checks).
-% NOTE (migration 23 Nov 2026): This chapter still describes a PROPOSED study in the future tense, with [TBD] items. Rewrite it as the method actually followed, once the research-question decisions in RQ-EVIDENCE.md are agreed; mention the fine-tuning method (now in Implementation) and remove the statement that fine-tuning is out of scope.
-\hypertarget{methodology-proposed-study}{%
-\chapter{Methodology}\label{methodology-proposed-study}}
+% NOTE (23 Nov 2026): Rewritten as the method actually followed. Drafted with AI assistance at the owner's request; reword in your own words before submission.
+% NOTE (23 Nov 2026): Assumes the supervisor accepts the reframing in RQ-EVIDENCE.md (RQ1 as a development-level comparison, RQ3 as future work, RQ4 as base versus fine-tuned local model). Change Section 3.1 and the Introduction together if the supervisor decides otherwise.
+\chapter{Methodology}\label{methodology-proposed-study}
 
-\begin{quote}
-\textbf{Updated 25 October 2026 for supervisor review. This chapter describes a
-PROPOSED research study. No AI extraction experiments have been run, no annotated research dataset has been completed, and no participants have been recruited. Synthetic scheduling fixtures and local engineering verification exist; they are reported separately from research results.}
-Present-tense descriptions of procedures describe the plan.
-Square-bracket items (\texttt{{[}TBD\ …{]}}) are decisions or
-measurements not yet available. Options are proposed with justification
-and need the owner\textquotesingle s and supervisor\textquotesingle s
-confirmation (SRS Section\textasciitilde18). The chapter is aligned with
-the revised SRS (DRAFT v0.2, 10 October 2026; 64 functional requirements); every evaluated capability maps to a specified
-feature or an explicit research procedure (Section\textasciitilde3.19).
-\end{quote}
+This chapter describes how JadwAI was built and evaluated. The project followed a design-and-evaluate approach: a working prototype was implemented and then measured on synthetic data. Section~\ref{meth-design} states how each research question was answered and how this differs from the original proposal. The later sections describe the interpretation contract, the development corpus, the extraction methods compared, the scoring, the JAI assistant and its fine-tuning, the engineering verification of the scheduler and validator, and the records kept for reproducibility. The measurements themselves are reported in Chapter~\ref{evidence}.
 
-\hypertarget{research-design-and-justification}{%
-\section{Research design and
-justification}\label{research-design-and-justification}}
+\section{Research design}\label{meth-design}
 
-\textbf{Design.} A design-and-evaluate study with three components:
+The study has three parts, kept separate so that one kind of evidence is not read as another.
 
 \begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\tightlist
-\item
-  \textbf{An offline extraction experiment} (RQ1, RQ2, RQ4): candidate
-  LLMs are run on a fixed, annotated set of requirements under
-  equivalent conditions, and their raw outputs are scored against gold
-  annotations. This is a controlled benchmark; it isolates extraction
-  quality from human behaviour and from the solver.
-\item
-  \textbf{A human-in-the-loop comparison} (RQ3): manual form entry and
-  AI-assisted entry with review are compared on equivalent tasks using
-  the same scheduling engine. Because participant numbers are uncertain
-  (OQ-12), it is planned as a \emph{pilot}, and its conclusions are
-  limited accordingly.
-\item
-  \textbf{Engineering verification of the surrounding system}: tests
-  that approval gates, the independent validator, solver-outcome
-  reporting and publication gates behave as specified, and measurements
-  of scheduling behaviour on synthetic instances. These use
-  deterministic test oracles, not statistical inference.
+\item \textbf{Offline interpretation experiment} (RQ1, RQ2). Two interpretation methods, a rule-based parser and a locally hosted language model, are run on the same fixed set of statements in four language categories. Their outputs are scored against draft expected answers by the same scorer.
+\item \textbf{Assistant and fine-tuning evaluation} (RQ4). The base local model and three fine-tuned versions of it answer the same held-out assistant cases. They are compared with automatic checks, latency measurements and a blind side-by-side rating.
+\item \textbf{Engineering verification} (supporting question). The solver, the independent validator, the repair diagnosis and the approval and publication gates are tested with deterministic test oracles and measured on synthetic and adjusted university-scale data.
 \end{enumerate}
 
-\textbf{Why this design.} The approved contribution is the extraction
-method and its evaluation (project specification,
-Section\textasciitilde3). Offline benchmarking is the established way to
-compare models on a labelled task and permits repeated runs, paired
-statistics and cost accounting. A human study is needed because the
-practical claim is \emph{reduced effort without loss of correctness},
-which a benchmark cannot show. Engineering verification is needed
-because the prototype\textquotesingle s value depends on the claim that
-unreviewed or invalid content cannot reach the solver or publication,
-which is a property of the system, not of the model. Keeping the three
-separate follows the principle that valid output is not correct output,
-and that a valid schedule is not evidence of correct interpretation.
+A valid timetable is not evidence of a correct interpretation, and a correct interpretation does not guarantee a good timetable. For this reason interpretation, scheduling and validation are measured separately.
 
-\textbf{What the study does not do.} It does not claim to evaluate
-solver quality against other timetabling systems or to show that a
-smaller prototype equals UniTime\textquotesingle s coverage. It does not
-attribute differences in schedule quality to the AI when they arise from
-different formal rules or objective weights (project specification,
-Section\textasciitilde13).
+\paragraph{Changes from the proposal.} The proposal planned a confirmatory comparison of several commercial language models on a sealed, independently annotated held-out set, and a participant study comparing manual and AI-assisted entry. Neither was possible within the project. No budget was approved for paid model calls, no second annotator was available, the expected answers were not reviewed by a human, and no ethics approval or participants were obtained. The research questions were therefore answered as follows (Table~\ref{tab:rq-method}).
 
-\begin{longtable}[]{@{}p{\dimexpr(\linewidth-6\tabcolsep)/3\relax}p{\dimexpr(\linewidth-6\tabcolsep)/3\relax}p{\dimexpr(\linewidth-6\tabcolsep)/3\relax}@{}}
-\toprule\noalign{}
-RQ & Component & Primary evidence \\
-\midrule\noalign{}
-\endhead
-\bottomrule\noalign{}
-\endlastfoot
-RQ1 extraction accuracy & Offline experiment & Raw and post-review
-metrics on held-out data (Section\textasciitilde3.9) \\
-RQ2 clarification / unsupported & Offline experiment & Clarification and
-unsupported-request metrics (Section\textasciitilde3.9.3) \\
-RQ3 effort vs manual & Human pilot & Time, corrections, final accuracy
-(Section\textasciitilde3.10) \\
-RQ4 model comparison & Offline experiment & Accuracy, latency, cost,
-variability (Section\textasciitilde3.7, Section\textasciitilde3.9,
-Section\textasciitilde3.12) \\
-Supporting engineering question & Verification & Test outcomes
-(Section\textasciitilde3.11) \\
-\end{longtable}
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}p{0.2\textwidth}p{0.36\textwidth}p{0.36\textwidth}@{}}
+\toprule
+Question & Method used & Change from the proposal \\
+\midrule
+RQ1 extraction accuracy & Rule-based parser and local Qwen2.5-7B on 144 development statements, same scorer & Development-level comparison on draft labels, not a confirmatory held-out result \\
+RQ2 clarification and unsupported requests & Clarification and unsupported-request scores from the same runs; clarifying behaviour of JAI on held-out cases & Exploratory; small samples \\
+RQ3 effort compared with manual entry & Not conducted & Moved to future work (Section~\ref{meth-rq3}) \\
+RQ4 model comparison & Base local model against the same model fine-tuned in three rounds, on identical held-out cases & Local base versus fine-tuned model instead of several paid providers; cost per call is zero \\
+Engineering question & Tests, seeded faults and measured runs & As planned \\
+\bottomrule
+\end{tabular}
+\caption{How each research question was addressed.}
+\label{tab:rq-method}
+\end{table}
 
-\section[Users, needs and workflow]{Users, educational needs and proposed functional workflow}\label{system-architecture-and-separation-of-concerns}
-The primary user is the timetable administrator. Instructors supply availability and preferences through the administrator in the initial scope; instructors and students view the published timetable within their authorised scope. Direct instructor submission is an optional extension. A researcher evaluates interpretation and task effort using approved study records. These roles should not be assumed to have identical access.
+\paragraph{What the study does not claim.} It does not compare JadwAI's solver with other timetabling systems, it does not claim that the prototype covers what systems such as UniTime cover~\cite{muller2025itc}, and it does not estimate how well any method would perform on unseen statements written by real administrators.
 
-Before constructing the evaluation tasks, the supervisor and, where feasible, staff with timetabling experience will review the proposed needs: access to required activities, avoidance of group and staff clashes, suitable teaching facilities, feasible availability, and understandable reporting of incomplete or conflicting schedules. This consultation is planned, not completed. Any agreed requirement must fit the supported scope; new capabilities require an explicit scope decision.
+\section{The system under study}\label{meth-system}
 
-The prototype is intended to support the following workflow:
-\begin{enumerate}
-\item The administrator records courses, teaching activities, instructors, student groups, rooms and teaching periods, including eligible instructors per activity component, mandatory weekly instructor workload limits, and strict or preferred daily limits for instructors and groups.
-\item The administrator enters a scheduling need, either through a manual form or in ordinary language. The system displays its proposed interpretation and identifies missing or ambiguous information.
-\item The administrator corrects or clarifies the proposal and approves it before it affects a timetable. For example, ``Dr Ahmed cannot teach on Tuesdays and prefers mornings'' represents a mandatory restriction and a separate preference; the institution must define ``morning''.
-\item The system assigns eligible instructors as well as times and rooms, retaining the same instructor across weekly occurrences of each activity, and reports which activities were scheduled, whether mandatory checks passed, and which preferences remain unmet.
-\item The administrator compares alternatives or changes a placement; instructor, time and room assignments may be locked. Each changed revision is checked again before publication. Changes in approved inputs require validation against current requirements.
-\item A timetable is published only when the exact revision is complete and independently validated against current approved inputs, with every supported mandatory rule evaluated and passed. Missing data needed for a mandatory check blocks publication; unevaluated preferences are disclosed. Mandatory checks cannot be bypassed. Authorised instructors and students can then view the published schedule.
-\end{enumerate}
-This is the target workflow; its implemented subset and remaining work are recorded in Section~\ref{implementation-status}. The detailed acceptance criteria remain in the SRS. Generation, interpretation and review are evaluated separately so that a valid timetable cannot conceal a misread administrative requirement.
-
-\subsection{Exceptions and recovery in the administrative workflow}
-The revised SRS adds six supporting requirements (FR-059--FR-064) to protect the workflow when operations fail or users act on outdated information. These describe the complete target behaviours. Safeguards for implemented operations have local test evidence, but coverage of future extraction, revision and publication workflows remains incomplete (Section~\ref{implementation-status}).
-
-\begin{itemize}
-\item \textbf{Conflicting changes (FR-059).} If another administrator has changed a record, an outdated save is refused and the user is asked to reload and review it. Publication rechecks the revision, current inputs, validation and permissions at the point of commitment. A timetable generated before an input change may be published only after it passes validation against current inputs and satisfies every other publication condition; its original generation version remains visible.
-\item \textbf{Interrupted operations (FR-060).} A lost connection must preserve acknowledged saves and allow the administrator to retrieve the operation status before trying again. An interrupted worker job is recorded as failed with a reason. An explicit retry creates a distinct job from the original snapshot unless the administrator chooses new inputs. An interrupted import must leave no partially committed dataset.
-\item \textbf{Repeated requests and provider failures (FR-061).} Repeated delivery of the same request must not create duplicate saves, approvals or publications. An explicit new run remains a separate operation. Provider retries are bounded and recorded; failure preserves the statement and offers an explicit retry or manual entry. A late AI response cannot replace approved constraints.
-\item \textbf{Incomplete results and cancellation (FR-062).} Where partial diagnostic results are available, the system identifies unscheduled activities and prevents publication of an incomplete timetable. Requesting cancellation and confirming it are separate states; simultaneous completion and cancellation must produce one accurate final outcome. Any retained partial export is labelled as a draft; the source of partial diagnostic timetables remains undecided. After cancellation, an administrator may explicitly retain a complete result only if it passes validation; it must disclose that the search stopped without proven optimality.
-\item \textbf{Failed validation (FR-063).} A validator error, timeout or missing required check cannot count as a pass. The administrator receives a reason and a retry route, with prior reports retained. A later failed or incomplete check of the same revision and inputs blocks reliance on an earlier passing report. Unchecked preferences are not reported as having zero penalty.
-\item \textbf{Expired sessions and changed permissions (FR-064).} A protected operation is refused when the session expires or access is revoked. After sign-in, current permissions and versions are checked again; approval or publication is not automatically replayed. Restricted timetable and study data remain inaccessible to unauthorised users.
-\end{itemize}
-These safeguards support reliable administrative decisions. They do not extend the educational scope to examinations, individual enrolments or other optional features.
-
-\section{Supported requirements and interpretation criteria}\label{formal-representation-of-supported-constraints}
-The initial requirement set covers instructor, room and group unavailability; permitted activity times; fixed placements; and room capacity, type and equipment. Proposed preferences include teaching periods, avoiding late sessions, reducing gaps and room changes, and balancing daily load. Daily limits for instructors and student groups are approved scope, with mandatory or preferred classification. Instructor eligibility, continuity across weekly occurrences and locked instructor assignments are required. Configured weekly instructor load caps are mandatory and measured in elapsed teaching hours, excluding breaks. A missing cap is disclosed as unconfigured rather than checked; zero prohibits assignments. The implemented daily policy uses hard global hour caps, activity-day distribution, consecutive-period caps and internal idle-period caps. The demonstration caps are six teaching hours per day for both students and instructors; these values are owner-selected settings, not an established institutional policy. Preferred or entity-specific daily-limit variants remain unfinished. Structural checks, including complete assignment and avoidance of room, instructor and group overlaps, remain active irrespective of how a requirement was entered.
-
-The educational meaning of each requirement will be documented before annotation: whose activities are affected, whether it is mandatory or preferred, and which period, threshold or facility is intended. Terms such as ``late'', ``balanced'' and ``a long gap'' require agreed definitions. A proposal may remain incomplete while clarification is pending; approval requires the intended person or activity and all necessary details to be resolved. Technical field definitions are maintained in the project's constraint contract rather than treated as the main contribution of this chapter.
-
-For evaluation, an interpretation is correct when it preserves the intended requirement type, affected entities, mandatory or preferred status, and parameter values. Equivalent wording and ordering do not count as errors. Preference weights are compared only when explicitly stated; otherwise the agreed profile defaults apply. This scoring rule and the semantic definitions will be fixed before running the evaluated models. The following sections retain the experimental details needed to make those measurements reproducible.
-
-\hypertarget{dataset-construction}{%
-\section{Dataset construction}\label{dataset-construction}}
-
-Statement families will cover all four language categories, with a category label on each item. Translations and cross-language paraphrases expressing the same constraints belong to one family and must remain in the same split. An initial unreviewed synthetic release now contains 128 statements in 32 translated intent families: 96 development statements and 32 reserved statements. This is draft material rather than a completed, adjudicated research dataset; final study sizes remain undecided and no extraction model has been evaluated. The annotation guide must cover Arabic and Egyptian Arabic negation and hedging, mixed-script entity mentions and transliterated names. Where available, a second annotator fluent in Egyptian Arabic should review the relevant subset; availability is not assumed.
-
-\textbf{Current draft release (25 October 2026).} Version \texttt{0.1.0-draft} contains 32 statements in each of the four language categories. Each family has four translations; 24 families are development material and eight are reserved. One fictional department context supplies instructors and aliases, rooms, groups, activities, the five named teaching periods and a fictional validated source draft for lock interpretation. The statements and proposed labels were authored with project-assistant support; they have not been independently annotated or adjudicated. They include clear and compound requests, negation, missing values, ambiguous and unknown entities, hard contradictions, unsupported requests, temporal boundaries and session-to-hour conversion.
-
-The reserved material is \emph{not a blind test set}: its author has seen the labels and its source remains accessible. Default tooling does not read it, and explicit access requires a logged reason, but this is a local workflow guard rather than operating-system isolation. A fresh independently authored and adjudicated confirmatory set is required if this draft informs prompt or implementation choices. The proposed confirmatory protocol below has not been executed.
-
-\textbf{Implemented offline scoring contract.} The contract distinguishes resolved proposals, clarification, unsupported content, conflicts and mixed requests. It covers typed manual rules, weekly instructor-hour updates, global daily-cap patches and assignment-lock proposals. Proposals never confer automatic approval. Exact whole-case scoring compares the decision, complete proposal multiset, clarification codes and unsupported codes; arbitrary rule titles and proposal ordering are ignored, while duplicate proposals count as extra predictions. Missing outputs fail the case, invalid attempted proposals count as false positives, and empty metric classes remain undefined rather than being credited as perfect. A conditional field-bag diagnostic does not replace strict whole-proposal or whole-case correctness.
-
-The scorer also reports language breakdowns, cross-language family consistency, unknown entity references and available latency/token/attempt/cost metadata. Consistency can be high for consistently wrong outputs. Missing telemetry remains unknown. Raw and operator-declared post-review files are scored separately; the tool does not verify that human review occurred or measure correction effort. Gold-free exports contain only input text, identifiers and a context companion. Manifest, configuration, prediction and scorer hashes support reproducible rescoring. Oracle fixtures that copy expected labels are software self-tests only, not model-performance observations.
-
-\textbf{Unit and content.} The unit is a \emph{requirement statement}
-(one or more sentences) paired with an \emph{institutional context}
-(entity tables: instructors with aliases, courses/activities, rooms,
-groups, named periods) and a \emph{gold annotation}: the set of gold
-constraints, the expected open items (clarification needed, unsupported
-elements), and a category label.
-
-\textbf{Categories} (a statement can carry several tags): simple (single
-rule); compound (several rules); negated or polarity-sensitive
-("cannot", "prefers no", "would rather not"); numeric (times and counts
-in varied formats); ambiguous (entity or parameter underspecified);
-undefined-term ("morning", "late" without a definition); contradictory
-(within the statement or against an existing rule); unsupported (outside
-the vocabulary); and paraphrase variants of the above.
-
-\textbf{Sources of statements (to be agreed, OQ-09).} Options, which can
-be combined: (a) statements authored by the researcher from the
-constraint examples in the supplied literature (for example the exam and
-constraint lists in~\cite{abdennadher_guc_exams}) and the candidate vocabulary; (b) statements elicited
-from scheduling staff or instructors, if access and approval are
-available; (c) wording drawn from real department communications,
-anonymised, if permitted; (d) model-assisted paraphrasing of
-human-authored statements, always reviewed by a human --- LLM-generated
-statements are \emph{not} used as gold-labelled test material without
-review because they could favour the same model family. Provenance of
-every item is recorded.
-
-\textbf{Institutional contexts.} The confirmatory study proposes at least two synthetic department
-contexts with different names, aliases and period definitions
-so that results do not depend on one entity table. {[}TBD: number and
-size.{]} Entity names are fictional or anonymised.
-
-\textbf{Size --- options, not decisions.} The project specification
-proposes 150--300 requirements, subject to annotation effort. The table
-shows how the 95 \% Wilson confidence-interval half-width for a
-proportion shrinks with the number of \emph{independent} test statements
-(illustrative arithmetic; not a target):
-
-\begin{longtable}[]{@{}p{\dimexpr(\linewidth-8\tabcolsep)/4\relax}p{\dimexpr(\linewidth-8\tabcolsep)/4\relax}p{\dimexpr(\linewidth-8\tabcolsep)/4\relax}p{\dimexpr(\linewidth-8\tabcolsep)/4\relax}@{}}
-\toprule\noalign{}
-Test statements (n) & Observed accuracy 0.80 & Observed accuracy 0.90 &
-Observed accuracy 0.95 \\
-\midrule\noalign{}
-\endhead
-\bottomrule\noalign{}
-\endlastfoot
-100 & ± 7.8 points & ± 6.0 & ± 4.5 \\
-150 & ± 6.4 & ± 4.8 & ± 3.7 \\
-200 & ± 5.5 & ± 4.2 & ± 3.1 \\
-\end{longtable}
-
-Per-category estimates are wider because each category has fewer items;
-claims about individual categories will be reported with their own
-intervals and treated as exploratory unless enough items exist. Two
-options for confirmation: \textbf{Option A} --- about 150 statements
-(for example roughly 50 development, 100 held-out); \textbf{Option B}
---- about 300 statements (for example roughly 100 development, 200
-held-out). A small \textbf{pilot set} of {[}TBD{]} statements, separate
-from both, is used to debug the annotation guide and the pipeline. Final
-numbers depend on annotation effort and on the pilot. Paraphrases of one
-base statement are not independent; the effective n is the number of
-statement \emph{families} (Section\textasciitilde3.6), and analysis will
-be clustered accordingly.
-
-\hypertarget{annotation-protocol-disagreement-and-agreement}{%
-\section{Annotation protocol, disagreement and
-agreement}\label{annotation-protocol-disagreement-and-agreement}}
+The primary user is the timetable administrator. Instructors and students only view their own published timetable. The administrator enters academic data (instructors, rooms, student groups, courses and their lectures, tutorials and laboratories), then enters rules either through forms or in plain English, formal Arabic or Egyptian Arabic. The workflow that the evaluation relies on is:
 
 \begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\tightlist
-\item
-  \textbf{Annotation guide} (written first, versioned): constraint
-  definitions with examples and counter-examples; rules for resolving
-  vague terms; what counts as unsupported; how to annotate compound,
-  negated and contradictory statements; the expected clarification for
-  each ambiguity type; canonicalisation rules
-  (Section\textasciitilde3.3). The guide is developed on the pilot set
-  and is versioned. The version used to annotate the held-out set is
-  frozen before held-out annotation begins and is recorded in the
-  held-out manifest. Development annotations may later be revised under
-  newer guide versions; every revision is logged with its guide version
-  and reason (Section\textasciitilde3.6).
-\item
-  \textbf{Annotators.} The researcher will independently annotate or review all research items; the current assistant-authored draft labels do not fulfil this obligation. A
-  \textbf{second annotator} (to be identified; a supervisor-nominated
-  person or fellow student with scheduling knowledge) independently
-  annotates a subset {[}TBD size, preferably the full held-out set if
-  feasible{]} blind to the first annotation and to any model output.
-\item
-  \textbf{Agreement measurement.} For categorical decisions (constraint
-  type, severity, per-item "clarification needed", "unsupported")
-  Cohen\textquotesingle s κ with confidence intervals; for entity and
-  parameter fields, exact-match agreement; for whole statements, the
-  proportion with identical canonical constraint sets. Because
-  categories may be unbalanced, κ is reported with raw percentage
-  agreement. Targets for acceptable agreement are not set in advance.
-  {[}TBD with supervisor.{]}
-\item
-  \textbf{Adjudication.} Disagreements are discussed, the guide is
-  clarified where the disagreement shows an ambiguity, and a final gold
-  label is recorded with the rule used. A guide revision that changes
-  development labels creates a new development-set version, and earlier
-  development results remain attributed to the version they used.
-  Held-out gold labels are changed only for clear annotation errors,
-  decided without looking at any model output, logged, and applied to
-  all models identically before the confirmatory run; any change after
-  that run is reported as a deviation.
-\item
-  \textbf{Single-annotator limitation.} If a second annotator is
-  unavailable, results are reported as relative to a single
-  annotator\textquotesingle s interpretation and the limitation is
-  stated prominently (Section\textasciitilde3.16).
+\item A typed statement is converted into a \emph{proposal}: zero or more structured rules, plus any questions that must be answered and any parts that cannot be represented.
+\item The administrator reviews, corrects or rejects the proposal. Only approved rules are stored and used. A proposal from either the parser or a language model is never applied automatically.
+\item The solver (Google OR-Tools CP-SAT~\cite{google_cpsat}) generates a timetable from the approved inputs.
+\item An independent validator, written separately from the solver model, recomputes every supported rule on the saved timetable. A timetable is published only if it passes validation against the current approved inputs.
 \end{enumerate}
 
-\hypertarget{development--validation--held-out-separation-and-leakage-prevention}{%
-\section[Data separation and leakage]{Development / validation / held-out separation and leakage
-prevention}\label{development--validation--held-out-separation-and-leakage-prevention}}
+This separation is what makes it possible to use an imperfect interpretation method safely. An interpretation error can lead to a wrong rule being proposed. It cannot lead to an unreviewed rule being used or to a timetable that breaks an approved hard rule being published. Implementation details are given in Chapter~\ref{chap:implementation}.
 
+\section{Supported rules and the interpretation contract}\label{formal-representation-of-supported-constraints}
+
+\paragraph{Supported rules.} The interpretation methods may propose only the following:
 \begin{itemize}
-\tightlist
-\item
-  \textbf{Splits.} A pilot set (tooling and guide refinement), a
-  development set (prompt, example and schema-description iteration), an
-  optional validation set (choice among frozen candidate configurations),
-  and a held-out test set (confirmatory evaluation only).
-\item
-  \textbf{Held-out set: proposed frozen and isolated protocol, not yet executed.} Language-category representation will be determined before sealing, and leakage checks will compare translations across categories as well as within-language paraphrases. Held-out statement families
-  are authored, annotated under the recorded guide version and adjudicated
-  before any prompt development begins. They are then sealed: a manifest
-  of item identifiers and content hashes is recorded, and the items are
-  stored separately from development material. The experiment harness
-  cannot load held-out items in development runs, refuses held-out runs
-  unless every element of the configuration is frozen, and logs every
-  held-out access (FR-049). After sealing, families are never added to,
-  removed from or moved into the held-out set; corrections follow
-  Section\textasciitilde3.5, item 4. Because the researcher authored the
-  held-out items, this isolation limits, but cannot remove, the
-  researcher's knowledge of them (Section\textasciitilde3.15).
-\item
-  \textbf{Development material: allowed to evolve, with versioned
-  records.} Development statements, few-shot examples, prompt templates,
-  schema descriptions and decoding settings may be added, revised or
-  removed throughout development. Each change produces a new version of
-  the development set, few-shot set or prompt template with a short change
-  note. Every development run records the versions it used, so that any
-  reported development result can be traced and re-run. New development
-  families are checked automatically against the held-out manifest for
-  near-duplicates. The check reports only that a conflict exists, not
-  which held-out item matched; a flagged family is discarded or rewritten.
-\item
-  \textbf{Split by statement family.} A \emph{family} is a base
-  statement and all its paraphrases, numeric variants and context
-  variants. Families, not statements, are assigned to splits, to reduce cross-split paraphrase leakage. Family-ID and normalized exact-text checks alone cannot establish the absence of semantic near-duplicates; independent review is required.
-\item
-  \textbf{Context separation.} Where two or more institutional contexts
-  exist, at least one context {[}TBD{]} appears only in the held-out set
-  to test sensitivity to entity tables.
-\item
-  \textbf{No test tuning.} Prompts, few-shot examples, schema
-  descriptions and decoding settings are chosen using
-  development/validation data only. Few-shot exemplars are drawn from
-  the development split. Before the confirmatory run, the complete
-  configuration (model identifier, prompt template version, few-shot set
-  version, schema version, decoding and retry settings) is \emph{frozen}
-  and recorded; frozen versions are never edited, and a later change
-  creates a new version that requires its own pre-specified run.
-\item
-  \textbf{One confirmatory pass.} The primary held-out evaluation is run
-  once per frozen configuration (with the planned repetitions,
-  Section\textasciitilde3.7). Held-out results are not used to revise
-  prompts or examples for that study. If a defect is found afterwards,
-  the fix and a re-run are reported as a deviation, not silently
-  replacing the first result.
-\item
-  \textbf{Training-data contamination.} Statements are authored for this
-  study and are not published before the evaluation. If the dataset is
-  later shared, models released afterwards might have seen it; this is a
-  stated limitation of any later re-use.
-\item
-  \textbf{Prompt-sensitivity.} Because SCHEDBench-type results suggest
-  that wording and ordering can change model behaviour~\cite{sharma2026schedbench}
-  (preprint, author-reported), the dataset includes
-  paraphrase families, and consistency across paraphrases is reported
-  (Section\textasciitilde3.9).
+\item instructor unavailable or preferred times;
+\item room unavailable times;
+\item group unavailable times;
+\item permitted times for an activity or a group;
+\item a weekly teaching-hour limit for an instructor;
+\item a change to the global daily hour limits for students or instructors;
+\item a lock on an existing assignment.
+\end{itemize}
+Each rule is either mandatory or preferred. Times are stored in whole or half hours. Structural requirements, such as complete assignment, no room, instructor or group overlaps, eligible instructors and suitable rooms, always apply, whichever way the rules were entered.
+
+\paragraph{Output contract.} Every interpretation is a JSON object with four parts: a \emph{decision}, a list of \emph{proposals}, a list of \emph{clarification codes} and a list of \emph{unsupported codes}. The decision is one of five values:
+\begin{itemize}
+\item \texttt{ready}: every part of the statement is represented by supported proposals;
+\item \texttt{clarify}: a day, time, person, threshold or meaning is missing or ambiguous, and a question must be asked instead of guessing;
+\item \texttt{unsupported}: no supported rule can represent the request faithfully;
+\item \texttt{conflict}: the request is understood, but its hard conditions cannot all hold;
+\item \texttt{mixed}: some parts are supported and others are unresolved or unsupported.
+\end{itemize}
+Clarification and unsupported codes are short fixed labels, for example \texttt{day\_required}, \texttt{undefined\_early} or \texttt{ambiguous\_instructor}. They identify the question, not its exact wording.
+
+\paragraph{Correctness rule.} A proposal is correct when its rule type, target entity, mandatory or preferred strength, day and times (or numeric value) are all equal to the expected proposal. Rule titles are free text and are not scored, and the order of proposals is ignored. A duplicate proposal counts as an extra prediction. A case is exactly correct only when the decision, the complete set of proposals and both code lists all match.
+
+\section{Development corpus}\label{dataset-construction}
+
+\paragraph{Releases.} Two releases of a synthetic corpus exist.
+\begin{itemize}
+\item Release \texttt{0.1.0-draft} (25 October 2026) contains 128 statements in 32 intent families, with 96 development and 32 reserved statements.
+\item Development bundle \texttt{0.2.0-draft} (1 November 2026) keeps the 96 development statements unchanged and adds 48 statements in 12 new families for a second fictional institution, a design school. The reserved statements were not read, moved or relabelled.
+\end{itemize}
+All interpretation results in this thesis use the 0.2.0 development bundle.
+
+\paragraph{Content.} The bundle has 144 statements in 36 families. Each family is one intent written in four language categories: English, formal Arabic, Egyptian Arabic and mixed Arabic/English, giving 36 statements per category. The first context (96 statements) is a fictional department with a Sunday--Thursday week. The second (48 statements) is a design school with a Saturday--Thursday week and a 12-hour regular teaching load with overtime allowed. Each context lists instructors with aliases, rooms, groups, activities, the named teaching periods and a fictional saved timetable for lock requests.
+
+The expected decisions are \texttt{ready} for 76 statements, \texttt{clarify} for 44, \texttt{unsupported} for 16 and \texttt{conflict} for 8. The statements cover:
+\begin{itemize}
+\item clear and compound requests;
+\item negation, including Egyptian Arabic forms;
+\item missing days or times;
+\item ambiguous and unknown names, for example two instructors called Nour, and a person absent from the context;
+\item undefined terms such as ``early'';
+\item hard contradictions;
+\item requests outside the supported rules;
+\item minute-precise times;
+\item conversion from sessions to teaching hours.
 \end{itemize}
 
-\hypertarget{llm-selection-and-equivalent-experimental-conditions}{%
-\section{LLM selection and equivalent experimental
-conditions}\label{llm-selection-and-equivalent-experimental-conditions}}
+\paragraph{Labels.} The statements and expected answers were written with the help of an AI assistant, following annotation guide~v2. The guide defines each decision, the supported proposal boundary and how ambiguity is to be resolved. Every item records its origin and has the status \texttt{draft\_unreviewed}. No human annotation, second annotator or adjudication took place, although the tools for them were built (gold-free review exports, immutable review records, Cohen's $\kappa$ comparison and adjudication forms). The expected answers are therefore one author's interpretation, and results against them are development figures.
 
-\textbf{Selection criteria (stated before any model is run).} (1)
-Documented support for schema-constrained (structured) output; (2)
-availability through an API under terms acceptable for the data used
-(OQ-18); (3) a stable, versioned model identifier; (4) listed price and
-rate limits compatible with the budget (OQ-13); (5) context size
-sufficient for the entity context; (6) vendor diversity. Candidate
-models are described in their vendor documentation~\cite{openai_gpt6_luna,google_gemini38_flash,anthropic_claude_docs}.
-Open-weight/local models may be added if privacy or cost requires.
+\paragraph{Reserved material is not a blind test.} Reserved statements are excluded from default tooling, and access requires a logged reason. However, their author has seen the labels, so they cannot serve as an independent held-out set. A fresh, independently written and annotated set would be needed for a confirmatory study. Families, not single statements, are the unit for splitting and for confidence intervals, because four translations of one intent are not independent observations.
 
-\textbf{Candidate selection remains open.} Earlier planning documents contain provisional model names; these are not treated here as verified availability, supported capabilities or approved purchases. Before experiments, official provider documentation must be checked and dated for exact model identifiers, structured-output support, prices, rate limits and data terms. Candidate selection must follow the stated criteria and an approved budget. No extraction benchmark has yet been run in this project. AI tools have assisted drafting and implementation; their use will be disclosed according to university policy, with the author responsible for checking claims and experimental records.
+\section{Interpretation methods compared}\label{baselines}
 
-\textbf{Equivalent conditions.}
+Both methods receive exactly the same input for each statement: the statement text, the context's entity records (identifier, kind, English name and code) and the calendar. Arabic aliases from the context are not supplied, so Arabic names must be matched to English records by the method itself.
+
+\paragraph{Rule-based parser.} JadwAI's built-in parser uses deterministic patterns for English, formal Arabic and Egyptian Arabic, and matches names across scripts by their consonant sounds. It was measured twice. After the first run, its clarification codes were aligned with guide~v2, three cases where it guessed instead of asking were changed, and missing negations were added (Section~\ref{evidence-baseline}). Because these changes were made after looking at development errors, its reported figures are optimistic for this corpus.
+
+\paragraph{Local language model.} The language-model method uses \texttt{qwen2.5:7b-instruct} (Qwen2.5-7B-Instruct, 4-bit quantised) served by Ollama on the same laptop, with no network access needed. The statement is sent through the same code path as the running application (\texttt{extract\_candidate} with the local provider). The prompt carries the same task instructions as the adapter for an external model. Decoding is constrained by a JSON schema, so the reply always has the contract's shape. Two settings of this schema matter:
 
 \begin{itemize}
-\tightlist
-\item
-  Same constraint vocabulary and schema (with each
-  provider\textquotesingle s schema-constraint mechanism;
-  provider-specific schema subsets, if required, are documented and
-  validated by the same backend validator).
-\item
-  Same statements, same institutional contexts, same minimal entity
-  context format, same task instruction text (provider-specific wrapper
-  changes only, logged).
-\item
-  Same number of repetitions per statement and model {[}TBD, e.g., 3--5;
-  chosen from the pilot variance{]}.
-\item
-  Decoding settings as equivalent as each API allows (e.g.,
-  lowest-variability setting available); where a setting cannot be
-  matched (for example reasoning effort or sampling controls differ),
-  the setting is recorded and the difference reported as a limitation.
-  {[}TBD after checking each API.{]}
-\item
-  Same retry policy (bounded, e.g., at most one repair attempt for
-  malformed output) and the same treatment of refusals and truncation
-  (counted as failures).
-\item
-  Model identifiers and versions pinned; run dates recorded; runs for
-  different models interleaved in time to reduce drift effects.
-\item
-  No fine-tuning (outside initial scope). Prompting factors (zero-shot
-  versus few-shot, or presence of a vocabulary glossary) are decided on
-  development data and fixed before the held-out run; they are not
-  varied on test data.
+\item \textbf{Field order.} The model generates fields in the order the schema lists them. An early run that asked for the decision first produced \texttt{unsupported} for almost every statement. The schema now lists proposals first, then clarifications and unsupported codes, and the decision last, so the decision is written after the model has stated what it found.
+\item \textbf{Code format.} Codes must be short lower-case identifiers of 3 to 60 letters, digits and underscores, starting with a letter. This prevents free-text explanations inside the code lists.
 \end{itemize}
 
-\hypertarget{baselines}{%
-\section{Baselines}\label{baselines}}
+On a small check of 8 statements, the reordering raised correct decisions from 1 to 5. These 8 statements are part of the development corpus, so the change was also tuned on development data. Decoding used temperature~0, seed~42 and an 8{,}192-token context window. Each statement had one attempt with a 600-second time limit; a failed or invalid reply counts as an error, not as a skipped case.
 
+\paragraph{Shared format adapter.} Before scoring, both methods' outputs pass through the same adapter. It removes empty optional fields and writes whole hours as integers (10 rather than 10.0), which the contract requires. It does not change half-hour values or any meaning.
+
+\paragraph{External model adapter.} An adapter for a commercial model (GPT-5.4 mini) was implemented and tested with recorded responses, but it was never called because no budget was approved. Therefore no commercial model is compared.
+
+\section{Scoring and metrics}\label{metrics}
+
+All outputs are scored by the project's offline scorer, which first validates each output against the contract and the context. An output that names an entity not in the context, or breaks the contract, counts as wrong. Missing outputs fail their case, and every case stays in the denominator. The following measures are reported overall and separately for each language category:
+
+\begin{itemize}
+\item \textbf{Exact output} (primary): the proportion of statements whose whole output matches the expected one.
+\item \textbf{Decision accuracy}: the proportion with the correct decision.
+\item \textbf{Proposal precision, recall and F1}: proposals matched one-to-one with expected proposals.
+\item \textbf{Field F1}: agreement on individual fields of matched proposals, as a looser diagnostic.
+\item \textbf{Clarification F1} and \textbf{unsupported-request F1}: agreement on the code lists (RQ2).
+\item \textbf{Latency}: wall-clock seconds per statement, reported as the median.
+\end{itemize}
+
+Confidence intervals are 95\% percentile bootstrap intervals with 1{,}000 replicates, resampling whole families (seed~42), so that the four translations of an intent stay together. With 36 families the intervals are wide, and the per-language figures, which rest on 36 statements each, are exploratory. No significance test between the two methods is used as a main result, because the labels are draft and the parser was adjusted on the same data.
+
+\section{The JAI assistant and its fine-tuning}\label{meth-jai}
+
+RQ4 was reframed as a comparison between a locally hosted base model and the same model after fine-tuning. The task is JAI's conversational role: explaining JadwAI, answering from the timetable facts supplied in the prompt, asking one focused question when a request is vague, declining off-topic requests, preparing at most one action, and replying in the user's language.
+
+\paragraph{Training data.} Examples are fictional conversations in English, formal Arabic and Egyptian Arabic, grouped into families (one intent with several wordings). Whole families are assigned either to training or to the held-out set, so that no wording of a held-out family is seen in training. The prompts are built by the same code that builds the live chat prompt, including the matching entries of a verified guide (Section~\ref{evidence-jai}). From round~3 on, the dataset builder refuses any example whose answer states a fact about JadwAI that is not in that example's guide entries. The examples were drafted with an AI assistant and approved in bulk by the project owner after reading a change list, not item by item.
+
+\paragraph{Training.} Each round trained a QLoRA adapter (rank~16) on Qwen2.5-7B-Instruct with the Unsloth library on a free T4 GPU (Google Colab or Kaggle), with the loss computed only on JAI's final answer. Each adapter was merged into Ollama's 4-bit weights. To stop the small weight changes being lost when the weights were quantised again, each tensor was re-quantised to a different format (4-bit blocks to 6-bit, 6-bit to 5-bit). A separate script compared the merged weights with the base and the adapter, to check how much of the trained change was present in every trained matrix. Three rounds were trained (Table~\ref{tab:jai-rounds}): v1 on the original 210 examples, v2 on the same answers with the guide added to the prompts and an extra epoch, and v3 on 243 examples whose answers were rewritten to follow the guide. Round~4 data (317 training and 85 held-out rows) was prepared from the failures found in live use but not trained in time.
+
+\paragraph{Evaluation.} All candidates answered the same held-out cases with the production prompt, at temperature~0 and seed~42, on the same laptop. The cases were:
+\begin{itemize}
+\item 16 conversation cases and 5 action-choice cases from held-out families;
+\item for v1 and v3, three wordings of a new question that should be answered with ``not sure''.
+\end{itemize}
+Three kinds of measurement were used:
 \begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\tightlist
-\item
-  \textbf{Manual-entry baseline (human, RQ3):} the structured forms of
-  FR-010 produce the same constraint objects as the AI route; the same
-  scheduling engine is used downstream.
-\item
-  \textbf{Rule-based extraction baseline (optional, RQ1):} a simple
-  keyword/pattern parser for the vocabulary, to show what a non-LLM
-  approach achieves on the same data. {[}TBD: include if time
-  permits.{]}
-\item
-  \textbf{No-review versus post-review:} the raw LLM output is itself a
-  reference point for the post-review result
-  (Section\textasciitilde3.9.4).
+\item \textbf{Automatic checks}: whether the reply is valid, whether it proposes an action it should not, whether it is in the user's language, whether it is at most 80 words, and whether the action chosen in the action cases is correct. These checks do not judge whether an answer is true.
+\item \textbf{Latency}: mean seconds per answer.
+\item \textbf{Blind side-by-side rating} of v1 and v3 on the 19 conversation answers. The two answers to each case were shown in random order without model names, and each was scored from 1 to 5 on four criteria: correct, logical, helpful and natural, giving at most 20 per case. The key was kept in a separate file. The rater was the project owner, who had read a short summary of some replies beforehand, so the rating is neither independent nor fully blind.
 \end{enumerate}
+Finally, the preferred candidate (v3) was used in the running application with questions taken from its weakest cases, to see whether the held-out results held in real multi-turn use.
 
-\hypertarget{metrics}{%
-\section{Metrics}\label{metrics}}
+\section{Scheduling and validation evaluation}\label{scheduling-validation-and-system-behaviour-evaluation}
 
-All extraction measures will be reported overall and per language category with item counts. Small per-category estimates and intervals will be labelled exploratory. Entity-resolution evaluation includes Arabic and transliterated mentions. Scheduling checks include instructor eligibility, continuity across weekly occurrences, locks, and configured workload limits measured in elapsed teaching hours. Independent engineering checks are implemented; extraction and participant-study measures remain planned rather than measured research results.
-
-\hypertarget{extraction-accuracy-primary-raw-output-held-out-set}{%
-\subsection{Extraction accuracy (primary: raw output, held-out
-set)}\label{extraction-accuracy-primary-raw-output-held-out-set}}
-
+\paragraph{Instances.} Three kinds of data were used:
 \begin{itemize}
-\tightlist
-\item
-  \textbf{Exact semantic match (statement level):} proportion of
-  statements where the predicted canonical constraint set equals the
-  gold set (Section\textasciitilde3.3). \emph{Pre-specified primary
-  metric.}
-\item
-  \textbf{Constraint-level precision, recall, F1:} a predicted
-  constraint counts as true positive if semantically equal to a gold
-  constraint (one-to-one matching); micro-averaged over the held-out
-  set, with per-type breakdown.
-\item
-  \textbf{Field-level accuracies:} type; severity (hard/soft);
-  entity-resolution accuracy (correct identifier among resolved
-  mentions); parameter accuracy (days, intervals, thresholds, polarity);
-  named-period resolution.
-\item
-  \textbf{Negation and polarity accuracy} on the negated subset.
-\item
-  \textbf{Paraphrase consistency:} for each family, the proportion of
-  paraphrases yielding the same canonical set as the
-  family\textquotesingle s base item.
-\item
-  \textbf{Run-to-run consistency:} across repetitions, the proportion of
-  statements with identical outputs, and the spread of the primary
-  metric.
+\item small hand-built instances, each designed to exercise one rule;
+\item a demonstration department workspace of 448 weekly sessions, 93 groups, 123 instructors and 65 rooms, derived from real course structures with invented names;
+\item the Winter 2026 university workbook (2{,}711 weekly sessions), entered through the data template.
+\end{itemize}
+The university data needed documented adjustments before a timetable could exist, and is therefore used to test the mechanism of generating in parts, not to produce a real university timetable.
+
+\paragraph{Settings and measures.} All runs used one laptop (Intel Core i5-1038NG7, 16\,GB memory, CPU only), CP-SAT with eight search workers and seed~42. The measures recorded were:
+\begin{itemize}
+\item whether every session was placed;
+\item the hard violations found by the independent validator (zero is required for publication);
+\item room, instructor and group overlaps;
+\item the solver outcome (optimal, feasible, infeasible or unknown);
+\item wall-clock time.
+\end{itemize}
+Because parallel search is not deterministic, a different valid timetable can result from the same inputs.
+
+\paragraph{Testing the validator and the gates.} The following checks were used:
+\begin{itemize}
+\item \textbf{Seeded violations.} Valid timetables were changed to break exactly one rule, and the validator had to report that rule and the sessions it affects.
+\item \textbf{Comparison with the solver model.} Given timetables were checked against the solver model by fixing every assignment variable with an equality constraint (not a hint) and solving for feasibility.
+\item \textbf{Gate tests.} Automated tests check that an unapproved proposal never reaches the solver input, that an unsupported request creates no rule, that a short time limit on a feasible instance never reports \emph{infeasible}, and that a timetable failing validation cannot be published.
 \end{itemize}
 
-\hypertarget{entity-handling}{%
-\subsection{Entity handling}\label{entity-handling}}
+\paragraph{Repair diagnosis.} Deliberately impossible inputs were created, such as locked clashes, an instructor unavailable all week, or a daily limit below the teaching load. The diagnosis had to name a minimal set of changes, and a repaired timetable had to pass validation against everything else (Section~\ref{evidence-repair}).
+
+\paragraph{Automated suites.} Backend, frontend and evaluation-harness test suites were run before each reported measurement. Every fault found during evaluation received a regression test.
+
+\section{AI-assisted versus manual entry (RQ3)}\label{meth-rq3}
+
+The proposal planned a within-subject, counterbalanced pilot. Administrators would enter equivalent task lists once with forms and once with typed statements and review. The measures would be completion time, number of corrections, accuracy of the final approved rules against the expected rules, and whether the participant could explain what an approved rule allows. The recording features needed for this exist in the prototype. The study was not run, because no participants or ethics approval were available in the project period. RQ3 is therefore not answered and is listed as future work. No claim about reduced effort is made.
+
+\section{Reproducibility records}\label{reproducibility-records}
+
+Each reported measurement is stored in the repository with the script that produced it, its log and the code commit it ran on (folders under \texttt{thesis/evidence/}, named by date). For the local-model run, every reply is appended to a predictions file as soon as it arrives, together with its latency and token counts. A stopped run therefore continues from the last saved statement. A run note records the commit, the Ollama version, the machine and each restart, and confirms that the interpretation and evaluation code did not change between restarts. The corpus manifest stores hashes of the data, guide, contract and scorer, so the scores can be recomputed from the saved predictions. Fine-tuning runs keep their exported datasets with hashes, the training notebook, the merge check output, every candidate's answers and the rating sheet with its separate key (\texttt{finetuning/}).
+
+\section{Ethics and privacy}\label{ethics-privacy-and-consent}
 
 \begin{itemize}
-\tightlist
-\item
-  \textbf{Invented-entity rate:} raw outputs containing an identifier or
-  mention treated as resolved that is not in the supplied context (per
-  100 statements). Post-validation this should be zero by design
-  (FR-016); the raw rate is still reported.
-\item
-  \textbf{Ambiguity handling:} on items with ambiguous entities, whether
-  the output marks ambiguity with the correct candidates.
+\item All statements, contexts and training conversations are fictional. The demonstration workspace uses invented names.
+\item The language model runs on the same machine as the application. No statement, timetable or personal data was sent to an external AI service during the evaluation.
+\item No human participants took part, so no participant data was collected.
+\item AI tools were used to draft the corpus, the training examples and parts of the implementation. This is stated wherever such material is evaluated, and the author is responsible for checking the claims and the records.
 \end{itemize}
 
-\hypertarget{clarification-and-unsupported-requests}{%
-\subsection{Clarification and unsupported
-requests}\label{clarification-and-unsupported-requests}}
+\section{Threats to validity}\label{threats-to-validity}
 
+\paragraph{Construct validity.} The expected answers encode one interpretation and were not reviewed by a second person. Some statements may have more than one reasonable reading. Exact output is a strict measure, so field F1 is reported alongside it. The automatic checks for JAI measure form (language, length, unwanted actions), not truth, and the human rating had a single rater who was not independent.
+
+\paragraph{Internal validity.}
 \begin{itemize}
-\tightlist
-\item
-  \textbf{Clarification trigger recall and precision:} on gold items
-  needing clarification (missing value, ambiguous entity, undefined
-  term, unclear severity), whether the system raised a clarification of
-  the right kind; unnecessary clarifications on clear items.
-\item
-  \textbf{Question usefulness:} rated by annotators on a simple rubric
-  (specific to the missing field; answerable; not leading) {[}TBD
-  scale{]}.
-\item
-  \textbf{Unsupported handling:} proportion of unsupported items flagged
-  as unsupported; \textbf{false activation} --- unsupported content that
-  appears as an approved-looking constraint (should be 0 after the
-  system\textquotesingle s gate, and is reported raw).
-\item
-  \textbf{Contradiction detection:} proportion of gold-contradictory
-  items for which the contradiction is reported.
-\item
-  \textbf{Guessing rate:} items where the output supplies a value that
-  the statement and context do not provide.
+\item Both interpretation methods were adjusted after looking at development errors: the parser's codes and negations, and the model's schema order. Their scores are therefore optimistic.
+\item The same author wrote the corpus, the parser, the prompts and the scorer, and also built the solver and the validator. Shared misunderstandings are possible. Seeded faults and the comparison with the solver model reduce this risk but do not remove it.
+\item The AI assistant that helped draft the corpus and training data is itself a language model, and its style may favour models of a similar kind.
 \end{itemize}
 
-\hypertarget{raw-versus-post-review-rq1rq3}{%
-\subsection{Raw versus post-review
-(RQ1/RQ3)}\label{raw-versus-post-review-rq1rq3}}
-
+\paragraph{External validity.}
 \begin{itemize}
-\tightlist
-\item
-  \textbf{Raw quality:} metrics above on the model output before human
-  edits.
-\item
-  \textbf{Post-review quality:} the same metrics on the approved
-  constraint set after review (in the human pilot and, for an upper
-  bound, in a researcher-simulated review).
-\item
-  \textbf{Correction effort:} number of fields changed and constraints
-  added/\allowbreak removed/\allowbreak rejected per statement (field-level diff between raw and
-  approved); reviewer decision counts; review time.
-\item
-  \textbf{Residual error after review:} gold versus approved set, to
-  show errors that review failed to catch.
+\item The statements are synthetic and may be easier or harder than real administrators' wording.
+\item Egyptian Arabic was written by the author and does not cover regional variation.
+\item There are two fictional contexts, one machine, one seed and temperature~0.
+\item Results concern one 7-billion-parameter model and may not transfer to other models or later versions.
 \end{itemize}
 
-\hypertarget{operational-metrics-rq4}{%
-\subsection{Operational metrics (RQ4)}\label{operational-metrics-rq4}}
+\paragraph{Conclusion validity.} Only 36 families and 16--19 assistant cases were available, so the intervals are wide and small differences between methods or rounds should not be over-read.
 
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Latency} per extraction (request to validated proposal),
-  reported as median and upper percentiles, noting network and provider
-  load effects.
-\item
-  \textbf{Tokens and cost:} input/output tokens and cost computed from
-  the pricing in force on the run date, stored with the source and date.
-  \textbf{Cost per successful extraction} = total cost divided by the
-  number of statements with an exact semantic match (raw), reported
-  alongside cost per statement.
-\item
-  \textbf{Reliability:} rates of refusals, malformed or truncated
-  output, rate-limit errors, retries, and failures.
-\end{itemize}
+\section{Summary of limitations}\label{feasibility-risks-and-limitations}
 
-\hypertarget{395a-secondary-downstream-equivalence-on-small-fixtures}{%
-\subsection{Secondary: downstream equivalence on small
-fixtures}\label{395a-secondary-downstream-equivalence-on-small-fixtures}}
-
-For a small subset of items with fixture term data, the extracted
-constraint set and the gold set can each be compiled into the solver
-model and compared by whether they accept the same set of candidate
-timetables (a set of fixed timetables, each checked by fixing every
-assignment variable, as in Section\textasciitilde3.11). This is reported
-separately as a secondary measure in the spirit of solution-based
-judging used in constraint-modelling benchmarks~\cite{michailidis2025cpbench}. It can only show equivalence on the tested timetables, not in
-general, and is never used in place of the field-level scoring above.
-
-\hypertarget{scheduling-and-validation-metrics}{%
-\subsection{Scheduling and validation
-metrics}\label{scheduling-and-validation-metrics}}
-
-Defined in Section\textasciitilde3.11.
-
-\hypertarget{human-in-the-loop-comparison-rq3--proposed-pilot}{%
-\section{Human-in-the-loop comparison (RQ3) --- proposed
-pilot}\label{human-in-the-loop-comparison-rq3--proposed-pilot}}
-
-This study is conditional on participant access, ethics requirements and feasibility. If conducted, participants may use their preferred supported language category; the category will be recorded per task. No participant count or approval is assumed.
-
-\textbf{Design.} Within-subject, counterbalanced crossover: each
-participant completes one task list with manual forms and an equivalent
-task list with AI-assisted entry and review; order and task-list
-assignment are counterbalanced. Task lists contain the same number of
-requirements and the same mix of categories. They are drawn from a
-separate task pool that is disjoint from the held-out set and not used
-for model development, so the pilot does not expose held-out items, and
-they are matched by pilot difficulty ratings.
-{[}TBD: number of requirements per list.{]}
-
-\textbf{Participants.} Preferably people with timetabling or
-administrative scheduling experience (staff, teaching assistants),
-otherwise students as a stated proxy. \textbf{No participant number is
-assumed.} The number will be chosen with the supervisor on feasibility
-grounds and reported as a pilot if small; a power calculation is not
-meaningful without effect-size information, so none is claimed. {[}TBD:
-n; recruitment channel.{]}
-
-\textbf{Procedure.} Briefing and consent; short training on both
-interfaces; timed tasks; post-task questionnaires; brief interview. The
-experiment mode (FR-050) records start/end times, edits and corrections;
-no behavioural data is captured without a recorded consent. Instruments
-for perceived workload and usability are standard questionnaires to be
-selected {[}TBD, e.g., a workload scale and a usability scale{]}.
-
-\textbf{Educational and administrative task context.} Tasks will include protecting access to a required lecture and laboratory, entering staff availability, requesting suitable laboratory facilities, and expressing a preference about gaps or late teaching. Cases will use the supported group-based course scope; exam-spacing and individual degree-completion tasks are excluded unless their extensions are approved. After each task, the participant will explain what the approved rule permits and forbids. Understanding will be scored against a predefined rubric, and interviews will ask whether the displayed interpretation and conflict feedback are actionable. This complements speed and accuracy measures; it does not measure student learning outcomes.
-
-\textbf{Outcomes.} Task completion time; number of corrections (AI
-condition) and form-edit counts (manual condition); accuracy of the
-final approved constraint set against gold in both conditions (so that
-speed is not credited if correctness falls); self-reported workload and
-preference; correctness of the explanation of the approved rule; qualitative comments about clarity and actionable feedback.
-
-\textbf{Analysis.} Paired comparison per participant (median
-differences, Wilcoxon signed-rank or equivalent) with effect sizes and
-confidence intervals, reported descriptively when n is small; no claim
-of broad usability improvement from a pilot. Order and learning effects
-are examined by comparing orders.
-
-\textbf{Fairness.} Both conditions use the same scheduling engine,
-vocabulary and downstream pipeline, so differences arise from how
-constraints are entered.
-
-\hypertarget{scheduling-validation-and-system-behaviour-evaluation}{%
-\section{Scheduling, validation and system-behaviour
-evaluation}\label{scheduling-validation-and-system-behaviour-evaluation}}
-
-\textbf{Instances.} (a) Small hand-built instances, each designed to
-exercise one constraint type; (b) a synthetic department generator with
-documented parameters (activities, rooms, instructors, groups, grid) and
-recorded seeds; (c) optionally, a small benchmark-derived instance with
-\emph{explicitly mapped semantics}, noting that the ITC 2019 model
-contains features (weeks, student sectioning, many distribution types)
-outside the core scope~\cite{muller2025itc}. {[}TBD: scale.{]} Tested
-scale is reported with every result.
-
-\textbf{Measures.} Assignment completeness; hard violations found by the
-independent validator (expected zero for published schedules); soft
-penalties computed by the validator (and compared with the solver
-objective as an integrity check); solver outcome distribution
-(optimal/feasible/infeasible/unknown/model-invalid); runtime and time
-limits; objective definition; seeds and worker count. Runs are repeated
-across seeds {[}TBD count{]} because multi-worker search need not be
-deterministic (assumption A-09); variation is reported.
-
-\textbf{Not attributing solver differences to AI.} When the manual and
-AI-assisted conditions yield different approved constraint sets,
-schedule differences are reported as \emph{consequences of different
-inputs}, and totals are compared only under a common objective
-definition (FR-036).
-
-\textbf{Verifying the validator.} (1) \emph{Seeded-violation (mutation)
-tests:} for each supported rule, valid timetables are mutated to
-introduce exactly one violation of that rule; the validator must report
-each, with the correct affected activities (target 100 \% by
-construction; says nothing about unseeded cases). (2) \emph{Differential
-testing:} randomly perturbed timetables are checked by both the
-validator and the solver model. For the solver model, every assignment
-variable is fixed to the timetable\textquotesingle s values by an
-equality constraint (not a solver hint, which only guides the search and
-could let the solver repair an invalid timetable) and the model is
-solved for feasibility: a feasible result means the solver model accepts
-the timetable, INFEASIBLE means it rejects it, and UNKNOWN is recorded
-as inconclusive and is never counted as agreement. Disagreements between
-the two are investigated. This reduces, but does not eliminate, the risk
-that the same misconception is built into both
-(Section\textasciitilde3.15). (3) \emph{Coverage tests:} inputs with
-missing group or instructor data must produce coverage statements, not
-blanket validity.
-
-\textbf{System-behaviour tests (acceptance).} Scripted tests of SRS
-acceptance criteria AC-01--AC-21, for example: an unapproved proposal
-never appears in a snapshot; an unsupported request creates no
-constraint; a tiny time limit on a feasible instance yields UNKNOWN or
-FEASIBLE and never INFEASIBLE; an edit that creates a violation blocks
-publication; stale scenarios are flagged; exports carry scenario and
-input version. The additional criteria AC-16--AC-21 will be tested through paired concurrent saves and an input change during publication; interruption and reconnect cases; duplicate requests and exhausted provider retries; partial results and completion/cancellation races; validator failures and missing coverage; and expired sessions or revoked roles. Each case will specify the expected state, preserved records, user-visible explanation and permitted recovery action. Evidence will include whether publication remained blocked when required and whether restricted data stayed inaccessible. Pass/fail and any unresolved failures will be reported against each criterion; these checks do not establish production reliability or improved learning outcomes. No statistics are used.
-
-\hypertarget{analysis-methods-and-uncertainty}{%
-\section{Analysis methods and
-uncertainty}\label{analysis-methods-and-uncertainty}}
-
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Pre-specification.} The primary metric (raw exact semantic
-  match on the held-out set), the model comparison procedure and the
-  exclusion rules are recorded before the held-out run.
-\item
-  \textbf{Intervals.} Proportions are reported with Wilson 95 \%
-  intervals; clustered bootstrap over statement families for
-  micro-averaged scores and F1.
-\item
-  \textbf{Model comparison.} Models are compared on the same statements:
-  paired comparison of per-statement correctness using
-  McNemar\textquotesingle s exact test (or a family-clustered
-  alternative), with effect sizes and Holm correction across the number
-  of pairwise comparisons; with three models there are three pairs.
-  Statistical significance is secondary to interval width and practical
-  difference.
-\item
-  \textbf{Repetitions.} Each model is run {[}TBD{]} times per statement.
-  Reported: mean and range of the primary metric across runs,
-  per-statement stability; the primary result is the mean across runs,
-  and a majority-vote result is reported separately only if a deployment
-  would use it.
-\item
-  \textbf{Latency and cost.} Descriptive (median, percentiles), with the
-  caveat that latency depends on provider load.
-\item
-  \textbf{Category analyses} are exploratory unless sample sizes justify
-  them.
-\item
-  \textbf{Reporting deviations.} Any deviation from the plan is listed
-  with a reason.
-\item
-  \textbf{Model choice rule.} Following the project specification, the
-  least expensive model that meets agreed accuracy and clarification
-  targets on held-out data is preferred. The targets are \textbf{not yet
-  set} (OQ-10) and will be proposed after the pilot and agreed before
-  the held-out run.
-\end{itemize}
-
-\hypertarget{reproducibility-records}{%
-\section{Reproducibility records}\label{reproducibility-records}}
-
-The complete research protocol requires the following record for every extraction, solver run and experiment; this is a target specification rather than a claim that provider instrumentation already exists. Required fields are
-(FR-023, FR-024, FR-025; NFR-016): dataset and split version (with the
-development-set change log and the held-out manifest hash); annotation
-guide version; few-shot set version; institutional context version; prompt template and schema
-versions; provider and model identifier; request date/time; decoding
-settings; context sent; raw response; retries and errors; token counts;
-latency; cost with its pricing source and date; input snapshot version
-and hash; solver version, parameters, seed and time limit; runtime and
-outcome; validator version. Experiment configuration files are
-version-controlled; analysis scripts are archived with the results.
-Because provider models may change or be withdrawn, raw outputs are
-archived so that scoring can be re-run even if the model cannot.
-
-\hypertarget{ethics-privacy-and-consent}{%
-\section{Ethics, privacy and consent}\label{ethics-privacy-and-consent}}
-
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Data minimisation.} Only statement text and the minimal entity
-  context (names, aliases, identifiers, named periods) are sent to an
-  LLM provider; no student-level personal data is sent (FR-014,
-  NFR-006). Synthetic or anonymised data are used wherever possible
-  (A-10).
-\item
-  \textbf{Provider terms.} The data-use and retention terms of each API
-  provider are reviewed before use {[}TBD, OQ-18{]}; settings that
-  exclude data from model training are used where offered.
-\item
-  \textbf{Human participants (if the pilot proceeds).} Institutional
-  ethics or research-approval requirements are checked first {[}TBD,
-  OQ-12{]}; participation is voluntary with informed consent covering
-  purpose, data collected, retention, and the right to withdraw; data
-  are pseudonymised; the pilot involves no sensitive personal data;
-  results are reported in aggregate.
-\item
-  \textbf{Real university data.} Used only with written permission from
-  the data owner and in compliance with applicable data-protection law
-  and university policy {[}TBD, OQ-16, OQ-17{]}; otherwise not used.
-\item
-  \textbf{Dataset sharing.} Statements derived from real staff
-  communications are shared only if anonymised and permitted.
-\item
-  \textbf{Honest reporting.} Negative or null findings are reported;
-  claims are limited to the sample and settings.
-\end{itemize}
-
-\hypertarget{threats-to-validity}{%
-\section{Threats to validity}\label{threats-to-validity}}
-
-\textbf{Construct validity.} Gold annotations encode one interpretation;
-ambiguous statements may have several reasonable readings (mitigated by
-the guide, a second annotator on a subset, and by treating "needs
-clarification" as a gold outcome). Exact semantic match is strict;
-looser metrics are reported alongside. \textbf{Internal validity.}
-Prompt tuning on development data can overfit; leakage between splits
-via paraphrases (mitigated by family-level splits and frozen prompts);
-provider updates changing model behaviour during the study (pinned
-identifiers, interleaved runs, logged dates); non-equivalent decoding
-controls across providers; researcher bias because the author builds the
-system, writes the statements and annotates them (second annotator,
-pre-specification, held-out discipline). \textbf{External validity.}
-Synthetic statements and fictional departments may be easier or
-different from real administrators\textquotesingle{} language;
-Four language categories with potentially unequal sample sizes; Egyptian Arabic dialect variation not systematically covered; author-written Arabic may not represent administrative usage; one department and one term; closed vocabulary; results
-may not transfer to other institutions, languages or models released
-later; pilot participants may not represent schedulers.
-\textbf{Conclusion validity.} Small sample sizes, repeated testing of
-several models, and dependence among paraphrases (handled by clustered
-analysis and conservative reporting). \textbf{Validator independence.}
-One person implementing both solver encoding and validator can build the
-same misunderstanding into both; mitigations are the written semantics,
-seeded tests, differential tests and, if feasible, review by another
-person. Independence is relative to the solver encoding, not absolute.
-\textbf{Conflict of interest.} The drafting assistant is a Claude model
-and Claude is a candidate; mitigated by pre-specified selection rules
-and by reporting all candidates\textquotesingle{} results.
-
-\hypertarget{feasibility-risks-and-limitations}{%
-\section{Feasibility risks and
-limitations}\label{feasibility-risks-and-limitations}}
-
-\begin{longtable}[]{@{}p{\dimexpr(\linewidth-6\tabcolsep)/3\relax}p{\dimexpr(\linewidth-6\tabcolsep)/3\relax}p{\dimexpr(\linewidth-6\tabcolsep)/3\relax}@{}}
-\toprule\noalign{}
-Risk & Effect & Mitigation \\
-\midrule\noalign{}
-\endhead
-\bottomrule\noalign{}
-\endlastfoot
-Annotation effort exceeds capacity & Smaller dataset, wider intervals &
-Choose Option A; prioritise held-out quality; report intervals \\
-No second annotator & No agreement estimate & State limitation; use
-guide-based self-consistency re-annotation after a delay as a weak
-substitute, labelled as such \\
-Participants unavailable & No RQ3 evidence & Report RQ3 as not answered
-or as a very small pilot \\
-API cost or model withdrawal & Fewer models or runs & Budget (OQ-13);
-archive outputs; adapter allows substitution \\
-Solver scale unknown & Limited scheduling claims & Early spike; report
-tested scale \\
-Multilingual annotation and instructor assignment & Delay & Agree category coverage and test instructor variables early; extensions
-only after core evaluation \\
-Real data unavailable & Less realistic statements & Synthetic data;
-disclose \\
-\end{longtable}
-
-\textbf{Limitations stated in advance.} Results will concern a closed
-vocabulary, English/formal Arabic/Egyptian Arabic/mixed-language statements, synthetic one-department-sized instances, institution-specific workload values and
-specific model versions on specific dates. Validity of a schedule is
-relative to the supported rules and supplied data. Extraction accuracy
-on the benchmark does not imply correct schedules in deployment, and
-valid schedules do not imply correct extraction.
+The evaluation is a development-level study: it uses draft labels, synthetic data, a closed set of supported rules and a single locally hosted model family. It shows how the methods behave on this material and whether the surrounding system prevents unreviewed or invalid output from being used. It does not establish accuracy on unseen real statements, a ranking of commercial models, or any reduction in administrative effort.

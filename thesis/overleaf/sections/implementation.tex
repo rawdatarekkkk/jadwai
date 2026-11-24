@@ -1,7 +1,6 @@
 \chapter{Implementation}\label{chap:implementation}
 
 % NOTE (24 Nov 2026): Rewritten from the 25 October status log into a description of the system as built. Drafted with AI assistance at the owner's request; reword in your own words before submission. A drawn architecture diagram can replace Table 5.1 if wanted (the template has no TikZ; an image in figures/ works).
-% NOTE (24 Nov 2026): The v4 row of the fine-tuning table is waiting for the round-4 evaluation (finetuning/runs/eval-round4.log).
 
 This chapter describes JadwAI as implemented at the end of the project. It covers the architecture, the data the administrator enters, how rules are entered and approved, the timetable solver, the independent validator, examinations, publication, and the JAI assistant with its locally hosted model. Each requirement's implementation status is listed in Appendix~\ref{app:requirements}, and screenshots of the interface are in Appendix~\ref{app:screenshots}. Measurements are reported in Chapter~\ref{evidence}.
 
@@ -175,7 +174,7 @@ Round & Training data & Rows & Epochs & Loss & Outcome \\
 v1 & Original examples, no guide in the prompts & 210 & 2 & 1.62 & Better behaviour, still invents facts \\
 v2 & Same answers, guide added to the prompts & 210 & 3 & 1.11 & Worse; not used \\
 v3 & Answers rewritten to follow the guide; ``not sure'' examples & 243 & 2 & 1.18 & Preferred in blind rating \\
-v4 & v3 plus off-topic declines, topic changes, Arabic room terms, examination publishing & 317 & 2 & 1.07 & Evaluation in progress \\
+v4 & v3 plus off-topic declines, topic changes, Arabic room terms, examination publishing & 317 & 2 & 1.07 & Shorter replies; examination publishing still missed \\
 \bottomrule
 \end{tabular}
 \caption{JAI fine-tuning rounds (training rows; held-out rows were 69, 69, 72 and 85).}

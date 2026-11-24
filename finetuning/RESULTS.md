@@ -165,6 +165,40 @@ Biggest v3 gains are Arabic (privacy 8→16, search time 12→18, no early class
 4/20 for both models (poem request, shared lectures, fed-up user in Arabic, crowded draft, special rooms
 in Arabic): these are the targets for the next round.
 
+## Fourth training round (2026-11-24): live-test failures, 2 epochs — small gains, exam publishing still wrong
+
+`exports/reviewed-v4` (317 training rows, 85 held-out), 2 epochs on a Kaggle T4, lr 2e-4, rank 16, final loss
+1.07. Merged as `jai-candidate-v4`; `check_merge.py`: 94–97% kept (minimum tensor 0.84). Evaluated on this
+machine with the production prompt and temperature 0 (`runs/eval-round4.sh`, log `runs/eval-round4.log`).
+The round-4 guide change added keywords only, so the old 19 prompts are identical to v3's 23 November run.
+
+| Automatic checks | v3 | v4 |
+|---|---|---|
+| 16 conversation cases: valid / no wrong action | 16 / 16 | 16 / 16 |
+| 16 conversation cases: user's language / ≤ 80 words | 14 / 14 | 14 / **16** |
+| 19 cases incl. "not sure": user's language / ≤ 80 words | 17 / 17 | 17 / **19** |
+| Action choice (5 cases) | 4 | **5** |
+| 13 new round-4 held-out cases: right action | **10** | 9 |
+| 13 new cases: user's language / ≤ 80 words | 9 / 12 | **10 / 13** |
+| 13 new cases: internal API detail in the reply | **1** | 2 |
+| Mean seconds per conversation answer (19 / 13) | 354 / 304 | **313 / 280** |
+
+The 13 new cases are the four round-4 test families (never trained): off-topic story (3), switching from a
+rule to the portal (3), adding a GPU lab (4), formal "publish the exam schedule" (3).
+
+Read by hand:
+- Fixed in v4: the exam-timetable publish choice in action picking (v3 chose the teaching timetable);
+  replies always stay under 80 words; GPU-lab questions in English are answered with the right steps
+  (add a room with the lab type and GPU feature) where v3 asked which room it replaces.
+- Off-topic stories are declined by both in English. In Arabic v3 drifted into a long, looping timetable
+  summary (136 words); v4 stays short but mixes an English phrase into the Arabic.
+- Still wrong in both: "publish the exam schedule" in conversation is never turned into the publish
+  action (0/3 each; v4 asks "Shall I publish…?" in English but without the operation). The Arabic
+  GPU-lab wordings are answered in English, and v4 quotes the internal `PUT /api/records/...` path in both.
+
+Blind side-by-side sheet for a human rater (32 cases: the 19 old ones and the 13 new ones, key kept
+separately): `runs/rating-sheet-v3-v4-20261124.md` / `.key.json`. Not rated yet.
+
 ## Recommendation
 
 Not ready to replace the production model for Arabic users. For an English demo, `jai-candidate` with the
@@ -185,5 +219,5 @@ Next training round, most valuable first:
    declines, topic switches with history, Arabic room/lab explanations, exam-timetable publish actions;
    4 held-out test families, one per failure). `switch-complaint-to-import` was dropped at review.
    Bulk-approved by the owner after reading `data/CHANGES-round4.md` (not row by row) and **exported as
-   `exports/reviewed-v4`** (317 train / 85 test rows, 95 / 28 families, hashes verified). Not trained yet.
+   `exports/reviewed-v4`** (317 train / 85 test rows, 95 / 28 families, hashes verified). Trained as v4 (above).
 4. Back to 2 epochs unless there is much more data; compare with the same evaluation and the blind rating.

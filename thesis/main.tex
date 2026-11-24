@@ -755,7 +755,6 @@ The evaluation is a development-level study: it uses draft labels, synthetic dat
 \chapter{Implementation}\label{chap:implementation}
 
 % NOTE (24 Nov 2026): Rewritten from the 25 October status log into a description of the system as built. Drafted with AI assistance at the owner's request; reword in your own words before submission. A drawn architecture diagram can replace Table 5.1 if wanted (the template has no TikZ; an image in figures/ works).
-% NOTE (24 Nov 2026): The v4 row of the fine-tuning table is waiting for the round-4 evaluation (finetuning/runs/eval-round4.log).
 
 This chapter describes JadwAI as implemented at the end of the project. It covers the architecture, the data the administrator enters, how rules are entered and approved, the timetable solver, the independent validator, examinations, publication, and the JAI assistant with its locally hosted model. Each requirement's implementation status is listed in Appendix~\ref{app:requirements}, and screenshots of the interface are in Appendix~\ref{app:screenshots}. Measurements are reported in Chapter~\ref{evidence}.
 
@@ -929,7 +928,7 @@ Round & Training data & Rows & Epochs & Loss & Outcome \\
 v1 & Original examples, no guide in the prompts & 210 & 2 & 1.62 & Better behaviour, still invents facts \\
 v2 & Same answers, guide added to the prompts & 210 & 3 & 1.11 & Worse; not used \\
 v3 & Answers rewritten to follow the guide; ``not sure'' examples & 243 & 2 & 1.18 & Preferred in blind rating \\
-v4 & v3 plus off-topic declines, topic changes, Arabic room terms, examination publishing & 317 & 2 & 1.07 & Evaluation in progress \\
+v4 & v3 plus off-topic declines, topic changes, Arabic room terms, examination publishing & 317 & 2 & 1.07 & Shorter replies; examination publishing still missed \\
 \bottomrule
 \end{tabular}
 \caption{JAI fine-tuning rounds (training rows; held-out rows were 69, 69, 72 and 85).}
@@ -1088,19 +1087,19 @@ The statistics report for the published draft was recomputed independently from 
 \begin{table}[h]
 \centering
 \small
-\begin{tabular}{@{}lrrrr@{}}
+\begin{tabular}{@{}lrrrrr@{}}
 \toprule
-16 held-out conversation cases & Base & v1 & v2 & v3 \\
+16 held-out conversation cases & Base & v1 & v2 & v3 & v4 \\
 \midrule
-Valid reply & 16 & 16 & 16 & 16 \\
-No wrongly proposed action & 15 & 16 & 15 & 16 \\
-Reply in the user's language & 16 & 13 & 12 & 14 \\
-At most 80 words & 14 & 16 & 12 & 14 \\
+Valid reply & 16 & 16 & 16 & 16 & 16 \\
+No wrongly proposed action & 15 & 16 & 15 & 16 & 16 \\
+Reply in the user's language & 16 & 13 & 12 & 14 & 14 \\
+At most 80 words & 14 & 16 & 12 & 14 & 16 \\
 \midrule
-Action choice (5 separate cases) & 3 & 5 & 5 & 4 \\
+Action choice (5 separate cases) & 3 & 5 & 5 & 4 & 5 \\
 \bottomrule
 \end{tabular}
-\caption{Automatic checks. Base, v1 and v2 were run on 22 November; v3 on 23 November with the extended guide, where v1 re-run on identical prompts gave 13 replies in the user's language and 16 under 80 words.}
+\caption{Automatic checks. Base, v1 and v2 were run on 22 November; v3 on 23 November with the extended guide, where v1 re-run on identical prompts gave 13 replies in the user's language and 16 under 80 words; v4 on 24 November with the same prompts as v3.}
 \label{tab:jai-auto}
 \end{table}
 
@@ -1127,10 +1126,31 @@ Cases won (8 ties) & 3 & 8 \\
 
 The largest gains were in Arabic: an Arabic privacy question that v1 answered in English, and a request for ``no classes at 08:30'' that v1 answered by claiming such classes were forbidden, while v3 correctly said no mandatory rule prevents them. Six cases received the minimum score for both models, including an off-topic request for a poem and an Arabic question about shared lectures.
 
-\paragraph{Live use.} With v3 in the running application, four questions taken from the weakest cases were asked in the chat. The display of mixed Arabic and English text was correct after the fix described in Section~\ref{evidence-jai}, but the answers were weak: an Arabic question about laboratories with GPUs used wrong words for rooms; the poem request produced a poem; a frustrated Arabic message drifted into Chinese mid-sentence; and a question about connecting to the university's student information system, asked after the complaint, was answered with a request for a rule identifier from the previous topic. The held-out measurements therefore overstate live reliability, particularly for topic changes within one conversation. These cases were used to write a fourth round of training examples (off-topic requests, topic changes, Arabic room vocabulary and examination publishing), which were trained as round~4 (v4; Table~\ref{tab:jai-rounds}). The evaluation of v4 was still running at the time of writing.
+\paragraph{Live use.} With v3 in the running application, four questions taken from the weakest cases were asked in the chat. The display of mixed Arabic and English text was correct after the fix described in Section~\ref{evidence-jai}, but the answers were weak: an Arabic question about laboratories with GPUs used wrong words for rooms; the poem request produced a poem; a frustrated Arabic message drifted into Chinese mid-sentence; and a question about connecting to the university's student information system, asked after the complaint, was answered with a request for a rule identifier from the previous topic. The held-out measurements therefore overstate live reliability, particularly for topic changes within one conversation. These cases were used to write a fourth round of training examples (off-topic requests, topic changes, Arabic room vocabulary and examination publishing), which were trained as round~4 (v4; Table~\ref{tab:jai-rounds}).
+
+\paragraph{Round 4.} On the old held-out cases v4 matched v3 on validity, actions and language, kept every reply under 80 words and chose the examination timetable correctly in the action case that v3 had missed (Table~\ref{tab:jai-auto}); it was also about 12\% faster per answer. Round~4 also held out one new family for each live failure, 13 cases in total, which neither model had seen (Table~\ref{tab:jai-round4}).
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+13 new held-out cases (4 families) & v3 & v4 \\
+\midrule
+Right action (none, or the expected one) & 10 & 9 \\
+Reply in the user's language & 9 & 10 \\
+At most 80 words & 12 & 13 \\
+Mentions an internal API path & 1 & 2 \\
+\bottomrule
+\end{tabular}
+\caption{Round-4 held-out families: off-topic story (3), changing topic from a rule to the portal (3), adding a laboratory with GPUs (4) and a formal request to publish the examination timetable (3).}
+\label{tab:jai-round4}
+\end{table}
+
+The differences are within one or two cases and do not show that v4 is better. Reading the replies shows where it changed. Both models declined the English story requests; in Arabic, v3 drifted into a long, repetitive timetable summary, while v4 stayed short but mixed in an English phrase. For the English GPU questions v4 gave the right steps (add a room with the laboratory type and the GPU feature), where v3 asked which room was being replaced. Neither model answered the Arabic GPU questions in Arabic, and v4 quoted an internal API path in both of them. Neither model turned ``publish the exam schedule'' in conversation into the publish action in any of the three cases, so the examination examples in round~4 did not fix the failure they targeted. A blind side-by-side sheet of v3 and v4 (32 cases) was prepared but had not been rated at the time of writing.
 
 
-\paragraph{Limits.} The examples and contexts are fictional and were drafted with AI assistance; approvals were bulk approvals by the project owner. The held-out sets are small (16--19 conversation cases and 5 action cases), the automatic checks do not measure correctness, and the human rating had one rater who was not independent of the project. All runs used one machine, one random seed and temperature~0. These results describe the development of a local assistant; they are not estimates of constraint-extraction accuracy (RQ1).
+\paragraph{Limits.} The examples and contexts are fictional and were drafted with AI assistance; approvals were bulk approvals by the project owner. The held-out sets are small (16--19 conversation cases, 13 round-4 cases and 5 action cases), the automatic checks do not measure correctness, and the human rating had one rater who was not independent of the project. All runs used one machine, one random seed and temperature~0. These results describe the development of a local assistant; they are not estimates of constraint-extraction accuracy (RQ1).
 
 \section{Automated tests and limitations of this evidence}
 At the time of writing the automated suites pass: 393 backend tests, 71 frontend tests and 47 evaluation-harness tests. They include regression tests for every fault reported in this chapter.

@@ -1,64 +1,69 @@
 \chapter{Background}\label{chap:background}
 
-% NOTE (migration 23 Nov 2026): Text moved unchanged from main.tex. Much of it was drafted with AI assistance; rewrite it in your own words before submission (the supervisor runs AI checks).
-% NOTE (migration 23 Nov 2026): Sections below were moved from the Introduction. Still to add in your own words: constraint programming and CP-SAT; large language models, local hosting (Ollama) and QLoRA fine-tuning; right-to-left and mixed-direction text. Cite sources for each.
-\hypertarget{university-timetabling}{%
-\section{University timetabling}\label{university-timetabling}}
+% NOTE (24 Nov 2026): Rewritten and extended with sources at the owner's request (drafted with AI assistance; reword in your own words before submission). Every new reference was checked against arXiv, publisher or catalogue records on 24 Nov 2026.
 
-University timetabling shapes whether students can attend required classes and assessments and whether staff can deliver them within the institution's available time and facilities. An overlapping required lecture can prevent attendance; an unsuitable room can prevent a planned laboratory activity; poorly coordinated examination dates can conflict with local assessment rules. These are educational and administrative problems before they are computational ones. Course timetabling organises repeated teaching activities, while examination timetabling organises assessment events, with different room and calendar requirements~\cite{petrovic2004university}.
+This chapter introduces the concepts the rest of the thesis relies on: university timetabling, the step of turning requirements into formal rules, constraint programming and the CP-SAT solver, large language models and structured output, running and fine-tuning a model locally, and Arabic text in software.
 
-The five retained timetabling papers illustrate different priorities. Sobh, Cousens and Patel~\cite{sobh_course_scheduler} focus on offering course combinations that meet students' degree requirements. Müller, Rudová and Müllerová~\cite{muller2025itc} describe the need to attend compatible lectures, seminars and laboratories, including travel between locations. Abdennadher and Edward~\cite{abdennadher_guc_exams} consider examination clashes, retakes, core-exam limits and spacing between difficult examinations at GUC. Kaya~\cite{kaya2026drl} includes institutional-scale examination revision and coordinator control.
+\section{University timetabling}\label{university-timetabling}
 
-A mandatory rule protects a requirement that the institution has decided must hold, such as avoiding simultaneous classes for the same student group. A preference expresses a desirable arrangement, such as a preferred teaching period, which may compete with other needs. These categories and their priorities must be agreed locally. The papers primarily evaluate scheduling results; they do not justify assuming that a conflict-free timetable automatically improves learning or graduation. This study accordingly treats educational access and administrative usability as motivations and measures the outcomes within its actual scope.
+University timetabling assigns teaching activities to times, rooms and instructors so that students can attend what they are required to attend and staff can teach within the available time and facilities. These are educational and administrative problems before they are computational ones: an overlapping required lecture prevents attendance, and an unsuitable room prevents a planned laboratory. Two related problems are usually distinguished~\cite{schaerf1999survey,petrovic2004university}. \emph{Course timetabling} places repeated weekly lectures, tutorials and laboratories. \emph{Examination timetabling} places one-off assessments on dates, with different rules for halls, spacing and clashes.
 
-\hypertarget{the-constraint-entry-problem}{%
-\section{The constraint-entry
-problem}\label{the-constraint-entry-problem}}
+Both problems are combinatorial: the number of possible timetables grows very quickly with the number of sessions, rooms and periods, and finding a good one is computationally hard in general~\cite{schaerf1999survey}. Practical systems therefore use search methods such as local search, integer programming or constraint programming, and they are judged on real institutional data rather than on proofs of optimality~\cite{muller2025itc}.
 
-Solvers need explicit rules: entities, parameters, severities and
-weights. Administrators, by contrast, express requirements informally
-and often in several rules at once. A statement such as "Dr Ahmed cannot
-teach on Tuesdays and prefers morning classes" contains a mandatory
-unavailability and a preference; "morning" has no meaning to a solver
-until an institution defines it. A wrong reading --- treating the
-preference as mandatory, resolving the name to the wrong person, or
-choosing an arbitrary definition of "morning" --- can produce a
-timetable that satisfies the formal model while failing the
-administrator\textquotesingle s intention.
+Rules are usually divided into two kinds. A \emph{hard} (mandatory) constraint must hold in every acceptable timetable, for example ``no student group has two sessions at the same time''. A \emph{soft} (preferred) constraint describes a desirable arrangement, for example a preferred teaching period. Breaking a soft constraint adds a penalty, and the timetable with the lowest total penalty is preferred. Which rules are hard and how soft penalties are weighted is an institutional decision, not a technical one.
 
-In the five timetabling papers reviewed, this translation step is not itself
-studied. Constraints are encoded by developers in declarative programs
-\cite{abdennadher_guc_exams},
-supplied in standard benchmark formats~\cite{muller2025itc}, formalised
-by researchers for a given institution~\cite{kaya2026drl}, set as weights by
-the timetable officer~\cite{petrovic2004university}, or entered by
-instructors choosing time slots~\cite{sobh_course_scheduler}.
-Existing systems offer form-based entry, which is precise but laborious.
-An observation recorded in the project specification from a walkthrough
-of the public UniTime demonstration on 4 October 2026 (a sample dataset
-and a single session, not a systematic evaluation, and not independently
-re-checked here) illustrates the effort: recording that one instructor
-prefers no teaching after 3 PM required navigating to the instructor,
-opening preferences, choosing a severity and marking 15 half-hour cells
-across five weekdays. This observation motivates the project but is not
-evidence about any deployed system.
+The timetabling papers reviewed in Chapter~\ref{literature-review} show different priorities. Sobh, Cousens and Patel~\cite{sobh_course_scheduler} focus on offering course combinations that satisfy degree requirements. Müller, Rudová and Müllerová~\cite{muller2025itc} describe compatible lectures, seminars and laboratories, including travel between buildings. Abdennadher and Edward~\cite{abdennadher_guc_exams} consider examination clashes, retakes and spacing at the German University in Cairo. Kaya~\cite{kaya2026drl} addresses examination scheduling across several campuses. None of them assumes that a clash-free timetable improves learning by itself; it is a precondition for access.
 
-\hypertarget{motivation-for-ai-assisted-extraction}{%
-\section{Motivation for AI-assisted
-extraction}\label{motivation-for-ai-assisted-extraction}}
+\section{The constraint-entry problem}\label{the-constraint-entry-problem}
 
-Large language models can read free text and, when constrained to a
-schema, produce structured output. This suggests a workflow in which an
-administrator writes a requirement, a model proposes formal rules, and
-the administrator reviews them. The suggestion carries risks that the
-design must address rather than assume away: schema-valid output is not
-necessarily a correct interpretation; models may invent entities or
-silently choose thresholds; and a correct extraction does not make a
-schedule valid. Recent work on LLMs in scheduling indicates that wording
-affects constraint faithfulness when models are asked to \emph{produce}
-schedules from text~\cite{sharma2026schedbench} (preprint), and that
-small-scale attempts to convert user preferences into optimisation
-constraints in other domains are still preliminary~\cite{sanguinetti2025preferences}
-(preprint). These sources concern different tasks
-and settings; they motivate care and measurement, not a conclusion about
-university timetabling.
+A solver needs explicit rules: which entity, which day and time, how strict, and with what weight. Administrators state requirements informally, often several in one sentence. ``Dr Ahmed cannot teach on Tuesdays and prefers morning classes'' contains a hard unavailability and a soft preference, and ``morning'' has no meaning to a solver until the institution defines it. A wrong reading --- treating the preference as mandatory, choosing the wrong Ahmed, or inventing a definition of ``morning'' --- produces a timetable that satisfies the formal model and still fails the administrator's intention. A valid timetable is therefore no evidence that the rules were understood correctly.
+
+In the reviewed systems this translation is done by people and is not itself studied. Constraints are written by developers as declarative programs~\cite{abdennadher_guc_exams}, supplied in benchmark formats~\cite{muller2025itc}, formalised by researchers for one institution~\cite{kaya2026drl}, set as weights by a timetable officer~\cite{petrovic2004university}, or chosen by instructors as time slots~\cite{sobh_course_scheduler}. Form-based entry is precise but slow. An informal walkthrough of the public UniTime demonstration on 4 October 2026 illustrates the effort: recording that one instructor prefers no teaching after 3~PM meant opening the instructor's preferences, choosing a strength and marking 15 half-hour cells over five days. This single observation on sample data motivates the project; it is not evidence about any deployed system.
+
+\section{Constraint programming and CP-SAT}\label{bg-cp}
+
+Constraint programming describes a problem as \emph{variables}, each with a finite set of possible values, and \emph{constraints} that restrict which combinations of values are allowed~\cite{rossi2006handbook}. A solver searches for an assignment that satisfies every constraint. While it searches, it uses \emph{propagation}: each constraint removes values that can no longer lead to a solution, which prunes large parts of the search space. Many problems also have an \emph{objective} to minimise, such as the total soft-constraint penalty.
+
+Scheduling is a natural fit. A session can be an \emph{interval variable} with a start and a length, and a single \emph{no-overlap} constraint states that the intervals assigned to one room, instructor or group never overlap~\cite{rossi2006handbook}. This is much smaller than a model with one yes/no variable for every combination of session, time, room and instructor.
+
+JadwAI uses CP-SAT, the constraint solver in Google OR-Tools~\cite{google_cpsat}. CP-SAT combines constraint propagation with techniques from Boolean satisfiability solving and can run several search strategies in parallel. Its result for a run is one of the following:
+\begin{itemize}
+\item \emph{optimal}: a solution was found and proven to have the best objective value;
+\item \emph{feasible}: a solution was found, but not proven best within the time limit;
+\item \emph{infeasible}: it was proven that no solution exists;
+\item \emph{unknown}: the time limit was reached before either a solution or a proof was found;
+\item \emph{model invalid}: the model itself is malformed.
+\end{itemize}
+The difference between \emph{infeasible} and \emph{unknown} matters in practice. A search that stops at its time limit has not shown that a timetable is impossible, so it must not be reported as such. Parallel search is also not fully deterministic, so the same inputs can produce different valid timetables.
+
+\section{Large language models and structured output}\label{bg-llm}
+
+A large language model (LLM) is a neural network trained on large amounts of text to predict the next \emph{token} (a word or part of a word). Given an instruction and some context, such a model can perform tasks it was not trained for specifically, which is known as prompting or in-context learning~\cite{brown2020fewshot}. The model generates its reply one token at a time, and each token is sampled from a probability distribution. A temperature of zero always takes the most likely token, which makes the output repeatable for the same input on the same system.
+
+Two properties of LLMs matter for this thesis. First, a model can produce fluent text that is not supported by its input or by facts, which is usually called \emph{hallucination}~\cite{ji2023hallucination}. For constraint entry this means inventing a person, a day or a threshold; for an assistant it means inventing features of the system. Second, free text is hard to use in software. A program needs a fixed structure, such as a JSON object with known fields.
+
+\emph{Constrained decoding} solves the second problem. At each step, the tokens that would break a given grammar or JSON schema are removed before sampling, so the reply always matches the schema~\cite{willard2023guided}. The model still chooses the content, so a reply that matches the schema can still be wrong. Because the reply is generated from left to right, the order of fields in the schema also matters: a field generated early cannot depend on what the model writes later. Chapter~\ref{methodology-proposed-study} shows that putting the decision field before the proposals made a small model decide too early.
+
+\section{Running and fine-tuning a model locally}\label{bg-local}
+
+\paragraph{Local hosting.} An institution may not want to send its staff and timetable data to an external AI service. An alternative is a smaller \emph{open-weight} model, whose trained parameters are published and can run on the institution's own server. JadwAI uses Qwen2.5-7B-Instruct, a model with about seven billion parameters from the Qwen2.5 family, tuned to follow instructions~\cite{qwen2024qwen25}. It is served by Ollama~\cite{ollama}, which runs models stored in the GGUF format of the llama.cpp project and supports constrained JSON output.
+
+\paragraph{Quantisation.} The parameters of a seven-billion-parameter model take about 15\,GB at 16 bits each. \emph{Quantisation} stores them with fewer bits. In the GGUF format used by llama.cpp, weights are grouped into small blocks, and each block is stored as low-bit integers with a shared scale~\cite{llamacpp}. Formats such as Q4\_K (about four bits per weight) and Q6\_K (about six) trade a small loss of accuracy for memory and speed. The model used here takes about 4.7\,GB. A quantised weight can take only the values on its format's grid, which becomes important when a fine-tuned change is merged back into it (Section~\ref{evidence-jai}).
+
+\paragraph{Fine-tuning with LoRA and QLoRA.} Fine-tuning continues training a model on examples of the desired behaviour. Updating all seven billion parameters needs far more memory than a free cloud GPU offers. \emph{Low-rank adaptation} (LoRA) instead keeps the original weights frozen and trains two small matrices per layer, whose product is added to the frozen weight matrix~\cite{hu2022lora}. The \emph{rank} of these matrices (16 in this project) controls how many parameters are trained, which is a small fraction of the model. \emph{QLoRA} goes further by keeping the frozen model in 4-bit form during training while still training the adapter in higher precision. This makes it possible to fine-tune a large model on a single GPU~\cite{dettmers2023qlora}. The result is a small \emph{adapter} that is either loaded next to the base model or merged into its weights.
+
+\section{Arabic text in software}\label{bg-arabic}
+
+Arabic is used in two main forms. Modern Standard (formal) Arabic is the written standard. Spoken dialects such as Egyptian Arabic differ from it in vocabulary, grammar and the way negation and time are expressed, and they are increasingly written informally~\cite{habash2010arabic}. Arabic script has rich morphology and is usually written without short vowels, so one written word can have several readings, and personal names can be transliterated into Latin script in several ways~\cite{habash2010arabic}. For JadwAI this means that one requirement can be written in English, formal Arabic, Egyptian Arabic or a mix of them, and an Arabic name must be matched to an English record without an exact spelling.
+
+Arabic is also written from right to left, while names, codes and numbers inside it are often left-to-right. The Unicode Bidirectional Algorithm decides the display order of such mixed text from the direction of each character and of the surrounding paragraph~\cite{unicode_uax9}. When the paragraph direction is guessed wrongly, or a Latin or numeric run is not isolated, parts of a sentence are displayed in the wrong order. For example, a time range can appear reversed. Applications therefore set the direction of each block explicitly and isolate embedded runs. This is how the JAI chat displays mixed replies (Section~\ref{evidence-jai}).
+
+\section{Motivation for AI-assisted interpretation}\label{motivation-for-ai-assisted-extraction}
+
+Taken together, these concepts suggest a workflow. An administrator writes a requirement in their own language. An LLM, constrained to a schema, proposes formal rules. The administrator reviews and approves them, and a constraint solver builds the timetable, which an independent check validates. The design has to address several risks rather than assume them away:
+\begin{itemize}
+\item output that matches the schema is not necessarily a correct interpretation;
+\item models may invent entities or choose thresholds silently;
+\item a correct interpretation does not make a timetable valid.
+\end{itemize}
+Work on LLMs in scheduling shows that wording affects how faithfully models keep constraints when they are asked to \emph{produce} schedules from text~\cite{sharma2026schedbench}. Converting user preferences into optimisation constraints has so far been tried only on a small scale in other domains~\cite{sanguinetti2025preferences}. Both are preprints and concern different tasks, so they motivate careful measurement rather than a conclusion about university timetabling.

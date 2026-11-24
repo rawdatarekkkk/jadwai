@@ -197,7 +197,28 @@ Read by hand:
   GPU-lab wordings are answered in English, and v4 quotes the internal `PUT /api/records/...` path in both.
 
 Blind side-by-side sheet for a human rater (32 cases: the 19 old ones and the 13 new ones, key kept
-separately): `runs/rating-sheet-v3-v4-20261124.md` / `.key.json`. Not rated yet.
+separately): `runs/rating-sheet-v3-v4-20261124.md` / `.key.json`.
+
+Blind rating (filled in by the project owner 2026-11-24, after reading a summary of the automatic results
+and some replies; 1–5 on correct, logical, helpful, natural, so 20 per case):
+
+| | Tuned v3 | Tuned v4 |
+|---|---|---|
+| Total (32 cases, max 640) | 461 | **524** |
+| Mean per case (max 20) | 14.4 | **16.4** |
+| Correct / logical / helpful / natural | 3.5 / 3.6 / 3.6 / 3.7 | **4.0 / 4.1 / 4.1 / 4.2** |
+| Old 19 cases / new 13 cases (totals) | 293 / 168 | **317 / 207** |
+| Cases won | 6 | **14** (12 ties) |
+
+v3 scored 293 on the old 19 here vs 274 on the v1/v3 sheet: totals from different sheets are not comparable.
+Biggest v4 gains: poem request 4→20, Arabic story 8→20, Arabic portal 10→20, out-of-scope (Arabic) 9→14.
+v4 losses: Arabic special rooms 14→10, Arabic GPU lab 10→4 (quotes `PUT /api/records/...`). Minimum (4) for
+both: formal Arabic exam publish, Arabic fed-up user, an Arabic GPU wording, Arabic vague fix.
+
+**Exam publishing moved to a built-in route (2026-11-24, `backend/app/assistant.py` `exam_publishing`):**
+after four rounds the model still never proposed the exam publish action, so the request is answered by a
+pattern before the model is called (still a confirmed action; asks when the exam/teaching target is ambiguous).
+
 
 ## Recommendation
 
@@ -205,7 +226,9 @@ Not ready to replace the production model for Arabic users. For an English demo,
 guide is clearly better (`JADWAI_LOCAL_MODEL=jai-candidate` in `.env`, restart the API; roll back with
 `qwen2.5:7b-instruct`). The guide and safeguards also improve the original model, so they help either way.
 
-Keep `jai-candidate` (v1) with the guide; do not use `jai-candidate-v2`. `jai-candidate-v3` is a modest
+Current choice: `jai-candidate-v4` with the guide (preferred over v3 in the blind rating, 524 vs 461 of 640).
+
+Earlier: keep `jai-candidate` (v1) with the guide; do not use `jai-candidate-v2`. `jai-candidate-v3` is a modest
 improvement in conversation (less looping, fewer invented facts) but picked the wrong publish action once;
 the blind rating prefers v3 (274 vs 244 of 380), so v3 is the candidate to try with the guide.
 

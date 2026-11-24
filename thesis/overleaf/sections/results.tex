@@ -222,12 +222,34 @@ Mentions an internal API path & 1 & 2 \\
 \label{tab:jai-round4}
 \end{table}
 
-The differences are within one or two cases and do not show that v4 is better. Reading the replies shows where it changed. Both models declined the English story requests; in Arabic, v3 drifted into a long, repetitive timetable summary, while v4 stayed short but mixed in an English phrase. For the English GPU questions v4 gave the right steps (add a room with the laboratory type and the GPU feature), where v3 asked which room was being replaced. Neither model answered the Arabic GPU questions in Arabic, and v4 quoted an internal API path in both of them. Neither model turned ``publish the exam schedule'' in conversation into the publish action in any of the three cases, so the examination examples in round~4 did not fix the failure they targeted. A blind side-by-side sheet of v3 and v4 (32 cases) was prepared but had not been rated at the time of writing.
+The differences are within one or two cases and do not show that v4 is better. Reading the replies shows where it changed. Both models declined the English story requests; in Arabic, v3 drifted into a long, repetitive timetable summary, while v4 stayed short but mixed in an English phrase. For the English GPU questions v4 gave the right steps (add a room with the laboratory type and the GPU feature), where v3 asked which room was being replaced. Neither model answered the Arabic GPU questions in Arabic, and v4 quoted an internal API path in both of them. Neither model turned ``publish the exam schedule'' in conversation into the publish action in any of the three cases, so the examination examples in round~4 did not fix the failure they targeted. The project owner then rated v3 and v4 side by side on all 32 cases (the 19 earlier cases and the 13 new ones) in the same way as before, again after reading a summary of the automatic results and some replies (Table~\ref{tab:jai-rating-v4}).
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+32 cases, 4 criteria, 1--5 each & v3 & v4 \\
+\midrule
+Total (maximum 640) & 461 & 524 \\
+Mean per case (maximum 20) & 14.4 & 16.4 \\
+Correct / logical / helpful / natural (means) & 3.5 / 3.6 / 3.6 / 3.7 & 4.0 / 4.1 / 4.1 / 4.2 \\
+Earlier 19 cases / new 13 cases (totals) & 293 / 168 & 317 / 207 \\
+Cases won (12 ties) & 6 & 14 \\
+\bottomrule
+\end{tabular}
+\caption{Blind side-by-side rating of fine-tuned v3 and v4. Scores from different sheets are not comparable: v3 received 293 here and 274 on the same 19 cases in Table~\ref{tab:jai-rating}.}
+\label{tab:jai-rating-v4}
+\end{table}
+
+The rating favoured v4 on both the earlier and the new cases, unlike the automatic checks. The largest differences were an off-topic request for a poem (4 against 20 points), which v3 did not decline, the Arabic story request (8 against 20) and the Arabic portal question (10 against 20). v4 lost most clearly on an Arabic question about special rooms (14 against 10) and on one Arabic GPU question (10 against 4), where it quoted an internal interface path. Four cases received the minimum score for both models, among them a formal Arabic request to publish the examination timetable.
+
+\paragraph{Examination publishing fixed in code.} Because four training rounds did not teach the model to turn ``publish the exam schedule'' into the publish action, this request is now recognised by a built-in pattern before the model is called, in English, formal Arabic and Egyptian Arabic. It prepares the publish action for the examination timetable on screen or named in the message and asks the administrator to confirm; when an examination and a teaching draft, or several examination drafts, could be meant, it asks which one instead of choosing. Twenty-five tests cover the wordings of the held-out family and the ambiguous cases. This is a change to the system, not to the model, so it does not alter the measurements above.
 
 
-\paragraph{Limits.} The examples and contexts are fictional and were drafted with AI assistance; approvals were bulk approvals by the project owner. The held-out sets are small (16--19 conversation cases, 13 round-4 cases and 5 action cases), the automatic checks do not measure correctness, and the human rating had one rater who was not independent of the project. All runs used one machine, one random seed and temperature~0. These results describe the development of a local assistant; they are not estimates of constraint-extraction accuracy (RQ1).
+\paragraph{Limits.} The examples and contexts are fictional and were drafted with AI assistance; approvals were bulk approvals by the project owner. The held-out sets are small (16--19 conversation cases, 13 round-4 cases and 5 action cases), the automatic checks do not measure correctness, and the human ratings had one rater who was not independent of the project and had seen summaries of the replies. All runs used one machine, one random seed and temperature~0. These results describe the development of a local assistant; they are not estimates of constraint-extraction accuracy (RQ1).
 
 \section{Automated tests and limitations of this evidence}
-On 24 November 2026 the automated suites pass: 533 backend tests, 106 frontend tests and 47 evaluation-harness tests. They include regression tests for every fault reported in this chapter.
+On 24 November 2026 the automated suites pass: 558 backend tests, 106 frontend tests and 50 evaluation-harness tests. They include regression tests for every fault reported in this chapter.
 
 The evidence has the following limits. All measurements come from one machine and one random seed; repeated runs and other hardware may differ, and parallel search can produce different valid timetables from identical inputs. The university-scale run used adjusted data, so it demonstrates the mechanism rather than a timetable for the university. The demonstration workspace is derived from real course structures but uses invented names and advising students. The repair diagnosis returns a minimal rather than a minimum set of changes, depends on time budgets, and on large timetables searches locally first. The interpretation results use draft labels reviewed by no human, a single development release, a parser and a model prompt prepared by the same author who wrote the corpus, and one run of the model. A confirmatory answer to RQ1 and RQ2 would require reviewed labels and a fresh held-out set, and RQ3 would require the participant study outlined in Section~\ref{meth-rq3}.

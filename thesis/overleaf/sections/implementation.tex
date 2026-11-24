@@ -142,7 +142,7 @@ JAI is a chat panel in JadwAI that answers questions and prepares tasks.
 
 \paragraph{How a message is handled.}
 \begin{enumerate}
-\item \textbf{Built-in patterns.} Patterns in English, formal Arabic and Egyptian Arabic recognise common questions and commands immediately. Examples are whether a room or instructor is free, a group's timetable, when a course meets, free rooms, generating a timetable for a programme or year, exam timetables, PDFs and the state of the latest run.
+\item \textbf{Built-in patterns.} Patterns in English, formal Arabic and Egyptian Arabic recognise common questions and commands immediately. Examples are whether a room or instructor is free, a group's timetable, when a course meets, free rooms, generating a timetable for a programme or year, exam timetables, PDFs, publishing and the state of the latest run. A request to publish the examination timetable is always answered by a pattern, because the fine-tuned model did not learn it (Section~\ref{evidence-jai-results}).
 \item \textbf{Chat memory.} Each chat remembers the last room, instructor, group, course, days, time and timetable it discussed. A follow-up such as ``and on Monday?'' can be completed from this memory.
 \item \textbf{The local model.} Messages that the patterns do not cover go to the local model. It may explain the facts supplied to it, discuss trade-offs and prepare at most one action. Every action is validated against the same contract as the corresponding page and is carried out only after the administrator confirms it.
 \end{enumerate}
@@ -174,7 +174,7 @@ Round & Training data & Rows & Epochs & Loss & Outcome \\
 v1 & Original examples, no guide in the prompts & 210 & 2 & 1.62 & Better behaviour, still invents facts \\
 v2 & Same answers, guide added to the prompts & 210 & 3 & 1.11 & Worse; not used \\
 v3 & Answers rewritten to follow the guide; ``not sure'' examples & 243 & 2 & 1.18 & Preferred in blind rating \\
-v4 & v3 plus off-topic declines, topic changes, Arabic room terms, examination publishing & 317 & 2 & 1.07 & Shorter replies; examination publishing still missed \\
+v4 & v3 plus off-topic declines, topic changes, Arabic room terms, examination publishing & 317 & 2 & 1.07 & Preferred over v3 in blind rating; examination publishing still missed \\
 \bottomrule
 \end{tabular}
 \caption{JAI fine-tuning rounds (training rows; held-out rows were 69, 69, 72 and 85).}

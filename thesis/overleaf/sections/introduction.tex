@@ -9,19 +9,15 @@
 
 Administrators must record scheduling requirements accurately enough to protect access to required teaching while accommodating staff availability and suitable facilities. If the system misunderstands a requirement, a timetable can appear acceptable while failing the intended institutional need. The practical problem is therefore how to support clear requirement entry, useful clarification, and informed approval without adding excessive administrative effort.
 
-The five reviewed timetabling papers provide evidence about scheduling needs and capabilities, but do not evaluate ordinary-language requirement entry with this review workflow. This thesis investigates that task within a limited timetabling scope. Its gap claim is bounded by the reviewed sources; a wider documented literature search remains planned.
+The five reviewed timetabling papers provide evidence about scheduling needs and capabilities, but do not evaluate ordinary-language requirement entry with this review workflow. This thesis investigates that task within a limited timetabling scope. Its gap claim is bounded by the reviewed sources; the review is selective rather than systematic.
 
 \hypertarget{research-gap}{%
 \section{Research gap}\label{research-gap}}
 
 Within the five retained timetabling papers, constraint acquisition is a developer or
-administrator task and is not evaluated as a research problem (Chapter~\ref{literature-review}). The additional LLM-related sources verified so far address
-different questions: LLMs solving scheduling problems described in text
-\cite{sharma2026schedbench}, a pilot on appliance scheduling in Italian
-\cite{sanguinetti2025preferences}, and a benchmark of LLMs writing constraint
-models from problem descriptions~\cite{michailidis2025cpbench},
-whose task differs because the output is a general constraint program
-with no institutional data to resolve against and no review step. The
+administrator task and is not evaluated as a research problem (Chapter~\ref{literature-review}). Work on language models addresses related but different questions: solving scheduling problems described in text
+\cite{sharma2026schedbench}, interpreting appliance-scheduling preferences in a small pilot
+\cite{sanguinetti2025preferences}, writing optimisation or constraint models from self-contained problem descriptions~\cite{ramamonjison2023nl4opt,michailidis2025cpbench}, and translating requests into queries over existing databases~\cite{li2023bird} (Section~\ref{rw-llm}). None of these evaluates interpretation into a closed rule vocabulary that refers to an institution's own records, with explicit clarification decisions and a review step. The
 gap addressed here is therefore the \emph{evaluation of
 natural-language-to-constraint extraction for university course
 timetabling}, with human review and independent validation, using a
@@ -114,4 +110,4 @@ The solver chooses instructors, times and rooms. Eligibility is recorded separat
 \hypertarget{organisation-of-the-thesis}{%
 \section{Organisation of the thesis}\label{organisation-of-the-thesis}}
 
-Chapter~\ref{chap:background} introduces university timetabling and the constraint-entry problem. Chapter~\ref{literature-review} reviews five timetabling papers through educational needs, implemented capabilities and reported evidence, and examines a study of natural-language preference interpretation. Chapter~\ref{methodology-proposed-study} describes the method followed: the research design, the interpretation contract, the development corpus, the methods compared, the metrics, the fine-tuning of the assistant model, the engineering verification, and the threats to validity. Chapter~\ref{chap:implementation} describes the implemented system and the JAI assistant. Chapter~\ref{evidence} reports the measurements, and Chapter~\ref{chap:conclusion} summarises the findings, limitations and future work. The appendices list the requirements, screenshots of the prototype, and the project timeline with traceability to the requirements.
+Chapter~\ref{chap:background} introduces university timetabling and the constraint-entry problem. Chapter~\ref{literature-review} reviews five timetabling papers through educational needs, implemented capabilities and reported evidence, examines a study of natural-language preference interpretation, and reviews work on language models for structured interpretation, clarification, local deployment and Arabic. Chapter~\ref{methodology-proposed-study} describes the method followed: the research design, the interpretation contract, the development corpus, the methods compared, the metrics, the fine-tuning of the assistant model, the engineering verification, and the threats to validity. Chapter~\ref{chap:implementation} describes the implemented system and the JAI assistant. Chapter~\ref{evidence} reports the measurements, and Chapter~\ref{chap:conclusion} summarises the findings, limitations and future work. The appendices list the requirements, screenshots of the prototype, and the project timeline with traceability to the requirements.

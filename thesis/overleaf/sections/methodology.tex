@@ -101,7 +101,7 @@ The expected decisions are \texttt{ready} for 76 statements, \texttt{clarify} fo
 \item conversion from sessions to teaching hours.
 \end{itemize}
 
-\paragraph{Labels.} The statements and expected answers were written with the help of an AI assistant, following annotation guide~v2. The guide defines each decision, the supported proposal boundary and how ambiguity is to be resolved. Every item records its origin and has the status \texttt{draft\_unreviewed}. No human annotation, second annotator or adjudication took place, although the tools for them were built (gold-free review exports, immutable review records, Cohen's $\kappa$ comparison and adjudication forms). The expected answers are therefore one author's interpretation, and results against them are development figures.
+\paragraph{Labels.} The statements and expected answers were written with the help of an AI assistant, following annotation guide~v2. The guide defines each decision, the supported proposal boundary and how ambiguity is to be resolved. Every item records its origin and has the status \texttt{draft\_unreviewed}. No human annotation, second annotator or adjudication took place, although the tools for them were built (gold-free review exports, immutable review records, Cohen's $\kappa$ comparison and adjudication forms). The expected answers are therefore one author's interpretation, and results against them are development figures. All results in this thesis use these labels. A later release (guide~v2.1, bundle \texttt{0.2.1-draft}) only merges two pairs of synonymous codes, changing eight labels in two families; it is the version to review next.
 
 \paragraph{Reserved material is not a blind test.} Reserved statements are excluded from default tooling, and access requires a logged reason. However, their author has seen the labels, so they cannot serve as an independent held-out set. A fresh, independently written and annotated set would be needed for a confirmatory study. Families, not single statements, are the unit for splitting and for confidence intervals, because four translations of one intent are not independent observations.
 
@@ -147,20 +147,21 @@ RQ4 was reframed as a comparison between a locally hosted base model and the sam
 
 \paragraph{Training data.} Examples are fictional conversations in English, formal Arabic and Egyptian Arabic, grouped into families (one intent with several wordings). Whole families are assigned either to training or to the held-out set, so that no wording of a held-out family is seen in training. The prompts are built by the same code that builds the live chat prompt, including the matching entries of a verified guide (Section~\ref{evidence-jai}). From round~3 on, the dataset builder refuses any example whose answer states a fact about JadwAI that is not in that example's guide entries. The examples were drafted with an AI assistant and approved in bulk by the project owner after reading a change list, not item by item.
 
-\paragraph{Training.} Each round trained a QLoRA adapter (rank~16) on Qwen2.5-7B-Instruct with the Unsloth library on a free T4 GPU (Google Colab or Kaggle), with the loss computed only on JAI's final answer. Each adapter was merged into Ollama's 4-bit weights. To stop the small weight changes being lost when the weights were quantised again, each tensor was re-quantised to a different format (4-bit blocks to 6-bit, 6-bit to 5-bit). A separate script compared the merged weights with the base and the adapter, to check how much of the trained change was present in every trained matrix. Three rounds were trained (Table~\ref{tab:jai-rounds}): v1 on the original 210 examples, v2 on the same answers with the guide added to the prompts and an extra epoch, and v3 on 243 examples whose answers were rewritten to follow the guide. Round~4 data (317 training and 85 held-out rows) was prepared from the failures found in live use but not trained in time.
+\paragraph{Training.} Each round trained a QLoRA adapter (rank~16) on Qwen2.5-7B-Instruct with the Unsloth library on a free T4 GPU (Google Colab or Kaggle), with the loss computed only on JAI's final answer. Each adapter was merged into Ollama's 4-bit weights. To stop the small weight changes being lost when the weights were quantised again, each tensor was re-quantised to a different format (4-bit blocks to 6-bit, 6-bit to 5-bit). A separate script compared the merged weights with the base and the adapter, to check how much of the trained change was present in every trained matrix. Four rounds were trained (Table~\ref{tab:jai-rounds}): v1 on the original 210 examples, v2 on the same answers with the guide added to the prompts and an extra epoch, v3 on 243 examples whose answers were rewritten to follow the guide, and v4 on 317 examples that added families aimed at the failures found in live use with v3.
 
 \paragraph{Evaluation.} All candidates answered the same held-out cases with the production prompt, at temperature~0 and seed~42, on the same laptop. The cases were:
 \begin{itemize}
 \item 16 conversation cases and 5 action-choice cases from held-out families;
-\item for v1 and v3, three wordings of a new question that should be answered with ``not sure''.
+\item from v1 on, three wordings of a new question that should be answered with ``not sure'';
+\item for v3 and v4, 13 cases from four new held-out families written for round~4, one for each live failure.
 \end{itemize}
 Three kinds of measurement were used:
 \begin{enumerate}
 \item \textbf{Automatic checks}: whether the reply is valid, whether it proposes an action it should not, whether it is in the user's language, whether it is at most 80 words, and whether the action chosen in the action cases is correct. These checks do not judge whether an answer is true.
 \item \textbf{Latency}: mean seconds per answer.
-\item \textbf{Blind side-by-side rating} of v1 and v3 on the 19 conversation answers. The two answers to each case were shown in random order without model names, and each was scored from 1 to 5 on four criteria: correct, logical, helpful and natural, giving at most 20 per case. The key was kept in a separate file. The rater was the project owner, who had read a short summary of some replies beforehand, so the rating is neither independent nor fully blind.
+\item \textbf{Blind side-by-side rating}, first of v1 and v3 on the 19 conversation answers, then of v3 and v4 on those 19 and the 13 round-4 cases. The two answers to each case were shown in random order without model names, and each was scored from 1 to 5 on four criteria: correct, logical, helpful and natural, giving at most 20 per case. The key was kept in a separate file. The rater was the project owner, who had read a short summary of some replies beforehand both times, so the ratings are neither independent nor fully blind. Totals from different rating sheets are not compared.
 \end{enumerate}
-Finally, the preferred candidate (v3) was used in the running application with questions taken from its weakest cases, to see whether the held-out results held in real multi-turn use.
+Finally, the preferred candidate (v3) was used in the running application with questions taken from its weakest cases, to see whether the held-out results held in real multi-turn use, and the same questions were later asked of v4 in the same order.
 
 \section{Scheduling and validation evaluation}\label{scheduling-validation-and-system-behaviour-evaluation}
 
@@ -195,11 +196,11 @@ Because parallel search is not deterministic, a different valid timetable can re
 
 \section{AI-assisted versus manual entry (RQ3)}\label{meth-rq3}
 
-The proposal planned a within-subject, counterbalanced pilot. Administrators would enter equivalent task lists once with forms and once with typed statements and review. The measures would be completion time, number of corrections, accuracy of the final approved rules against the expected rules, and whether the participant could explain what an approved rule allows. The recording features needed for this exist in the prototype. The study was not run, because no participants or ethics approval were available in the project period. RQ3 is therefore not answered and is listed as future work. No claim about reduced effort is made.
+The proposal planned a within-subject, counterbalanced pilot. Administrators would enter equivalent task lists once with forms and once with typed statements and review. The measures would be completion time, number of corrections, accuracy of the final approved rules against the expected rules, and whether the participant could explain what an approved rule allows. The experiment mode that would record these measures (requirement FR-050) was not built. The study was not run, because no participants or ethics approval were available in the project period. RQ3 is therefore not answered and is listed as future work. No claim about reduced effort is made.
 
 \section{Reproducibility records}\label{reproducibility-records}
 
-Each reported measurement is stored in the repository with the script that produced it, its log and the code commit it ran on (folders under \texttt{thesis/evidence/}, named by date). For the local-model run, every reply is appended to a predictions file as soon as it arrives, together with its latency and token counts. A stopped run therefore continues from the last saved statement. A run note records the commit, the Ollama version, the machine and each restart, and confirms that the interpretation and evaluation code did not change between restarts. The corpus manifest stores hashes of the data, guide, contract and scorer, so the scores can be recomputed from the saved predictions. Fine-tuning runs keep their exported datasets with hashes, the training notebook, the merge check output, every candidate's answers and the rating sheet with its separate key (\texttt{finetuning/}).
+Each reported measurement is stored in the repository with the script that produced it, its log and the code commit it ran on (folders under \texttt{thesis/evidence/}, named by date). For the local-model runs, every reply is appended to a predictions file as soon as it arrives, together with its latency and token counts. A stopped run therefore continues from the last saved statement. A run note records the commit, the Ollama version, the machine and each restart, and confirms that the interpretation and evaluation code did not change between restarts. The corpus manifest stores hashes of the data, guide, contract and scorer, so the scores can be recomputed from the saved predictions. Fine-tuning runs keep their exported datasets with hashes, the training notebook, the merge check output, every candidate's answers and the rating sheet with its separate key (\texttt{finetuning/}).
 
 \section{Ethics and privacy}\label{ethics-privacy-and-consent}
 
@@ -212,11 +213,11 @@ Each reported measurement is stored in the repository with the script that produ
 
 \section{Threats to validity}\label{threats-to-validity}
 
-\paragraph{Construct validity.} The expected answers encode one interpretation and were not reviewed by a second person. Some statements may have more than one reasonable reading. Exact output is a strict measure, so field F1 is reported alongside it. The automatic checks for JAI measure form (language, length, unwanted actions), not truth, and the human rating had a single rater who was not independent.
+\paragraph{Construct validity.} The expected answers encode one interpretation and were not reviewed by a second person. Some statements may have more than one reasonable reading. Exact output is a strict measure, so field F1 is reported alongside it. The automatic checks for JAI measure form (language, length, unwanted actions), not truth, and the human ratings had a single rater who was not independent. Two pairs of codes in the draft labels were synonyms, which penalises a method that picks the other synonym; they were merged in guide~v2.1 after the runs reported here.
 
 \paragraph{Internal validity.}
 \begin{itemize}
-\item Both interpretation methods were adjusted after looking at development errors: the parser's codes and negations, and the model's schema order. Their scores are therefore optimistic.
+\item Both interpretation methods were adjusted after looking at development errors: the parser's codes and negations, the model's schema order, and the code meanings in the second model prompt, which were written from the labels. Their scores are therefore optimistic.
 \item The same author wrote the corpus, the parser, the prompts and the scorer, and also built the solver and the validator. Shared misunderstandings are possible. Seeded faults and the comparison with the solver model reduce this risk but do not remove it.
 \item The AI assistant that helped draft the corpus and training data is itself a language model, and its style may favour models of a similar kind.
 \end{itemize}
@@ -229,7 +230,7 @@ Each reported measurement is stored in the repository with the script that produ
 \item Results concern one 7-billion-parameter model and may not transfer to other models or later versions.
 \end{itemize}
 
-\paragraph{Conclusion validity.} Only 36 families and 16--19 assistant cases were available, so the intervals are wide and small differences between methods or rounds should not be over-read.
+\paragraph{Conclusion validity.} Only 36 families and 13--19 assistant cases per measure were available, so the intervals are wide and small differences between methods or rounds should not be over-read.
 
 \section{Summary of limitations}\label{feasibility-risks-and-limitations}
 

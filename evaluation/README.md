@@ -101,6 +101,10 @@ backend/.venv/bin/python evaluation/development.py adjudicate --first output/rev
 
 Agreed items are retained; unresolved disagreements, duplicate decisions, invalid outputs and attempts to override agreed items are refused. The record binds both reviewer-file hashes, the guide/dataset version, declared adjudicator identity, and original/decided annotation hashes. It does not overwrite gold or automatically certify/promote a reviewed dataset release.
 
+## Development bundle 0.2.1-draft — merged codes (24 November 2026)
+
+`development-v2.1/` is bundle 0.2.0-draft with two synonymous codes merged, under `guides/annotation-guide-v2.1.md` (see its changelog): `missing_day` → `day_required` and `minute_rule_precision` → `manual_rule_minute_precision_not_supported`. Eight labels change (families `design-family-006` and `design-family-009`); statements, contexts, decisions and proposals are identical. `build_development_v2_1.py` derives it from the integrity-checked 0.2.0-draft bundle, which stays unchanged, as does release 0.1.0-draft (it already used the canonical codes). The manifest records the renames and changed IDs. Results reported before this date were scored on the 0.2.0-draft labels. Score the merged labels with `evaluation/harness.py score --dataset evaluation/development-v2.1 ...`. The website review workspace still serves bundle 0.2.0-draft and guide v2 until it is switched over.
+
 ## Website review workspace
 
 The local website's administrator **Evaluation** section exposes bundle counts and guide/review-pack downloads. A completed JSON file can be uploaded, validated and saved as a separate immutable PostgreSQL review record, with the submitting account and a caller-generated request key. The server checks the fixed pack's complete ID set, original wording/context, manifest, supported proposal semantics and rationales. It does not change gold, approve scheduling constraints, update academic-input versions or call providers.

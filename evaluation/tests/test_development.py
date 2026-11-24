@@ -89,3 +89,31 @@ class DevelopmentTests(unittest.TestCase):
   self.assertFalse(changed['matches_original_draft'])
   self.assertNotEqual(changed['draft_gold_sha256'],changed['adjudicated_annotation_sha256'])
   self.assertEqual(dev.load_bundle(ROOT/'development-v2')[0]['counts']['cases'],144)
+
+class MergedCodeReleaseTests(unittest.TestCase):
+ """Bundle 0.2.1-draft: guide v2.1 merges synonymous codes; everything else equals 0.2.0-draft."""
+ RETIRED={'missing_day','minute_rule_precision'}
+ def test_merged_bundle_loads_and_binds_guide_v2_1(self):
+  manifest,contexts,rows=dev.load_bundle(ROOT/'development-v2.1')
+  self.assertEqual(manifest['dataset_version'],'0.2.1-draft')
+  self.assertEqual(manifest['guide_version'],'annotation-guide-v2.1-draft')
+  self.assertEqual(manifest['guide_sha256'],hashlib.sha256((ROOT/'guides'/'annotation-guide-v2.1.md').read_bytes()).hexdigest())
+  self.assertEqual(manifest['counts'],{'cases':144,'families':36,'contexts':2})
+  self.assertEqual(len(harness.guarded_load(ROOT/'development-v2.1')[2]),144)
+ def test_only_retired_codes_change(self):
+  old=dev.load_bundle(ROOT/'development-v2');new=dev.load_bundle(ROOT/'development-v2.1')
+  self.assertEqual(new[0]['previous_manifest_sha256'],dev.runner.digest(old[0]))
+  self.assertEqual(old[1],new[1])
+  self.assertEqual([r['id'] for r in old[2]],[r['id'] for r in new[2]])
+  changed=[]
+  for before,after in zip(old[2],new[2]):
+   self.assertEqual({k:v for k,v in before.items() if k!='gold'},{k:v for k,v in after.items() if k!='gold'})
+   for field in ('decision','proposals'):self.assertEqual(before['gold'][field],after['gold'][field])
+   if before['gold']!=after['gold']:changed.append(after['id'])
+   self.assertFalse(self.RETIRED&set(after['gold']['clarifications']+after['gold']['unsupported']))
+  self.assertEqual(changed,new[0]['changed_item_ids'])
+  self.assertEqual(len(changed),8)
+ def test_guide_v2_1_lists_retired_codes(self):
+  text=(ROOT/'guides'/'annotation-guide-v2.1.md').read_text(encoding='utf-8')
+  for code in ('day_required','manual_rule_minute_precision_not_supported',*self.RETIRED):self.assertIn('`'+code+'`',text)
+  self.assertIn('24 November 2026',text)

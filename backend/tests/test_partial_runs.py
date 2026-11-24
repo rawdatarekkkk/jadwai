@@ -333,11 +333,16 @@ def test_one_groups_week_from_a_whole_draft_is_published_into_the_published_time
     assert process_one(factory)
     assert client.post(f"/api/schedules/{full}/publish", headers=version(client)).status_code == 200
     published = client.get(f"/api/schedules/{full}").json()['result']['assignments']
-    # Added after publishing: a group with its own course.
+    # Added after publishing: a group with its own lab, taught by its own instructor in its own lab room.
+    # The draft is a fresh whole solve, so a course sharing the teacher or room R could land on a time the
+    # published week already uses, and the merge would then (correctly) be refused with merge_validation_failed
+    # (see test_a_part_can_be_published_into_the_published_timetable). Here nothing is shared, so it always passes.
     client.post('/api/records/groups', headers=version(client), json={'name': 'H', 'code': 'H', 'size': 20, 'major': 'B', 'year': 1}).raise_for_status()
     other = next(r for r in client.get('/api/workspace').json()['records'] if r['kind'] == 'groups' and r['code'] == 'H')
-    assert client.post('/api/records/courses', headers=version(client), json={"name": "New", "code": "NEW", "activity_type": "lecture", "sessions": 1, "duration": 60,
-                                                                               "eligible_instructors": ["teacher"], "group_ids": [other['id']]}).status_code == 201
+    lab_teacher = client.post('/api/records/instructors', headers=version(client), json={'name': 'Lab Teacher', 'code': 'LT', 'department': 'CS'}).json()['id']
+    assert client.post('/api/records/rooms', headers=version(client), json={'name': 'Lab', 'code': 'LAB', 'capacity': 30, 'room_type': 'lab'}).status_code == 201
+    assert client.post('/api/records/courses', headers=version(client), json={"name": "New", "code": "NEW", "activity_type": "lab", "sessions": 1, "duration": 60,
+                                                                               "eligible_instructors": [lab_teacher], "group_ids": [other['id']]}).status_code == 201
     draft = client.post('/api/schedules', headers=version(client), json={'request_key': str(uuid4())}).json()['id']
     assert process_one(factory)
     # JAI, asked to publish H's week only, offers that and says nothing else changes.

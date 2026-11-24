@@ -1,0 +1,2070 @@
+{
+ "model": "qwen2.5:7b-instruct",
+ "cases": 144,
+ "statuses": {
+  "candidate": 132,
+  "invalid_response": 12
+ },
+ "result": {
+  "family_consistency": {
+   "family_count": 36,
+   "complete_valid_families": 24,
+   "consistent_families": 4,
+   "all_exact_families": 2,
+   "families": [
+    {
+     "family_id": "design-family-001",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "design-family-002",
+     "complete_valid": false,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "design-family-003",
+     "complete_valid": false,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "design-family-004",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "design-family-005",
+     "complete_valid": false,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "design-family-006",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "design-family-007",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "design-family-008",
+     "complete_valid": false,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "design-family-009",
+     "complete_valid": false,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "design-family-010",
+     "complete_valid": true,
+     "consistent": true,
+     "all_exact": false
+    },
+    {
+     "family_id": "design-family-011",
+     "complete_valid": false,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "design-family-012",
+     "complete_valid": false,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-001",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-002",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-003",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-004",
+     "complete_valid": false,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-005",
+     "complete_valid": false,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-007",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-008",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-009",
+     "complete_valid": true,
+     "consistent": true,
+     "all_exact": true
+    },
+    {
+     "family_id": "family-011",
+     "complete_valid": true,
+     "consistent": true,
+     "all_exact": true
+    },
+    {
+     "family_id": "family-012",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-013",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-014",
+     "complete_valid": true,
+     "consistent": true,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-015",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-016",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-017",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-019",
+     "complete_valid": false,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-020",
+     "complete_valid": false,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-022",
+     "complete_valid": false,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-025",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-026",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-028",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-029",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-030",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    },
+    {
+     "family_id": "family-031",
+     "complete_valid": true,
+     "consistent": false,
+     "all_exact": false
+    }
+   ]
+  },
+  "stage": "raw",
+  "case_count": 144,
+  "received_predictions": 144,
+  "missing_predictions": 0,
+  "valid_outputs": 122,
+  "exact_cases": 24,
+  "end_to_end_accuracy": 0.16666666666666666,
+  "decision_accuracy": 0.5555555555555556,
+  "cases_with_unknown_entity_reference": 6,
+  "metrics": {
+   "proposals": {
+    "true_positive": 44,
+    "predicted": 260,
+    "expected": 108,
+    "precision": 0.16923076923076924,
+    "recall": 0.4074074074074074,
+    "f1": 0.2391304347826087
+   },
+   "fields": {
+    "true_positive": 278,
+    "predicted": 848,
+    "expected": 616,
+    "precision": 0.3278301886792453,
+    "recall": 0.4512987012987013,
+    "f1": 0.3797814207650273
+   },
+   "clarifications": {
+    "true_positive": 6,
+    "predicted": 63,
+    "expected": 52,
+    "precision": 0.09523809523809523,
+    "recall": 0.11538461538461539,
+    "f1": 0.10434782608695652
+   },
+   "unsupported": {
+    "true_positive": 4,
+    "predicted": 34,
+    "expected": 16,
+    "precision": 0.11764705882352941,
+    "recall": 0.25,
+    "f1": 0.16
+   }
+  },
+  "by_language": {
+   "en": {
+    "cases": 36,
+    "exact": 8,
+    "end_to_end_accuracy": 0.2222222222222222
+   },
+   "ar": {
+    "cases": 36,
+    "exact": 8,
+    "end_to_end_accuracy": 0.2222222222222222
+   },
+   "arz": {
+    "cases": 36,
+    "exact": 3,
+    "end_to_end_accuracy": 0.08333333333333333
+   },
+   "mixed": {
+    "cases": 36,
+    "exact": 5,
+    "end_to_end_accuracy": 0.1388888888888889
+   }
+  },
+  "telemetry": {
+   "latency_ms": {
+    "observed_cases": 144,
+    "missing_cases": 0,
+    "sum": 10335696,
+    "mean": 71775.66666666667
+   },
+   "cost_usd": {
+    "observed_cases": 144,
+    "missing_cases": 0,
+    "sum": 0,
+    "mean": 0.0
+   },
+   "attempts": {
+    "observed_cases": 144,
+    "missing_cases": 0,
+    "sum": 144,
+    "mean": 1.0
+   },
+   "input_tokens": {
+    "observed_cases": 132,
+    "missing_cases": 12,
+    "sum": 160932,
+    "mean": 1219.1818181818182
+   },
+   "output_tokens": {
+    "observed_cases": 132,
+    "missing_cases": 12,
+    "sum": 19213,
+    "mean": 145.5530303030303
+   }
+  },
+  "cases": [
+   {
+    "id": "jdw-001-en",
+    "language": "en",
+    "family_id": "family-001",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
+    "observed_sha256": "b586459f038fdbf18a5dc2ab912b16ff6a573767637201ac9a14c768bb8e4b56"
+   },
+   {
+    "id": "jdw-001-ar",
+    "language": "ar",
+    "family_id": "family-001",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
+    "observed_sha256": "b586459f038fdbf18a5dc2ab912b16ff6a573767637201ac9a14c768bb8e4b56"
+   },
+   {
+    "id": "jdw-001-arz",
+    "language": "arz",
+    "family_id": "family-001",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
+    "observed_sha256": "0ce1cdc9ffebfa08a1e9645f08bddc03faab89e2b12f6565ffe3606838615b1e"
+   },
+   {
+    "id": "jdw-001-mixed",
+    "language": "mixed",
+    "family_id": "family-001",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
+    "observed_sha256": "8ba375697cbe09a0dc60de48eeede258ec0cf8ec6b012efa82034b800316bbe1"
+   },
+   {
+    "id": "jdw-002-en",
+    "language": "en",
+    "family_id": "family-002",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "44da066755ad24ad00e704341b9a9dbfcef18f0a73f9f978bcbdec9425ce65f8",
+    "observed_sha256": "ffc571f5a78f7680957419953c65ccf5fb32a7598b4bb4276b8106c6d2fc7fd1"
+   },
+   {
+    "id": "jdw-002-ar",
+    "language": "ar",
+    "family_id": "family-002",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "44da066755ad24ad00e704341b9a9dbfcef18f0a73f9f978bcbdec9425ce65f8",
+    "observed_sha256": "75ac18b7a1cd27a11f3ddbe46240699a1e073fbfaa946af15f08423a8d17c5eb"
+   },
+   {
+    "id": "jdw-002-arz",
+    "language": "arz",
+    "family_id": "family-002",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "44da066755ad24ad00e704341b9a9dbfcef18f0a73f9f978bcbdec9425ce65f8",
+    "observed_sha256": "0c11628a8e7e930e776fea57964f772cf003668dad08b6027a6023d96ede9b21"
+   },
+   {
+    "id": "jdw-002-mixed",
+    "language": "mixed",
+    "family_id": "family-002",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "44da066755ad24ad00e704341b9a9dbfcef18f0a73f9f978bcbdec9425ce65f8",
+    "observed_sha256": "c2afe3a5f212ea42b0d6532ff5733fe335c3a6cc76eff34901189c3cdf823740"
+   },
+   {
+    "id": "jdw-003-en",
+    "language": "en",
+    "family_id": "family-003",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "869385ef95689cadc8e2ea4ad263d8284eab43ca7409cfd1ad8e2fcec6fda0a3",
+    "observed_sha256": "287da6444a22e42c8be79bfdd8250335302f9068c9df417a91ce3fe923ea84a8"
+   },
+   {
+    "id": "jdw-003-ar",
+    "language": "ar",
+    "family_id": "family-003",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "869385ef95689cadc8e2ea4ad263d8284eab43ca7409cfd1ad8e2fcec6fda0a3",
+    "observed_sha256": "287da6444a22e42c8be79bfdd8250335302f9068c9df417a91ce3fe923ea84a8"
+   },
+   {
+    "id": "jdw-003-arz",
+    "language": "arz",
+    "family_id": "family-003",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "869385ef95689cadc8e2ea4ad263d8284eab43ca7409cfd1ad8e2fcec6fda0a3",
+    "observed_sha256": "287da6444a22e42c8be79bfdd8250335302f9068c9df417a91ce3fe923ea84a8"
+   },
+   {
+    "id": "jdw-003-mixed",
+    "language": "mixed",
+    "family_id": "family-003",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "869385ef95689cadc8e2ea4ad263d8284eab43ca7409cfd1ad8e2fcec6fda0a3",
+    "observed_sha256": "3b1547ed7d9b504b6496f8a4130366f0636201a4e4268cf9ea50b15e385e9b24"
+   },
+   {
+    "id": "jdw-004-en",
+    "language": "en",
+    "family_id": "family-004",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "c182096592c135b506524f5c70097a91baa2f19848954f2a725d1ff514f8c389",
+    "observed_sha256": "6a5e6985754c19854c1c95c92933fa4054d0cbb87c52a9d93cd6a2256f036df9"
+   },
+   {
+    "id": "jdw-004-ar",
+    "language": "ar",
+    "family_id": "family-004",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "c182096592c135b506524f5c70097a91baa2f19848954f2a725d1ff514f8c389",
+    "observed_sha256": "6a5e6985754c19854c1c95c92933fa4054d0cbb87c52a9d93cd6a2256f036df9"
+   },
+   {
+    "id": "jdw-004-arz",
+    "language": "arz",
+    "family_id": "family-004",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "c182096592c135b506524f5c70097a91baa2f19848954f2a725d1ff514f8c389",
+    "observed_sha256": "ab42b3f9165a65cd9d9deea198939b0e17e6528b63c63b71adc426ac9421b85c"
+   },
+   {
+    "id": "jdw-004-mixed",
+    "language": "mixed",
+    "family_id": "family-004",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "output_structure"
+    ],
+    "exact": false,
+    "expected_sha256": "c182096592c135b506524f5c70097a91baa2f19848954f2a725d1ff514f8c389",
+    "observed_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+   },
+   {
+    "id": "jdw-005-en",
+    "language": "en",
+    "family_id": "family-005",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "8e4fd334ecd168dd255ac2e3e8f4cdb3fe66a14119e0a8605e530ef253db0b91",
+    "observed_sha256": "2ab9955eaa8b3a51d423096523ddb91e6d54734fa1aa3de234ff24c7088eb533"
+   },
+   {
+    "id": "jdw-005-ar",
+    "language": "ar",
+    "family_id": "family-005",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "output_structure"
+    ],
+    "exact": false,
+    "expected_sha256": "8e4fd334ecd168dd255ac2e3e8f4cdb3fe66a14119e0a8605e530ef253db0b91",
+    "observed_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+   },
+   {
+    "id": "jdw-005-arz",
+    "language": "arz",
+    "family_id": "family-005",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "8e4fd334ecd168dd255ac2e3e8f4cdb3fe66a14119e0a8605e530ef253db0b91",
+    "observed_sha256": "db8525e6afc2d27828d1b77b4907ce6e100c0a9dbbce5b55072d9413785b1021"
+   },
+   {
+    "id": "jdw-005-mixed",
+    "language": "mixed",
+    "family_id": "family-005",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "8e4fd334ecd168dd255ac2e3e8f4cdb3fe66a14119e0a8605e530ef253db0b91",
+    "observed_sha256": "7b0be119dc78244ad96dd1cfd5c2cdea50faea22f48f53de9679fe6537e122eb"
+   },
+   {
+    "id": "jdw-007-en",
+    "language": "en",
+    "family_id": "family-007",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "932f224e0cd2821c9f965ac5424895eae561334f0ffc515357ec321e6e618ff8",
+    "observed_sha256": "cc3be07ddf57bcbb4f849c579581ee9fa4b27d0abdf3d8ce902289dabd7cb0eb"
+   },
+   {
+    "id": "jdw-007-ar",
+    "language": "ar",
+    "family_id": "family-007",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "932f224e0cd2821c9f965ac5424895eae561334f0ffc515357ec321e6e618ff8",
+    "observed_sha256": "0ce1cdc9ffebfa08a1e9645f08bddc03faab89e2b12f6565ffe3606838615b1e"
+   },
+   {
+    "id": "jdw-007-arz",
+    "language": "arz",
+    "family_id": "family-007",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "932f224e0cd2821c9f965ac5424895eae561334f0ffc515357ec321e6e618ff8",
+    "observed_sha256": "0ce1cdc9ffebfa08a1e9645f08bddc03faab89e2b12f6565ffe3606838615b1e"
+   },
+   {
+    "id": "jdw-007-mixed",
+    "language": "mixed",
+    "family_id": "family-007",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "932f224e0cd2821c9f965ac5424895eae561334f0ffc515357ec321e6e618ff8",
+    "observed_sha256": "81b9e6c53d470c3d6d53a049c1d918612afc64af12bd06e35dbbf3aa1cf4b555"
+   },
+   {
+    "id": "jdw-008-en",
+    "language": "en",
+    "family_id": "family-008",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "0a78d5abd960afa2f74babfe79437b91006207476c83a008676a0788585c4747",
+    "observed_sha256": "b6ca8bc87d81514c65ede3de041e9ba4ccba458fe6f1a655a571fba56ab757f9"
+   },
+   {
+    "id": "jdw-008-ar",
+    "language": "ar",
+    "family_id": "family-008",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "0a78d5abd960afa2f74babfe79437b91006207476c83a008676a0788585c4747",
+    "observed_sha256": "c6efb0ba19eba9501c4cf5b60ea32138b12c15d87f1f98c9965d31bab6256c8c"
+   },
+   {
+    "id": "jdw-008-arz",
+    "language": "arz",
+    "family_id": "family-008",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "0a78d5abd960afa2f74babfe79437b91006207476c83a008676a0788585c4747",
+    "observed_sha256": "e5a5a04a1659855dbea3dafee4f1fa8b871344aa02abc92cb5c2a2c0ca210d3f"
+   },
+   {
+    "id": "jdw-008-mixed",
+    "language": "mixed",
+    "family_id": "family-008",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "0a78d5abd960afa2f74babfe79437b91006207476c83a008676a0788585c4747",
+    "observed_sha256": "0adadbcb6c6666f4b6d1c66fff11c8753a027966a88b56955f5a947eb0245226"
+   },
+   {
+    "id": "jdw-009-en",
+    "language": "en",
+    "family_id": "family-009",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5",
+    "observed_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5"
+   },
+   {
+    "id": "jdw-009-ar",
+    "language": "ar",
+    "family_id": "family-009",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5",
+    "observed_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5"
+   },
+   {
+    "id": "jdw-009-arz",
+    "language": "arz",
+    "family_id": "family-009",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5",
+    "observed_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5"
+   },
+   {
+    "id": "jdw-009-mixed",
+    "language": "mixed",
+    "family_id": "family-009",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5",
+    "observed_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5"
+   },
+   {
+    "id": "jdw-011-en",
+    "language": "en",
+    "family_id": "family-011",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "6aa97c2e1d158e18e1dc8ce24496f93a933a0a3d333a86baceb434213ce9ba88",
+    "observed_sha256": "6aa97c2e1d158e18e1dc8ce24496f93a933a0a3d333a86baceb434213ce9ba88"
+   },
+   {
+    "id": "jdw-011-ar",
+    "language": "ar",
+    "family_id": "family-011",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "6aa97c2e1d158e18e1dc8ce24496f93a933a0a3d333a86baceb434213ce9ba88",
+    "observed_sha256": "6aa97c2e1d158e18e1dc8ce24496f93a933a0a3d333a86baceb434213ce9ba88"
+   },
+   {
+    "id": "jdw-011-arz",
+    "language": "arz",
+    "family_id": "family-011",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "6aa97c2e1d158e18e1dc8ce24496f93a933a0a3d333a86baceb434213ce9ba88",
+    "observed_sha256": "6aa97c2e1d158e18e1dc8ce24496f93a933a0a3d333a86baceb434213ce9ba88"
+   },
+   {
+    "id": "jdw-011-mixed",
+    "language": "mixed",
+    "family_id": "family-011",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "6aa97c2e1d158e18e1dc8ce24496f93a933a0a3d333a86baceb434213ce9ba88",
+    "observed_sha256": "6aa97c2e1d158e18e1dc8ce24496f93a933a0a3d333a86baceb434213ce9ba88"
+   },
+   {
+    "id": "jdw-012-en",
+    "language": "en",
+    "family_id": "family-012",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "7d037c2eefc327c40bf7728302c96153372eb86e469487b0cbd08284ba4911eb",
+    "observed_sha256": "b586459f038fdbf18a5dc2ab912b16ff6a573767637201ac9a14c768bb8e4b56"
+   },
+   {
+    "id": "jdw-012-ar",
+    "language": "ar",
+    "family_id": "family-012",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "7d037c2eefc327c40bf7728302c96153372eb86e469487b0cbd08284ba4911eb",
+    "observed_sha256": "b586459f038fdbf18a5dc2ab912b16ff6a573767637201ac9a14c768bb8e4b56"
+   },
+   {
+    "id": "jdw-012-arz",
+    "language": "arz",
+    "family_id": "family-012",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "7d037c2eefc327c40bf7728302c96153372eb86e469487b0cbd08284ba4911eb",
+    "observed_sha256": "b586459f038fdbf18a5dc2ab912b16ff6a573767637201ac9a14c768bb8e4b56"
+   },
+   {
+    "id": "jdw-012-mixed",
+    "language": "mixed",
+    "family_id": "family-012",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "7d037c2eefc327c40bf7728302c96153372eb86e469487b0cbd08284ba4911eb",
+    "observed_sha256": "0ce1cdc9ffebfa08a1e9645f08bddc03faab89e2b12f6565ffe3606838615b1e"
+   },
+   {
+    "id": "jdw-013-en",
+    "language": "en",
+    "family_id": "family-013",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "94892f1b26dfbe571863c81177c7281d49c8c510c0143d86cc0bdff07b58af37",
+    "observed_sha256": "8ba375697cbe09a0dc60de48eeede258ec0cf8ec6b012efa82034b800316bbe1"
+   },
+   {
+    "id": "jdw-013-ar",
+    "language": "ar",
+    "family_id": "family-013",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "94892f1b26dfbe571863c81177c7281d49c8c510c0143d86cc0bdff07b58af37",
+    "observed_sha256": "b586459f038fdbf18a5dc2ab912b16ff6a573767637201ac9a14c768bb8e4b56"
+   },
+   {
+    "id": "jdw-013-arz",
+    "language": "arz",
+    "family_id": "family-013",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "94892f1b26dfbe571863c81177c7281d49c8c510c0143d86cc0bdff07b58af37",
+    "observed_sha256": "d38091f151e2542a8226449415e3a95739a426840f22018ca3704b6726007783"
+   },
+   {
+    "id": "jdw-013-mixed",
+    "language": "mixed",
+    "family_id": "family-013",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "94892f1b26dfbe571863c81177c7281d49c8c510c0143d86cc0bdff07b58af37",
+    "observed_sha256": "8ba375697cbe09a0dc60de48eeede258ec0cf8ec6b012efa82034b800316bbe1"
+   },
+   {
+    "id": "jdw-014-en",
+    "language": "en",
+    "family_id": "family-014",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "29083a83a74260b893d8660622b4d8ff0e8e448c4058f18a239f377de7d90826",
+    "observed_sha256": "b586459f038fdbf18a5dc2ab912b16ff6a573767637201ac9a14c768bb8e4b56"
+   },
+   {
+    "id": "jdw-014-ar",
+    "language": "ar",
+    "family_id": "family-014",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "29083a83a74260b893d8660622b4d8ff0e8e448c4058f18a239f377de7d90826",
+    "observed_sha256": "b586459f038fdbf18a5dc2ab912b16ff6a573767637201ac9a14c768bb8e4b56"
+   },
+   {
+    "id": "jdw-014-arz",
+    "language": "arz",
+    "family_id": "family-014",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "29083a83a74260b893d8660622b4d8ff0e8e448c4058f18a239f377de7d90826",
+    "observed_sha256": "b586459f038fdbf18a5dc2ab912b16ff6a573767637201ac9a14c768bb8e4b56"
+   },
+   {
+    "id": "jdw-014-mixed",
+    "language": "mixed",
+    "family_id": "family-014",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "29083a83a74260b893d8660622b4d8ff0e8e448c4058f18a239f377de7d90826",
+    "observed_sha256": "b586459f038fdbf18a5dc2ab912b16ff6a573767637201ac9a14c768bb8e4b56"
+   },
+   {
+    "id": "jdw-015-en",
+    "language": "en",
+    "family_id": "family-015",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "2dd08f6770b31b9e06253d04def5f4268f6f3fcc4936f980ebcc8dd41e0fff6f",
+    "observed_sha256": "0adadbcb6c6666f4b6d1c66fff11c8753a027966a88b56955f5a947eb0245226"
+   },
+   {
+    "id": "jdw-015-ar",
+    "language": "ar",
+    "family_id": "family-015",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "2dd08f6770b31b9e06253d04def5f4268f6f3fcc4936f980ebcc8dd41e0fff6f",
+    "observed_sha256": "f9640f648117745f3d29863b72bd2351160cc728da51c49d7598319b696b759f"
+   },
+   {
+    "id": "jdw-015-arz",
+    "language": "arz",
+    "family_id": "family-015",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "2dd08f6770b31b9e06253d04def5f4268f6f3fcc4936f980ebcc8dd41e0fff6f",
+    "observed_sha256": "aee81557dbc1afd9bdc45af5d92eafb21b64d6cd3d082cf8bba06047dec7e33b"
+   },
+   {
+    "id": "jdw-015-mixed",
+    "language": "mixed",
+    "family_id": "family-015",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "2dd08f6770b31b9e06253d04def5f4268f6f3fcc4936f980ebcc8dd41e0fff6f",
+    "observed_sha256": "0fd1108e5c9daa6e30af002197d3d3da687b8060139b3c8132548c1faaa0ab15"
+   },
+   {
+    "id": "jdw-016-en",
+    "language": "en",
+    "family_id": "family-016",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736",
+    "observed_sha256": "62d824d19a4e12732de7ce1224b52f49411d3b615cf6af7a442e007ab747b714"
+   },
+   {
+    "id": "jdw-016-ar",
+    "language": "ar",
+    "family_id": "family-016",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736",
+    "observed_sha256": "62d824d19a4e12732de7ce1224b52f49411d3b615cf6af7a442e007ab747b714"
+   },
+   {
+    "id": "jdw-016-arz",
+    "language": "arz",
+    "family_id": "family-016",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736",
+    "observed_sha256": "10eeed85995feb6c710d9d952166a54ce2d79f061305a76ae985f24a6e80a50f"
+   },
+   {
+    "id": "jdw-016-mixed",
+    "language": "mixed",
+    "family_id": "family-016",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736",
+    "observed_sha256": "d21c110661f976a3a73f37b2b04dd47ff9746ddda764f96335977171a36b9ac9"
+   },
+   {
+    "id": "jdw-017-en",
+    "language": "en",
+    "family_id": "family-017",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "05e954fc4e5ad7756cda3fd697fff02d761b770199b4a7688b40b1ae6d4b2733",
+    "observed_sha256": "b586459f038fdbf18a5dc2ab912b16ff6a573767637201ac9a14c768bb8e4b56"
+   },
+   {
+    "id": "jdw-017-ar",
+    "language": "ar",
+    "family_id": "family-017",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "05e954fc4e5ad7756cda3fd697fff02d761b770199b4a7688b40b1ae6d4b2733",
+    "observed_sha256": "b586459f038fdbf18a5dc2ab912b16ff6a573767637201ac9a14c768bb8e4b56"
+   },
+   {
+    "id": "jdw-017-arz",
+    "language": "arz",
+    "family_id": "family-017",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "05e954fc4e5ad7756cda3fd697fff02d761b770199b4a7688b40b1ae6d4b2733",
+    "observed_sha256": "91f00f1679a5fa70477790d138da3343dda1fe667398929f2aa1537712e5786b"
+   },
+   {
+    "id": "jdw-017-mixed",
+    "language": "mixed",
+    "family_id": "family-017",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "05e954fc4e5ad7756cda3fd697fff02d761b770199b4a7688b40b1ae6d4b2733",
+    "observed_sha256": "b586459f038fdbf18a5dc2ab912b16ff6a573767637201ac9a14c768bb8e4b56"
+   },
+   {
+    "id": "jdw-019-en",
+    "language": "en",
+    "family_id": "family-019",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
+    "observed_sha256": "fc6b9eb1d34a1b0c3c01eb97fedd0c89790a1a64f3a9b539fff72d8c2582df97"
+   },
+   {
+    "id": "jdw-019-ar",
+    "language": "ar",
+    "family_id": "family-019",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
+    "observed_sha256": "fc6b9eb1d34a1b0c3c01eb97fedd0c89790a1a64f3a9b539fff72d8c2582df97"
+   },
+   {
+    "id": "jdw-019-arz",
+    "language": "arz",
+    "family_id": "family-019",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "invalid_hours"
+    ],
+    "exact": false,
+    "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
+    "observed_sha256": "a1455ed55be946d0dfd21ef5a927e3e8180db5587d5d8acca9b5d7cfd614e24a"
+   },
+   {
+    "id": "jdw-019-mixed",
+    "language": "mixed",
+    "family_id": "family-019",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "e3264f6e279cc66a1d309593f0314c9ef01df3b551a147cbfaf845a7c1443b08",
+    "observed_sha256": "fc6b9eb1d34a1b0c3c01eb97fedd0c89790a1a64f3a9b539fff72d8c2582df97"
+   },
+   {
+    "id": "jdw-020-en",
+    "language": "en",
+    "family_id": "family-020",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "output_structure"
+    ],
+    "exact": false,
+    "expected_sha256": "46c07afad26ce236e6ba648d2e4b6b492790b996a5f054d69cb1875b2e048527",
+    "observed_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+   },
+   {
+    "id": "jdw-020-ar",
+    "language": "ar",
+    "family_id": "family-020",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "46c07afad26ce236e6ba648d2e4b6b492790b996a5f054d69cb1875b2e048527",
+    "observed_sha256": "3ad8dafe6650873e3c55916878148e262263080c8bd85ec94e54f8533d288ad2"
+   },
+   {
+    "id": "jdw-020-arz",
+    "language": "arz",
+    "family_id": "family-020",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "46c07afad26ce236e6ba648d2e4b6b492790b996a5f054d69cb1875b2e048527",
+    "observed_sha256": "3ccacdb558490c8eaae39b4eccb9c694b577d1fec5a402e89087cc207b930af9"
+   },
+   {
+    "id": "jdw-020-mixed",
+    "language": "mixed",
+    "family_id": "family-020",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "46c07afad26ce236e6ba648d2e4b6b492790b996a5f054d69cb1875b2e048527",
+    "observed_sha256": "2939b89e9fdc57fe2009094671264257be33482ccdf06a2e44908f9765076961"
+   },
+   {
+    "id": "jdw-022-en",
+    "language": "en",
+    "family_id": "family-022",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "output_structure"
+    ],
+    "exact": false,
+    "expected_sha256": "c94dc99cddcca7fc913a5fd62b954520fa90f8cea9845053d9f3871a0e55e27b",
+    "observed_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+   },
+   {
+    "id": "jdw-022-ar",
+    "language": "ar",
+    "family_id": "family-022",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "output_structure"
+    ],
+    "exact": false,
+    "expected_sha256": "c94dc99cddcca7fc913a5fd62b954520fa90f8cea9845053d9f3871a0e55e27b",
+    "observed_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+   },
+   {
+    "id": "jdw-022-arz",
+    "language": "arz",
+    "family_id": "family-022",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "output_structure"
+    ],
+    "exact": false,
+    "expected_sha256": "c94dc99cddcca7fc913a5fd62b954520fa90f8cea9845053d9f3871a0e55e27b",
+    "observed_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+   },
+   {
+    "id": "jdw-022-mixed",
+    "language": "mixed",
+    "family_id": "family-022",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "output_structure"
+    ],
+    "exact": false,
+    "expected_sha256": "c94dc99cddcca7fc913a5fd62b954520fa90f8cea9845053d9f3871a0e55e27b",
+    "observed_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+   },
+   {
+    "id": "jdw-025-en",
+    "language": "en",
+    "family_id": "family-025",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "a6713d7c130cdb4463a11c678f262b51be28f7b849e01eb5fc24496b6bd1a8df",
+    "observed_sha256": "8ba375697cbe09a0dc60de48eeede258ec0cf8ec6b012efa82034b800316bbe1"
+   },
+   {
+    "id": "jdw-025-ar",
+    "language": "ar",
+    "family_id": "family-025",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "a6713d7c130cdb4463a11c678f262b51be28f7b849e01eb5fc24496b6bd1a8df",
+    "observed_sha256": "afeaf60da600ea0d8736d2867a97ae4ac9e551d053b3c6985d62bab6e79ada0a"
+   },
+   {
+    "id": "jdw-025-arz",
+    "language": "arz",
+    "family_id": "family-025",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "a6713d7c130cdb4463a11c678f262b51be28f7b849e01eb5fc24496b6bd1a8df",
+    "observed_sha256": "a0ec9275174ed44ac3252a2bfe0d37a18144f2691521a953c4775097f55420be"
+   },
+   {
+    "id": "jdw-025-mixed",
+    "language": "mixed",
+    "family_id": "family-025",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "a6713d7c130cdb4463a11c678f262b51be28f7b849e01eb5fc24496b6bd1a8df",
+    "observed_sha256": "8ba375697cbe09a0dc60de48eeede258ec0cf8ec6b012efa82034b800316bbe1"
+   },
+   {
+    "id": "jdw-026-en",
+    "language": "en",
+    "family_id": "family-026",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "e4073211f78e3d380082a5e3d3b240fff2839e7dd996acde12111ab1e1c542de",
+    "observed_sha256": "6a5e6985754c19854c1c95c92933fa4054d0cbb87c52a9d93cd6a2256f036df9"
+   },
+   {
+    "id": "jdw-026-ar",
+    "language": "ar",
+    "family_id": "family-026",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "e4073211f78e3d380082a5e3d3b240fff2839e7dd996acde12111ab1e1c542de",
+    "observed_sha256": "6a5e6985754c19854c1c95c92933fa4054d0cbb87c52a9d93cd6a2256f036df9"
+   },
+   {
+    "id": "jdw-026-arz",
+    "language": "arz",
+    "family_id": "family-026",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "e4073211f78e3d380082a5e3d3b240fff2839e7dd996acde12111ab1e1c542de",
+    "observed_sha256": "d6c10f5413005acedd005b7814dbbb870dfcdab4cc99c2dadd06b8e28ccaeaaa"
+   },
+   {
+    "id": "jdw-026-mixed",
+    "language": "mixed",
+    "family_id": "family-026",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "e4073211f78e3d380082a5e3d3b240fff2839e7dd996acde12111ab1e1c542de",
+    "observed_sha256": "6a5e6985754c19854c1c95c92933fa4054d0cbb87c52a9d93cd6a2256f036df9"
+   },
+   {
+    "id": "jdw-028-en",
+    "language": "en",
+    "family_id": "family-028",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "7b5a55597b5512c02b1d5441c97865eeeff4ded80ce5df69cd0e25cde131f336",
+    "observed_sha256": "3d71d78f1c3f2b6030625381a3f993c87eeac0312937d9e560579c1e6a10484f"
+   },
+   {
+    "id": "jdw-028-ar",
+    "language": "ar",
+    "family_id": "family-028",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "7b5a55597b5512c02b1d5441c97865eeeff4ded80ce5df69cd0e25cde131f336",
+    "observed_sha256": "04fa5a8564afb0698115b104557f9d16a417bf7e59171bdbf3fc081c7f0140d6"
+   },
+   {
+    "id": "jdw-028-arz",
+    "language": "arz",
+    "family_id": "family-028",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "7b5a55597b5512c02b1d5441c97865eeeff4ded80ce5df69cd0e25cde131f336",
+    "observed_sha256": "dadc17b3f87e40a2595c6972a1d539248006f41d61246e9dcb382efe1cabd576"
+   },
+   {
+    "id": "jdw-028-mixed",
+    "language": "mixed",
+    "family_id": "family-028",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "7b5a55597b5512c02b1d5441c97865eeeff4ded80ce5df69cd0e25cde131f336",
+    "observed_sha256": "3d71d78f1c3f2b6030625381a3f993c87eeac0312937d9e560579c1e6a10484f"
+   },
+   {
+    "id": "jdw-029-en",
+    "language": "en",
+    "family_id": "family-029",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e",
+    "observed_sha256": "8ba375697cbe09a0dc60de48eeede258ec0cf8ec6b012efa82034b800316bbe1"
+   },
+   {
+    "id": "jdw-029-ar",
+    "language": "ar",
+    "family_id": "family-029",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e",
+    "observed_sha256": "9758ab0848a08c189329fd846847c5b5cb240dfd0d613975f30e70888d47c3fb"
+   },
+   {
+    "id": "jdw-029-arz",
+    "language": "arz",
+    "family_id": "family-029",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e",
+    "observed_sha256": "6eaef24686454ce81876d53654e6229ed5ee3a701c44c117499a4b2154bbdbd8"
+   },
+   {
+    "id": "jdw-029-mixed",
+    "language": "mixed",
+    "family_id": "family-029",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "9cb14d5b26959097a7c396e4ad45c1b7cc538535df3510d61bc28b0a0c9f875e",
+    "observed_sha256": "2e3a2197280ef1b524c861faa7ca21502d9d935a99292ad6fde47ded070e581c"
+   },
+   {
+    "id": "jdw-030-en",
+    "language": "en",
+    "family_id": "family-030",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "d30a639e35831cbd2a334b7162a1a5dafcaf65d894c233abdb99f7bfe919e5a8",
+    "observed_sha256": "388c307a7f4596752de0dfa42d2099d1a794a923c0d1a793215faf867ba7c974"
+   },
+   {
+    "id": "jdw-030-ar",
+    "language": "ar",
+    "family_id": "family-030",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "d30a639e35831cbd2a334b7162a1a5dafcaf65d894c233abdb99f7bfe919e5a8",
+    "observed_sha256": "388c307a7f4596752de0dfa42d2099d1a794a923c0d1a793215faf867ba7c974"
+   },
+   {
+    "id": "jdw-030-arz",
+    "language": "arz",
+    "family_id": "family-030",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "d30a639e35831cbd2a334b7162a1a5dafcaf65d894c233abdb99f7bfe919e5a8",
+    "observed_sha256": "d01e874e8172aa6492a03c3e3c6b856080152d7ef47ba5d457003d4d3732522f"
+   },
+   {
+    "id": "jdw-030-mixed",
+    "language": "mixed",
+    "family_id": "family-030",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "d30a639e35831cbd2a334b7162a1a5dafcaf65d894c233abdb99f7bfe919e5a8",
+    "observed_sha256": "1659e2c507160b6371010ec1020a0c429aba53369c96aec928d8c3ff6b4d8da0"
+   },
+   {
+    "id": "jdw-031-en",
+    "language": "en",
+    "family_id": "family-031",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5",
+    "observed_sha256": "c10bbe8f75ea82802abd61b3ca37e3c8e94554afdac357cc6f92e16769afa8f1"
+   },
+   {
+    "id": "jdw-031-ar",
+    "language": "ar",
+    "family_id": "family-031",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5",
+    "observed_sha256": "c10bbe8f75ea82802abd61b3ca37e3c8e94554afdac357cc6f92e16769afa8f1"
+   },
+   {
+    "id": "jdw-031-arz",
+    "language": "arz",
+    "family_id": "family-031",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5",
+    "observed_sha256": "522db32aeaa41d8fcf362a4f05207a138394bdfc720dab033a40cd557da7b0e8"
+   },
+   {
+    "id": "jdw-031-mixed",
+    "language": "mixed",
+    "family_id": "family-031",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5",
+    "observed_sha256": "c9c87740795caaef7b3950ecb4abcef34f56240d30596b5420b0c50c79a66cb5"
+   },
+   {
+    "id": "design-001-en",
+    "language": "en",
+    "family_id": "design-family-001",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "2dde10394aabb66aa14cb8fc04f3bed6d383861f9ebd0b0d1895eb9fdd692ae7",
+    "observed_sha256": "4a33be7e91c597ee59dc0ad50eb4677bc15f58d06588f68c69c31a086216dfff"
+   },
+   {
+    "id": "design-001-ar",
+    "language": "ar",
+    "family_id": "design-family-001",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "2dde10394aabb66aa14cb8fc04f3bed6d383861f9ebd0b0d1895eb9fdd692ae7",
+    "observed_sha256": "d9b6eeed364faf3b1c5c7c5520446981dc97945789990c0934e65c498aa9f157"
+   },
+   {
+    "id": "design-001-arz",
+    "language": "arz",
+    "family_id": "design-family-001",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "2dde10394aabb66aa14cb8fc04f3bed6d383861f9ebd0b0d1895eb9fdd692ae7",
+    "observed_sha256": "4a33be7e91c597ee59dc0ad50eb4677bc15f58d06588f68c69c31a086216dfff"
+   },
+   {
+    "id": "design-001-mixed",
+    "language": "mixed",
+    "family_id": "design-family-001",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "2dde10394aabb66aa14cb8fc04f3bed6d383861f9ebd0b0d1895eb9fdd692ae7",
+    "observed_sha256": "4a33be7e91c597ee59dc0ad50eb4677bc15f58d06588f68c69c31a086216dfff"
+   },
+   {
+    "id": "design-002-en",
+    "language": "en",
+    "family_id": "design-family-002",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "7c574c2fb8db540808d4d6f800502ebd3a14da68e2973ecf6415dfa05d6584f0",
+    "observed_sha256": "7c574c2fb8db540808d4d6f800502ebd3a14da68e2973ecf6415dfa05d6584f0"
+   },
+   {
+    "id": "design-002-ar",
+    "language": "ar",
+    "family_id": "design-family-002",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "7c574c2fb8db540808d4d6f800502ebd3a14da68e2973ecf6415dfa05d6584f0",
+    "observed_sha256": "7c574c2fb8db540808d4d6f800502ebd3a14da68e2973ecf6415dfa05d6584f0"
+   },
+   {
+    "id": "design-002-arz",
+    "language": "arz",
+    "family_id": "design-family-002",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "output_structure"
+    ],
+    "exact": false,
+    "expected_sha256": "7c574c2fb8db540808d4d6f800502ebd3a14da68e2973ecf6415dfa05d6584f0",
+    "observed_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+   },
+   {
+    "id": "design-002-mixed",
+    "language": "mixed",
+    "family_id": "design-family-002",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "7c574c2fb8db540808d4d6f800502ebd3a14da68e2973ecf6415dfa05d6584f0",
+    "observed_sha256": "7c574c2fb8db540808d4d6f800502ebd3a14da68e2973ecf6415dfa05d6584f0"
+   },
+   {
+    "id": "design-003-en",
+    "language": "en",
+    "family_id": "design-family-003",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "7a7da37aea34621c9958a08c265793cd7ff0ea81973ba2c338f47693245d97d6",
+    "observed_sha256": "7a7da37aea34621c9958a08c265793cd7ff0ea81973ba2c338f47693245d97d6"
+   },
+   {
+    "id": "design-003-ar",
+    "language": "ar",
+    "family_id": "design-family-003",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "7a7da37aea34621c9958a08c265793cd7ff0ea81973ba2c338f47693245d97d6",
+    "observed_sha256": "7a7da37aea34621c9958a08c265793cd7ff0ea81973ba2c338f47693245d97d6"
+   },
+   {
+    "id": "design-003-arz",
+    "language": "arz",
+    "family_id": "design-family-003",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "7a7da37aea34621c9958a08c265793cd7ff0ea81973ba2c338f47693245d97d6",
+    "observed_sha256": "1a2130b148e9449edd5c3a4f2f77cef4f6816c8680b904845ba0710a5623a524"
+   },
+   {
+    "id": "design-003-mixed",
+    "language": "mixed",
+    "family_id": "design-family-003",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "output_structure"
+    ],
+    "exact": false,
+    "expected_sha256": "7a7da37aea34621c9958a08c265793cd7ff0ea81973ba2c338f47693245d97d6",
+    "observed_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+   },
+   {
+    "id": "design-004-en",
+    "language": "en",
+    "family_id": "design-family-004",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": true,
+    "expected_sha256": "c536e9c79bc425e0e29c0d7188cb41b7218245fc052de50ca38938ca7330fd6a",
+    "observed_sha256": "c536e9c79bc425e0e29c0d7188cb41b7218245fc052de50ca38938ca7330fd6a"
+   },
+   {
+    "id": "design-004-ar",
+    "language": "ar",
+    "family_id": "design-family-004",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "c536e9c79bc425e0e29c0d7188cb41b7218245fc052de50ca38938ca7330fd6a",
+    "observed_sha256": "c4a3c1762498021d24895b55c258aabacf5c287ec11cc1b2297cf0b28f32c3e3"
+   },
+   {
+    "id": "design-004-arz",
+    "language": "arz",
+    "family_id": "design-family-004",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "c536e9c79bc425e0e29c0d7188cb41b7218245fc052de50ca38938ca7330fd6a",
+    "observed_sha256": "05edc0506368a9c0cbfce41280dc44b3aed92a66a23b820f30acf404c850d5ba"
+   },
+   {
+    "id": "design-004-mixed",
+    "language": "mixed",
+    "family_id": "design-family-004",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "c536e9c79bc425e0e29c0d7188cb41b7218245fc052de50ca38938ca7330fd6a",
+    "observed_sha256": "c4a3c1762498021d24895b55c258aabacf5c287ec11cc1b2297cf0b28f32c3e3"
+   },
+   {
+    "id": "design-005-en",
+    "language": "en",
+    "family_id": "design-family-005",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "cc81de0c207df2bc4dd141172b81aa9feb9b26503519e3b83e651cc43f312dbb",
+    "observed_sha256": "00d8118541b995a5d7d411fc29862e4715751eb6c49514f775b3c45f7b5109f0"
+   },
+   {
+    "id": "design-005-ar",
+    "language": "ar",
+    "family_id": "design-family-005",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "cc81de0c207df2bc4dd141172b81aa9feb9b26503519e3b83e651cc43f312dbb",
+    "observed_sha256": "00d8118541b995a5d7d411fc29862e4715751eb6c49514f775b3c45f7b5109f0"
+   },
+   {
+    "id": "design-005-arz",
+    "language": "arz",
+    "family_id": "design-family-005",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "decision_consistency"
+    ],
+    "exact": false,
+    "expected_sha256": "cc81de0c207df2bc4dd141172b81aa9feb9b26503519e3b83e651cc43f312dbb",
+    "observed_sha256": "48c017e09187613c4274c02ad69f347665dec2f6a22e64cbb3e04cf6995e4d67"
+   },
+   {
+    "id": "design-005-mixed",
+    "language": "mixed",
+    "family_id": "design-family-005",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "cc81de0c207df2bc4dd141172b81aa9feb9b26503519e3b83e651cc43f312dbb",
+    "observed_sha256": "00d8118541b995a5d7d411fc29862e4715751eb6c49514f775b3c45f7b5109f0"
+   },
+   {
+    "id": "design-006-en",
+    "language": "en",
+    "family_id": "design-family-006",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "5ed8ed20e0ed85c470b71e9232a9a250345ed75146c04c677682bf1c6ce7c802",
+    "observed_sha256": "cb8fe500848013d069b65034ceb8b0715bbd608d7c364ddf15d5b65fe5448148"
+   },
+   {
+    "id": "design-006-ar",
+    "language": "ar",
+    "family_id": "design-family-006",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "5ed8ed20e0ed85c470b71e9232a9a250345ed75146c04c677682bf1c6ce7c802",
+    "observed_sha256": "b07e6769ffdda3e6a1f7855b2549f3efedec00cc0a4cf121763b4c7beba29508"
+   },
+   {
+    "id": "design-006-arz",
+    "language": "arz",
+    "family_id": "design-family-006",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "5ed8ed20e0ed85c470b71e9232a9a250345ed75146c04c677682bf1c6ce7c802",
+    "observed_sha256": "260dbb82518c59982a874c4d6c30a245bedc060aa33dd19c586ffd51d00f1867"
+   },
+   {
+    "id": "design-006-mixed",
+    "language": "mixed",
+    "family_id": "design-family-006",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "5ed8ed20e0ed85c470b71e9232a9a250345ed75146c04c677682bf1c6ce7c802",
+    "observed_sha256": "b07e6769ffdda3e6a1f7855b2549f3efedec00cc0a4cf121763b4c7beba29508"
+   },
+   {
+    "id": "design-007-en",
+    "language": "en",
+    "family_id": "design-family-007",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "719d9f906a37c291529f34398924ebd45a9741c7369048ce009998292fa919c6",
+    "observed_sha256": "9f5b7ccba9298a4842b231024b00cea61530cef86e5b85a9e39d294ecaacccf0"
+   },
+   {
+    "id": "design-007-ar",
+    "language": "ar",
+    "family_id": "design-family-007",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "719d9f906a37c291529f34398924ebd45a9741c7369048ce009998292fa919c6",
+    "observed_sha256": "2b28b61d156673f4a80810aec7991beaea66f381410543b01259244bb3dc0d34"
+   },
+   {
+    "id": "design-007-arz",
+    "language": "arz",
+    "family_id": "design-family-007",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "719d9f906a37c291529f34398924ebd45a9741c7369048ce009998292fa919c6",
+    "observed_sha256": "50d6a54518ef723972002b3deb516dac62bb4df1a9b718796e55be5cb91a2334"
+   },
+   {
+    "id": "design-007-mixed",
+    "language": "mixed",
+    "family_id": "design-family-007",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "719d9f906a37c291529f34398924ebd45a9741c7369048ce009998292fa919c6",
+    "observed_sha256": "9120d85cb24e468168f4345137ee24d9b5858e29ca8f9758fda40604caf9d6d1"
+   },
+   {
+    "id": "design-008-en",
+    "language": "en",
+    "family_id": "design-family-008",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "unknown_entity"
+    ],
+    "exact": false,
+    "expected_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736",
+    "observed_sha256": "1e38a8f905ce4154af7863320b16461390283768de615f27233ac30b750ebb3b"
+   },
+   {
+    "id": "design-008-ar",
+    "language": "ar",
+    "family_id": "design-family-008",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "unknown_entity"
+    ],
+    "exact": false,
+    "expected_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736",
+    "observed_sha256": "76771f1eb1bd9bca038891373e834123b3293b438c07b07809267e5a079b8c72"
+   },
+   {
+    "id": "design-008-arz",
+    "language": "arz",
+    "family_id": "design-family-008",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "unknown_entity",
+     "unknown_entity"
+    ],
+    "exact": false,
+    "expected_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736",
+    "observed_sha256": "f0e3322be42e1a502839b54174bdb739a75a9125fd0ea378c26a115650ea5b5a"
+   },
+   {
+    "id": "design-008-mixed",
+    "language": "mixed",
+    "family_id": "design-family-008",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "unknown_entity",
+     "unknown_entity",
+     "unknown_entity",
+     "decision_consistency"
+    ],
+    "exact": false,
+    "expected_sha256": "6f3c8ce9c8b231bcc49c38f50504540d413cf88e45d0a412e042c5c75bf5f736",
+    "observed_sha256": "d7339f8643e9948f3d991448d2f84f071b3c72191b35eb1b380145eea90967e8"
+   },
+   {
+    "id": "design-009-en",
+    "language": "en",
+    "family_id": "design-family-009",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "ae0f462fdc29f5f884c2257b4525b223ba992cedc3703a9957711234f446ffe5",
+    "observed_sha256": "c8017cd3b70538c5a2171448b756937df35eeb8d0032e0c2c8a8871abc96ab6c"
+   },
+   {
+    "id": "design-009-ar",
+    "language": "ar",
+    "family_id": "design-family-009",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "ae0f462fdc29f5f884c2257b4525b223ba992cedc3703a9957711234f446ffe5",
+    "observed_sha256": "c8017cd3b70538c5a2171448b756937df35eeb8d0032e0c2c8a8871abc96ab6c"
+   },
+   {
+    "id": "design-009-arz",
+    "language": "arz",
+    "family_id": "design-family-009",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "ae0f462fdc29f5f884c2257b4525b223ba992cedc3703a9957711234f446ffe5",
+    "observed_sha256": "9ae796b92ce23f0b8375f73dafe4119a2d8c87349c2be6363a234ff30eb9bd50"
+   },
+   {
+    "id": "design-009-mixed",
+    "language": "mixed",
+    "family_id": "design-family-009",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "decision_consistency"
+    ],
+    "exact": false,
+    "expected_sha256": "ae0f462fdc29f5f884c2257b4525b223ba992cedc3703a9957711234f446ffe5",
+    "observed_sha256": "ae970a8ba4d2ab831f4a9f27d9dec192a7df4bc92ce554bd1309966c1419ff31"
+   },
+   {
+    "id": "design-010-en",
+    "language": "en",
+    "family_id": "design-family-010",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "593f02523fe4154ca6009fb9c47ac5b19e2be71d7b8173df1ea35222ae23ab03",
+    "observed_sha256": "858edc49e4ace5d98198ab2d650084efaf191a6956a014261f0a667eefe80e73"
+   },
+   {
+    "id": "design-010-ar",
+    "language": "ar",
+    "family_id": "design-family-010",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "593f02523fe4154ca6009fb9c47ac5b19e2be71d7b8173df1ea35222ae23ab03",
+    "observed_sha256": "858edc49e4ace5d98198ab2d650084efaf191a6956a014261f0a667eefe80e73"
+   },
+   {
+    "id": "design-010-arz",
+    "language": "arz",
+    "family_id": "design-family-010",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "593f02523fe4154ca6009fb9c47ac5b19e2be71d7b8173df1ea35222ae23ab03",
+    "observed_sha256": "858edc49e4ace5d98198ab2d650084efaf191a6956a014261f0a667eefe80e73"
+   },
+   {
+    "id": "design-010-mixed",
+    "language": "mixed",
+    "family_id": "design-family-010",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "593f02523fe4154ca6009fb9c47ac5b19e2be71d7b8173df1ea35222ae23ab03",
+    "observed_sha256": "858edc49e4ace5d98198ab2d650084efaf191a6956a014261f0a667eefe80e73"
+   },
+   {
+    "id": "design-011-en",
+    "language": "en",
+    "family_id": "design-family-011",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "unknown_entity"
+    ],
+    "exact": false,
+    "expected_sha256": "d7813987b25d9394f3500f2ae6555bd08954bda0f4b836ba5ae6f2d3f08e5a31",
+    "observed_sha256": "888d3b5b2b54c8cd6e9712067aba97c7a5a07b1f4f293ff6ddea29b10a96e565"
+   },
+   {
+    "id": "design-011-ar",
+    "language": "ar",
+    "family_id": "design-family-011",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "output_structure"
+    ],
+    "exact": false,
+    "expected_sha256": "d7813987b25d9394f3500f2ae6555bd08954bda0f4b836ba5ae6f2d3f08e5a31",
+    "observed_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+   },
+   {
+    "id": "design-011-arz",
+    "language": "arz",
+    "family_id": "design-family-011",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "invalid_hours",
+     "invalid_hours",
+     "invalid_hours",
+     "invalid_hours"
+    ],
+    "exact": false,
+    "expected_sha256": "d7813987b25d9394f3500f2ae6555bd08954bda0f4b836ba5ae6f2d3f08e5a31",
+    "observed_sha256": "eb0dcb2c28a0eb833c874d7a62417a95b208b708ec400ffa944b8c6dd08c3d0f"
+   },
+   {
+    "id": "design-011-mixed",
+    "language": "mixed",
+    "family_id": "design-family-011",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "output_structure"
+    ],
+    "exact": false,
+    "expected_sha256": "d7813987b25d9394f3500f2ae6555bd08954bda0f4b836ba5ae6f2d3f08e5a31",
+    "observed_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+   },
+   {
+    "id": "design-012-en",
+    "language": "en",
+    "family_id": "design-family-012",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "unknown_entity"
+    ],
+    "exact": false,
+    "expected_sha256": "bd48c4727cb61b2e36c8bd98a405b6726d2e671b9b667fedac43266e879372b1",
+    "observed_sha256": "a0db0d63843c15d065a308795d6c30c746016c3bf254d99ef3a3414c6eacf54c"
+   },
+   {
+    "id": "design-012-ar",
+    "language": "ar",
+    "family_id": "design-family-012",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "bd48c4727cb61b2e36c8bd98a405b6726d2e671b9b667fedac43266e879372b1",
+    "observed_sha256": "58257a965edabdc746f6a9d44b70b4164372b73848a12c17ddfe434e8f137ad5"
+   },
+   {
+    "id": "design-012-arz",
+    "language": "arz",
+    "family_id": "design-family-012",
+    "received": true,
+    "valid_output": false,
+    "errors": [
+     "output_structure"
+    ],
+    "exact": false,
+    "expected_sha256": "bd48c4727cb61b2e36c8bd98a405b6726d2e671b9b667fedac43266e879372b1",
+    "observed_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+   },
+   {
+    "id": "design-012-mixed",
+    "language": "mixed",
+    "family_id": "design-family-012",
+    "received": true,
+    "valid_output": true,
+    "errors": [],
+    "exact": false,
+    "expected_sha256": "bd48c4727cb61b2e36c8bd98a405b6726d2e671b9b667fedac43266e879372b1",
+    "observed_sha256": "0e9a1605b903a1309a136295f21919c6157412c816acd8c4a7bce0541cbd8b1d"
+   }
+  ],
+  "definitions": {
+   "exact": "Decision, complete proposal multiset (titles ignored), clarification codes and unsupported codes must all match. Invalid or missing output fails the case.",
+   "fields": "Conditional diagnostic over individually schema-valid proposals. Micro bag-of-fields diagnostic; it can miss cross-proposal field association errors. Strict proposal and full-case metrics preserve associations.",
+   "proposal_precision": "Every attempted invalid proposal is a false positive; missing or invalid full envelopes still fail end-to-end. Valid proposals can be evaluated separately from envelope errors.",
+   "consistency": "Translations of a family must all yield the same valid semantic output; consistency alone does not establish correctness.",
+   "telemetry": "Only supplied measured values are summarised. Missing cost/latency is unknown, not zero. Attempts includes the first request.",
+   "scope": "Scores against unreviewed synthetic draft labels are development diagnostics, not research findings. No provider is called by this tool."
+  },
+  "uncertainty": {
+   "method": "percentile bootstrap resampling entire intent families with replacement",
+   "confidence": 0.95,
+   "replicates": 1000,
+   "seed": 42,
+   "family_count": 36,
+   "intervals": {
+    "end_to_end_accuracy": {
+     "estimate": 0.16666666666666666,
+     "lower": 0.06944444444444445,
+     "upper": 0.2638888888888889,
+     "defined_replicates": 1000
+    },
+    "decision_accuracy": {
+     "estimate": 0.5555555555555556,
+     "lower": 0.4305555555555556,
+     "upper": 0.6736111111111112,
+     "defined_replicates": 1000
+    },
+    "proposals.precision": {
+     "estimate": 0.16923076923076924,
+     "lower": 0.09478626512431858,
+     "upper": 0.25960684551341345,
+     "defined_replicates": 1000
+    },
+    "proposals.recall": {
+     "estimate": 0.4074074074074074,
+     "lower": 0.2642757936507937,
+     "upper": 0.5683001893939393,
+     "defined_replicates": 1000
+    },
+    "proposals.f1": {
+     "estimate": 0.2391304347826087,
+     "lower": 0.14152112676056336,
+     "upper": 0.34886263475489865,
+     "defined_replicates": 1000
+    },
+    "fields.precision": {
+     "estimate": 0.3278301886792453,
+     "lower": 0.2111403471454097,
+     "upper": 0.4567410714285714,
+     "defined_replicates": 1000
+    },
+    "fields.recall": {
+     "estimate": 0.4512987012987013,
+     "lower": 0.30680222165474974,
+     "upper": 0.6083441558441558,
+     "defined_replicates": 1000
+    },
+    "fields.f1": {
+     "estimate": 0.3797814207650273,
+     "lower": 0.2575956219135221,
+     "upper": 0.5041466914341012,
+     "defined_replicates": 1000
+    },
+    "clarifications.precision": {
+     "estimate": 0.09523809523809523,
+     "lower": 0.0,
+     "upper": 0.21431318681318678,
+     "defined_replicates": 1000
+    },
+    "clarifications.recall": {
+     "estimate": 0.11538461538461539,
+     "lower": 0.0,
+     "upper": 0.29545454545454547,
+     "defined_replicates": 1000
+    },
+    "clarifications.f1": {
+     "estimate": 0.10434782608695652,
+     "lower": 0.0,
+     "upper": 0.23626734158230217,
+     "defined_replicates": 1000
+    },
+    "unsupported.precision": {
+     "estimate": 0.11764705882352941,
+     "lower": 0.0,
+     "upper": 0.25,
+     "defined_replicates": 1000
+    },
+    "unsupported.recall": {
+     "estimate": 0.25,
+     "lower": 0.0,
+     "upper": 0.5,
+     "defined_replicates": 986
+    },
+    "unsupported.f1": {
+     "estimate": 0.16,
+     "lower": 0.0,
+     "upper": 0.3076923076923077,
+     "defined_replicates": 1000
+    }
+   },
+   "limitations": "Synthetic draft families are not a representative institutional sample. Degenerate intervals at 0/1 do not establish certainty. Undefined classes stay null; fewer than two families have no interval."
+  }
+ }
+}

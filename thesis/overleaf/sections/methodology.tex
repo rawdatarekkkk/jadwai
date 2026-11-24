@@ -10,7 +10,7 @@ The study has three parts, kept separate so that one kind of evidence is not rea
 
 \begin{enumerate}
 \item \textbf{Offline interpretation experiment} (RQ1, RQ2). Two interpretation methods, a rule-based parser and a locally hosted language model, are run on the same fixed set of statements in four language categories. Their outputs are scored against draft expected answers by the same scorer.
-\item \textbf{Assistant and fine-tuning evaluation} (RQ4). The base local model and three fine-tuned versions of it answer the same held-out assistant cases. They are compared with automatic checks, latency measurements and a blind side-by-side rating.
+\item \textbf{Assistant and fine-tuning evaluation} (RQ4). The base local model and four fine-tuned versions of it answer the same held-out assistant cases. They are compared with automatic checks, latency measurements and a blind side-by-side rating.
 \item \textbf{Engineering verification} (supporting question). The solver, the independent validator, the repair diagnosis and the approval and publication gates are tested with deterministic test oracles and measured on synthetic and adjusted university-scale data.
 \end{enumerate}
 
@@ -28,7 +28,7 @@ Question & Method used & Change from the proposal \\
 RQ1 extraction accuracy & Rule-based parser and local Qwen2.5-7B on 144 development statements, same scorer & Development-level comparison on draft labels, not a confirmatory held-out result \\
 RQ2 clarification and unsupported requests & Clarification and unsupported-request scores from the same runs; clarifying behaviour of JAI on held-out cases & Exploratory; small samples \\
 RQ3 effort compared with manual entry & Not conducted & Moved to future work (Section~\ref{meth-rq3}) \\
-RQ4 model comparison & Base local model against the same model fine-tuned in three rounds, on identical held-out cases & Local base versus fine-tuned model instead of several paid providers; cost per call is zero \\
+RQ4 model comparison & Base local model against the same model fine-tuned in four rounds, on identical held-out cases & Local base versus fine-tuned model instead of several paid providers; cost per call is zero \\
 Engineering question & Tests, seeded faults and measured runs & As planned \\
 \bottomrule
 \end{tabular}
@@ -119,6 +119,8 @@ Both methods receive exactly the same input for each statement: the statement te
 \end{itemize}
 
 On a small check of 8 statements, the reordering raised correct decisions from 1 to 5. These 8 statements are part of the development corpus, so the change was also tuned on development data. Decoding used temperature~0, seed~42 and an 8{,}192-token context window. Each statement had one attempt with a 600-second time limit; a failed or invalid reply counts as an error, not as a skipped case.
+
+\paragraph{Second prompt: the evaluation contract.} The first full run showed that the application's prompt no longer matched the evaluation contract: it described newer rule types and a parameter field that the contract rejects, and it did not list the guide's clarification codes (Section~\ref{evidence-llm}). The model was therefore run a second time with a prompt written for the contract. This prompt lists only the contract's proposal kinds and rule types, gives each of the 12 clarification and 4 unsupported codes used in guide~v2 with a one-line meaning, and constrains the code lists to these values. The context also includes the source draft that assignment locks refer to. The model, schema order and decoding settings were unchanged; the statement is sent directly to Ollama rather than through the application. Because the code meanings were written from the codes used in the development labels, this run is tuned toward those labels, and its figures are optimistic in the same way as the parser's.
 
 \paragraph{Shared format adapter.} Before scoring, both methods' outputs pass through the same adapter. It removes empty optional fields and writes whole hours as integers (10 rather than 10.0), which the contract requires. It does not change half-hour values or any meaning.
 

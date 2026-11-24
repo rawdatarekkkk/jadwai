@@ -1,0 +1,8 @@
+Second local-model run: prompt and schema describe the evaluation contract (see score_contract_prompt.py docstring).
+code commit: a1fdf6d (script in this folder; application code not used for the model call)
+model: qwen2.5:7b-instruct (ollama version is 0.40.16)
+machine: Intel Core i5-1038NG7, 16 GB, CPU only
+note: code descriptions in the prompt were written from the 16 codes used in guide v2's labels (development data), so this run is tuned toward the labels; report as development evidence only.
+queued: Tue Nov 24 01:08:32 EET 2026 to start after the round-4 JAI evaluation
+started: Tue Nov 24 05:00:56 EET 2026
+finished: Tue Nov 24 07:53:13 EET 2026

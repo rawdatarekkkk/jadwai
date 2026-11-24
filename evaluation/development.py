@@ -12,6 +12,13 @@ def write_new(path,value):
  path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
  with path.open('x',encoding='utf-8') as stream:json.dump(value,stream,ensure_ascii=False,indent=2,allow_nan=False)
 
+GUIDE_FILES={'annotation-guide-v2-draft':'guides/annotation-guide-v2.md','annotation-guide-v2.1-draft':'guides/annotation-guide-v2.1.md'}
+def bundle_guide(manifest):
+ """Guide file whose hash a bundle manifest records, chosen by its guide_version."""
+ name=GUIDE_FILES.get(manifest.get('guide_version'))
+ if name is None:raise ValueError('Unknown guide version: '+str(manifest.get('guide_version')))
+ return Path(__file__).resolve().parent/name
+
 def load_bundle(root):
  root=Path(root);manifest=runner.read_json(root/'manifest.json')
  if manifest.get('dataset_format')!='development-bundle-v1' or manifest.get('split')!='development' or manifest.get('reserved_included') is not False:raise ValueError('Not a development-only bundle')
@@ -19,7 +26,7 @@ def load_bundle(root):
  for name,expected in manifest['files'].items():
   if digest_file(root/name)!=expected:raise ValueError('Bundle file integrity mismatch: '+name)
  source=Path(__file__).resolve().parent
- if digest_file(source/'proposal-contract.schema.json')!=manifest['contract_sha256'] or digest_file(source/'guides/annotation-guide-v2.md')!=manifest['guide_sha256']:raise ValueError('Guide or contract changed; create a new release')
+ if digest_file(source/'proposal-contract.schema.json')!=manifest['contract_sha256'] or digest_file(bundle_guide(manifest))!=manifest['guide_sha256']:raise ValueError('Guide or contract changed; create a new release')
  contexts=runner.read_json(root/'contexts.json');contexts={c['id']:c for c in contexts};rows=runner.read_rows(root/'cases.jsonl')
  ids=set();family_context={};family_languages={};text_families={}
  for row in rows:

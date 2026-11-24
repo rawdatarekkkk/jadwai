@@ -1,0 +1,41 @@
+{
+  "dataset_format": "development-bundle-v1",
+  "dataset_version": "0.2.1-draft",
+  "previous_manifest_sha256": "a2d6af29d0b7a0d765854fcf3ec86b08cf31d79747254474fd6ef3b83009696a",
+  "schema_version": "proposal-contract-v1",
+  "guide_version": "annotation-guide-v2.1-draft",
+  "split": "development",
+  "counts": {
+    "cases": 144,
+    "families": 36,
+    "contexts": 2
+  },
+  "independently_adjudicated": false,
+  "reserved_is_blind": false,
+  "reserved_included": false,
+  "files": {
+    "contexts.json": "d18fce8f0a6d0becb9c196116db9e829bdfb8ed0b697e527d0be82518b079ca1",
+    "cases.jsonl": "7c19677e501a87840d51d644adcfee8e93f68b57ca17f680124dd49d00843d2c"
+  },
+  "contract_sha256": "8f813ae09a34f2e5e28410100f24c7e92e8bfa1356b368eaebc9f02b6f66dfc7",
+  "guide_sha256": "fe9e1344ee5431d182465a4968e42891c869343ec78bdb41f518f99cc0005ca1",
+  "code_renames": {
+    "clarifications": {
+      "missing_day": "day_required"
+    },
+    "unsupported": {
+      "minute_rule_precision": "manual_rule_minute_precision_not_supported"
+    }
+  },
+  "changed_item_ids": [
+    "design-006-en",
+    "design-006-ar",
+    "design-006-arz",
+    "design-006-mixed",
+    "design-009-en",
+    "design-009-ar",
+    "design-009-arz",
+    "design-009-mixed"
+  ],
+  "change_note": "Guide v2.1 (24 November 2026): merge synonymous codes missing_day -> day_required and minute_rule_precision -> manual_rule_minute_precision_not_supported. Gold codes only; statements, contexts, decisions and proposals unchanged from 0.2.0-draft. Results reported before this date were scored on 0.2.0-draft labels. No reserved labels loaded or moved."
+}

@@ -1,17 +1,45 @@
 \chapter{Conclusion and Future Work}\label{chap:conclusion}
 
-% TO WRITE (in your own words): answer each research question from the evidence in the Results chapter;
-% state the contributions; limitations; future work (participant study if not done, independent annotation,
-% a fifth training round aimed at exam publishing and Arabic, larger evaluation). Keep it short: two to four pages.
+% NOTE (24 Nov 2026): First draft written from the Results chapter at the owner's request (drafted with AI assistance; reword in your own words before submission). Every figure is taken from Chapter~\ref{evidence}; update this chapter if those figures change (for example after the v3/v4 blind rating).
 
-\section{Summary of findings}
-[To be written.]
+This thesis set out to let university administrators state timetabling requirements in their own words, in English or Arabic, and to have those requirements turned into formal rules that a solver can use, without letting a wrong interpretation reach a published timetable. This chapter answers the research questions from the evidence in Chapter~\ref{evidence}, states what the work contributes, and lists its limits and the work that would follow.
+
+\section{Answers to the research questions}
+
+\paragraph{RQ1: extraction accuracy.} On the 144 development statements, the rule-based parser produced the exact expected output for 32.6\% of them (95\% interval 21.5--45.8\%). The local language model reached 9.0\% with the application's prompt and 16.7\% (6.9--26.4\%) with a prompt written for the evaluation contract. The parser was also ahead on proposal and field agreement. The intervals overlap for exact output and decision accuracy, so these data do not show a reliable difference on those two measures. Most of the model's errors were systematic rather than random: it represented a day-specific unavailability as a weekly limit of zero hours and added weekly limits that no statement mentioned. Both methods did worse on Egyptian Arabic than on English. The answer to RQ1 is therefore limited: a seven-billion-parameter model running on a laptop, constrained to the contract's schema, did not extract rules more accurately than a hand-written parser on this corpus. Because the labels are draft, the statements are synthetic and both methods were adjusted on the same data, this is development evidence and not an estimate for real administrators' statements.
+
+\paragraph{RQ2: asking instead of guessing.} The parser recognised missing or ambiguous information with a clarification F1 of 0.351. The model with the application's prompt treated most incomplete statements as ready (24 of 44) and never used the guide's codes. With the codes in its prompt, it recognised 25 of the 44 statements that needed a question, but it also asked in 16 of 76 clear statements, and it recognised none of the 8 conflicting ones. Neither method handled unsupported requests well. The answer to RQ2 is that the model can be moved from guessing towards asking by the prompt, but not yet to asking at the right time. In the system as built this matters less than the figures suggest, because every interpretation is shown to the administrator and nothing reaches the solver without approval.
+
+\paragraph{RQ3: AI-assisted versus manual entry.} This question could not be answered. No participants or ethics approval were available during the project, so no entry times or correction counts were measured. The study design remains in Section~\ref{meth-rq3}.
+
+\paragraph{RQ4: base versus fine-tuned local model.} Fine-tuning changed the assistant's behaviour, but not always for the better. The first round improved the choice of actions (5 of 5 against 3 of 5 for the base model) but replied in the user's language less often; the second, which added the guide to the prompts without rewriting the answers, made the model invent more and was discarded; the third, whose answers were rewritten to use only the guide's facts, was preferred in the blind rating (274 against 244 of 380 points for round~1). The fourth round kept every reply under 80 words and fixed the action choice for examination timetables, but on 13 new held-out cases it was within one or two cases of round~3, and neither model turned a conversational request to publish the examination timetable into the publish action. Latency stayed at five to six minutes per answer on the test laptop, at no cost per call. The answer to RQ4 is that fine-tuning on reviewed, guide-grounded examples improved a local model in small, measurable steps, that the content of the training answers mattered more than the number of epochs, and that some failures were not fixed by more examples.
+
+\paragraph{Supporting engineering question.} The validator and the approval workflow did what they were built to do. Every timetable reported as valid was checked by an independent validator that does not use the solver's model, only approved rules reached the solver, and publication re-validated the timetable first. The department-scale timetable (448 sessions) and the university-scale timetable built in six parts (2{,}703 sessions on adjusted data) both passed validation, and impossible inputs were explained by a minimal set of changes that was itself verified. This is the main reason the modest extraction results do not make the system unsafe: a wrong interpretation can waste an administrator's time, but it cannot silently enter a published timetable.
 
 \section{Contributions}
-[To be written.]
+
+The work contributes, in proportion to the evidence:
+\begin{itemize}
+\item a closed set of supported timetabling rules and a machine-readable output contract with explicit decisions for clarification, unsupported and conflicting requests;
+\item a synthetic development corpus of 144 statements in English, formal Arabic, Egyptian Arabic and mixed language, with a versioned annotation guide and an offline scorer that reports intervals over intent families;
+\item a development-level comparison of a rule-based parser and a local language model with two prompts, including the finding that a mismatch between an application's prompt and its evaluation contract can dominate the measured result;
+\item a four-round fine-tuning study of a local assistant model, including a round that made the model worse and the reason for it, and a method for merging adapters into quantised weights without losing the training;
+\item a working prototype for teaching and examination timetables in which approval and independent validation keep unreviewed or invalid output from being used.
+\end{itemize}
+No claim is made about accuracy on real administrators' statements or about reduced administrative effort.
 
 \section{Limitations}
-[To be written.]
+
+The interpretation labels were drafted by the author with AI assistance and have not been reviewed by an independent annotator; two pairs of codes in them turned out to be synonyms. The corpus is small and synthetic, and both the parser and the model prompt were adjusted after looking at the same development data, so their figures are optimistic. All model runs used one laptop, one seed and temperature~0, and the model was run once per prompt. No commercial model was compared, because no budget for paid calls was approved. The fine-tuning examples and contexts are fictional, approvals were bulk approvals by the project owner, the held-out sets contain 5 to 19 cases per measure, and the blind rating had one rater who was not independent of the project. The university-scale timetable used adjusted data with placeholder staff and rooms. Finally, RQ3 has no evidence at all.
 
 \section{Future work}
-[To be written.]
+
+\begin{itemize}
+\item \textbf{Reviewed labels and a held-out set.} Two independent annotators should review the development labels after the duplicate codes are merged, agreement should be measured, and a fresh set of statements should be written and kept unseen until a final run. This is the step that would turn the RQ1 and RQ2 results into confirmatory evidence.
+\item \textbf{The participant study (RQ3).} A small study with timetabling staff, comparing form entry with AI-assisted entry on the same requirements, would measure time, corrections and interpretation errors.
+\item \textbf{Better extraction.} The model's systematic errors suggest specific changes: describing weekly limits more narrowly in the prompt, giving examples of conflicts, and fine-tuning the extraction task in the same way as the assistant. A larger local model or a commercial model, if a budget is available, would show how much of the gap is due to model size.
+\item \textbf{The assistant.} Requests that training did not fix, such as publishing the examination timetable from conversation, can be handled by deterministic routes before the model is called. Arabic replies about rooms and laboratories, and replies that mention internal interface paths, need further examples or output checks. Faster hardware would make the assistant usable in daily work.
+\item \textbf{Scheduling.} Optimising earlier parts of a university-scale timetable after later parts are placed, and testing with the university's real staff and room data, would show whether the part mechanism is sufficient in practice.
+\end{itemize}
+
+The overall conclusion is that a local language model can help administrators state timetabling requirements in their own language, but on the evidence of this project it should do so as a proposer whose output is checked, approved and validated, not as an interpreter whose output is trusted.

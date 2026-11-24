@@ -127,11 +127,20 @@ def view_of(db, run_id=None, talked_about=None, exam_id=None):
                     'complete': part_complete(run.snapshot), 'scope': (run.snapshot.get('plan') or {}).get('scope'),
                     'created_at': run.created_at.isoformat(), 'sessions': len(run.result['assignments']),
                     'kept': len((run.snapshot.get('plan') or {}).get('fixed') or [])} if run else None,
-            'exam_run': {'id': exams.id, 'status': (exams.result or {}).get('status'), 'kind': (exams.snapshot.get('settings') or {}).get('kind'),
-                         'published': bool(exams.published_at), 'stale': exams.input_version != ws.version, 'halls': 'halls' in exams.snapshot, 'name': exams.name, 'courses': len(exams.snapshot.get('courses') or []), 'start_date': (exams.snapshot.get('settings') or {}).get('start_date'), 'end_date': (exams.snapshot.get('settings') or {}).get('end_date')} if exams else None,
+            'exam_run': exam_info(exams, ws) if exams else None,
+            # Unpublished exam drafts that completed: more than one means "publish the exam timetable" must say which.
+            'exam_drafts': [exam_info(row, ws) for row in db.scalars(select(ExamRun).where(ExamRun.published_at.is_(None)).order_by(ExamRun.created_at.desc()).limit(20))
+                            if (row.result or {}).get('status') == 'completed'],
             'published_exam': db.scalar(select(ExamRun.id).where(ExamRun.published_at.isnot(None))),
             'last_status': last_status(db), 'meant': meant, 'timezone': ws.timezone,
             'published_activities': published_activities(db)}
+
+
+def exam_info(exams, ws):
+    settings = exams.snapshot.get('settings') or {}
+    return {'id': exams.id, 'status': (exams.result or {}).get('status'), 'kind': settings.get('kind'),
+            'published': bool(exams.published_at), 'stale': exams.input_version != ws.version, 'halls': 'halls' in exams.snapshot, 'name': exams.name,
+            'courses': len(exams.snapshot.get('courses') or []), 'start_date': settings.get('start_date'), 'end_date': settings.get('end_date')}
 
 
 def published_activities(db):
@@ -324,6 +333,11 @@ ALL_WORDS = ('all of', 'all groups', 'all the groups', 'whole', 'every group', '
              'كلها', 'كلهم', 'الكل', 'كل المجموعات', 'كل الجروبات', 'السنة كلها', 'كل السنين')
 UNPUBLISH_WORDS = ('unpublish', 'un-publish', 'take it down', 'take down', 'withdraw', 'retract', 'الغي النشر', 'ألغي النشر', 'إلغاء النشر', 'الغاء النشر', 'وقف النشر', 'شيل النشر')
 PUBLISH_WORDS = ('publish', 'make it live', 'release it', 'go live', 'share it with students', 'انشر', 'نشر', 'انشره', 'انشرها', 'إنشر')
+# Arabic forms of "publish" on normalised text: انشر/أنشر, تنشر ("ممكن تنشر…؟"), ينشر, ننشر, نشر, with an object (ـه، ـها، ـوه، ـلي).
+# Not النشر (the noun), منشور (published) or اتنشر (was it published?).
+AR_PUBLISH = r'(?<![\w])[اينت]?نشر(?:ه|ها|وه|وها|ي|يه|يها|لي|لنا)?(?![\w])'
+# "not the teaching draft" / "مش جدول المحاضرات": the other kind is named only to exclude it.
+NOT_THAT = r'\b(?:not|instead of|rather than|but not)\b|(?<![\w])(?:مش|مو|ليس|وليس|لا|بدل|بدلا)(?![\w])'
 HELP_WORDS = ('help', 'what can you do', 'how do i', 'مساعدة', 'تقدر تعمل ايه', 'بتعمل ايه')
 ROOM_HINT = ('room', 'hall', 'lab', 'قاعة', 'قاعه', 'معمل', 'مدرج')
 
@@ -485,9 +499,16 @@ def understand(raw, view, previous=None):
     elif has(text, UNPUBLISH_WORDS):
         intent = 'unpublish'
         slots['exams'] = bool(exam) or has(text, ('exam', 'امتحان', 'امتحانات')) or bool(previous and previous.get('intent') == 'exam_timetable' and not has(text, ('teaching', 'weekly', 'تدريس', 'اسبوعي')))
-    elif re.search(r'(?<![\w])(' + '|'.join(map(re.escape, PUBLISH_WORDS)) + r')(?![\w])', text):  # "publish", not "published"
+    elif re.search(r'(?<![\w])(' + '|'.join(map(re.escape, PUBLISH_WORDS)) + r')(?![\w])', text) or re.search(AR_PUBLISH, text):  # "publish", not "published"
         intent = 'publish'
         slots['exams'] = bool(exam) or has(text, ('exam', 'امتحان', 'امتحانات')) or bool(previous and previous.get('intent') == 'exam_timetable' and not has(text, ('teaching', 'weekly', 'تدريس', 'اسبوعي')))
+        from app.assistant_context import EXPLICIT_EXAM, EXPLICIT_TEACHING
+        # "publish the exams and the teaching timetable": two timetables; ask which one first.
+        slots['both_kinds'] = bool(re.search(EXPLICIT_EXAM, text) and re.search(EXPLICIT_TEACHING, text) and not re.search(NOT_THAT, text))
+        # "publish Computing midterms": one exam draft by its name.
+        named = [d for d in view.get('exam_drafts') or [] if d.get('name') and normalise(d['name']) in text]
+        if len(named) == 1:
+            slots.update(exam_id=named[0]['id'], exams=True)
         # "publish this group's schedule" / "publish G6 only": one group, not the whole draft.
         slots['one_group'] = bool(re.search(r"\b(?:this|that|the|one|its|their)\s+group|\bgroup'?s\b|\bonly\b|المجموعة|الجروب|فقط|بس", text))
     elif has(text, HELP_WORDS) and len(text) < 40:
@@ -752,11 +773,62 @@ def publish_groups(chosen, run, view, ar):
                                      'label': say(ar, f'Publish {who}', f'نشر {who}')}}
 
 
+def publishable_exam(e):
+    return bool(e and not e['published'] and e['status'] == 'completed' and e['halls'] and not e['stale'])
+
+
+def publish_kind(slots, view):
+    """Which timetable a publish request means: 'exams', 'teaching', or 'ask' when it could be either."""
+    if slots.get('exam_id'):
+        return 'exams'
+    if slots.get('both_kinds'):
+        return 'ask' if view.get('exam_run') else 'exams'  # no exam timetable: say so
+    if slots.get('schedule_kind'):  # named in the message, or the schedule this chat is about
+        return slots['schedule_kind']
+    page = (view.get('screen') or {}).get('page')
+    if slots.get('exams') or page == 'exams':
+        return 'exams'
+    run = view.get('run') or {}
+    if page == 'timetable' or run.get('on_screen') or run.get('talked_about'):
+        return 'teaching'
+    # Nothing on screen or in the chat points either way: an exam draft and a teaching draft could both be meant.
+    draft = view.get('newest')
+    if publishable_exam(view.get('exam_run')) and draft and not draft['published'] and draft.get('complete', True) and not draft.get('stale'):
+        return 'ask'
+    return 'teaching'
+
+
+def exam_label(e, ar):
+    return e.get('name') or say(ar, f"the {e.get('kind') or 'exam'} timetable ({e.get('start_date')} to {e.get('end_date')})",
+                                f"جدول {e.get('kind') or 'الامتحانات'} ({e.get('start_date')} إلى {e.get('end_date')})")
+
+
 def publishing(intent, slots, view, ar):
     """Publish or unpublish the timetable on screen (or the latest one), explaining what stands in the way first."""
-    exams = slots.get('schedule_kind') == 'exams' if slots.get('schedule_kind') else slots.get('exams') or (view.get('screen') or {}).get('page') == 'exams'
-    if exams:
+    if intent == 'publish':
+        kind = publish_kind(slots, view)
+    else:
+        kind = slots.get('schedule_kind') or ('exams' if slots.get('exams') or (view.get('screen') or {}).get('page') == 'exams' else 'teaching')
+    if kind == 'ask':
+        e, draft = view.get('exam_run'), view.get('newest') or view.get('run') or {}
+        exam_name, teaching_name = e and exam_label(e, ar), draft.get('name') or say(ar, 'the newest draft', 'أحدث مسودة')
+        return {'text': [say(ar, f"Which one should I publish: the exam timetable {exam_name} or the teaching timetable {teaching_name}? I publish one at a time.",
+                             f"أنشر أنهي واحد: جدول الامتحانات {exam_name} ولا جدول التدريس {teaching_name}؟ بنشر واحد بس في المرة.")],
+                'choices': [{'label': say(ar, 'The exam timetable', 'جدول الامتحانات'), 'text': say(ar, 'publish the exam timetable', 'انشر جدول الامتحانات')},
+                            {'label': say(ar, 'The teaching timetable', 'جدول التدريس'), 'text': say(ar, 'publish the teaching timetable', 'انشر جدول التدريس')}]}
+    if kind == 'exams':
         e = view['exam_run']
+        if intent == 'publish':
+            drafts = view.get('exam_drafts') or []
+            pinned = (view.get('screen') or {}).get('page') == 'exams' and (view.get('screen') or {}).get('run_id') or (view.get('memory') or {}).get('exam_run')
+            if slots.get('exam_id'):
+                e = next((d for d in drafts if d['id'] == slots['exam_id']), e)
+            elif not pinned and len(drafts) > 1:
+                # Several exam drafts and none on screen or in this chat: never guess the newest.
+                names = [exam_label(d, ar) for d in drafts[:6]]
+                return {'text': [say(ar, f"There are {len(drafts)} unpublished exam timetables: {', '.join(names)}. Which one should I publish?",
+                                     f"فيه {len(drafts)} جداول امتحانات متنشرتش: {'، '.join(names)}. أنشر أنهي واحد؟")],
+                        'choices': [{'label': d['name'], 'text': say(ar, f"publish {d['name']}", f"انشر {d['name']}")} for d in drafts[:6] if d.get('name')]}
         if intent == 'unpublish':
             if not e or not e['published']:
                 return {'text': [say(ar, 'This exam timetable is not published.', 'جدول الامتحانات هذا غير منشور.')]}
@@ -770,8 +842,11 @@ def publishing(intent, slots, view, ar):
             (e['stale'] and say(ar, 'The data changed since it was made. Create it again, then publish.', 'تغيرت البيانات بعد إنشائه. أنشئه مرة أخرى ثم انشره.'))
         if problem:
             return {'text': [problem]}
-        return {'text': [say(ar, f"Publish this exam timetable ({e['kind']})? Students and instructors will see it, and it replaces the one published now.",
-                             f"نشر جدول الامتحانات هذا ({e['kind']})؟ سيراه الطلاب والمحاضرون، ويحل محل المنشور حالياً.")],
+        replaces = view.get('published_exam') and view['published_exam'] != e['id']
+        question = say(ar, f"Shall I publish {e['name']}, the exam timetable?" if e.get('name') else f"Shall I publish this exam timetable ({e['kind']})?",
+                       f"أنشر جدول الامتحانات {e['name']}؟" if e.get('name') else f"أنشر جدول الامتحانات ده ({e['kind']})؟")
+        return {'text': [question + say(ar, ' Publishing re-validates it first' + (', and it replaces the exam timetable published now.' if replaces else '.'),
+                                        ' النشر بيراجعه الأول' + ('، وهيحل محل جدول الامتحانات المنشور دلوقتي.' if replaces else '.'))],
                 'action': {'type': 'publish', 'what': 'exams', 'run_id': e['id'], 'label': say(ar, 'Publish', 'نشر')}}
     run = view['run']
     meant = view.get('meant')
@@ -840,6 +915,18 @@ def publishing(intent, slots, view, ar):
     return {'text': [say(ar, f"Publish {which} ({run['sessions']} sessions)? It is checked again against the current data; students and instructors will then see it, and it replaces the one published now.",
                          f"نشر {which} ({run['sessions']} محاضرة)؟ سيُفحص مرة أخرى مقابل البيانات الحالية، ثم يراه الطلاب والمحاضرون ويحل محل المنشور حالياً.")],
             'action': {'type': 'publish', 'what': 'teaching', 'run_id': run['id'], 'label': say(ar, 'Publish', 'نشر')}}
+
+
+def exam_publishing(raw, view):
+    """The built-in answer to "publish the exam timetable", for the local-model path too (the model did not learn it).
+
+    None unless the message asks to publish and means an exam timetable, or could mean one (then it asks which).
+    The answer is a publish action the admin still has to confirm; nothing is published here."""
+    from app.assistant_context import with_context
+    meaning = with_context(normalise(raw).translate(ARABIC_DIGITS), understand(raw, view, None), view.get('memory') or {})
+    if meaning['intent'] != 'publish' or publish_kind(meaning['slots'], view) not in ('exams', 'ask'):
+        return None
+    return publishing('publish', meaning['slots'], view, bool(ARABIC.search(raw)))
 
 
 def plan_parts(view, limit=340):  # parts of ~280–330 sessions each solved in about 4 minutes on the demo; ~440 did not

@@ -207,6 +207,12 @@ async def converse(raw, view, history, settings, app, *, transport=None, pending
     grounded = explain(raw, view)
     if grounded:
         return {'text': [grounded], 'conversation': True, 'source': 'built-in'}
+    # Publishing the exam timetable is answered by the built-in route: four training rounds did not teach
+    # the model to pick it. Still only a proposed action that the admin confirms.
+    from app.assistant import exam_publishing
+    built_in = exam_publishing(raw, view)
+    if built_in:
+        return {**built_in, 'conversation': True, 'source': 'built-in'}
     routes = catalogue(app)
     history = [{'role': h['role'], 'content': h['content'][:1000]} for h in list(history)[-8:]]
     context_text = raw + ' ' + ' '.join(h['content'] for h in history if h['role'] == 'user')

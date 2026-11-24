@@ -125,13 +125,17 @@ def remember(memory, meaning):
     return memory
 
 
+EXPLICIT_EXAM = r'\b(exams?|midterms?|finals?|quizzes)\b|امتحان|ميدترم|نهائي'
+EXPLICIT_TEACHING = r'\b(teaching|weekly|lectures?|classes)\b|تدريس|اسبوعي|الأسبوعي|محاضرات'
+
+
 def with_context(text, meaning, memory):
     """Complete a message from the chat's memory when it leaves things out or points back."""
     # The schedule being discussed survives PDFs, renaming and other follow-ups.
     related = ('download_pdf', 'exam_pdf', 'publish', 'unpublish', 'rename_run', 'export_csv')
     if meaning['intent'] in related:
-        explicit_exam = bool(re.search(r'\b(exams?|midterms?|finals?|quizzes)\b|امتحان|ميدترم|نهائي', text.lower()))
-        explicit_teaching = bool(re.search(r'\b(teaching|weekly|lectures?|classes)\b|تدريس|اسبوعي|الأسبوعي', text.lower()))
+        explicit_exam = bool(re.search(EXPLICIT_EXAM, text.lower()))
+        explicit_teaching = bool(re.search(EXPLICIT_TEACHING, text.lower()))
         focus = (memory or {}).get('schedule_focus') or {}
         kind = 'exams' if explicit_exam else 'teaching' if explicit_teaching else focus.get('kind')
         if not kind and (memory or {}).get('exam_run') and not (memory or {}).get('run'):

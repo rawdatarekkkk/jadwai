@@ -13,7 +13,7 @@ The demonstration workspace contains 448 weekly sessions, 93 student groups in e
 \begin{itemize}
 \tightlist
 \item \textbf{One run.} Generation with the convenience objective completed in 253\,s and passed independent validation. None of the 60 advising students has two of their own sessions at the same time. Evaluated on the same timetable without modelling them, 24 of the 60 would have had a clash.
-\item \textbf{Published draft.} A later run (222.9\,s) placed all 448 sessions with zero room, instructor and group overlap pairs. All 65 rooms are used by more than one programme, so the absence of room double-booking is a cross-programme property rather than a per-programme one. Room time used was 23.0\% and seats filled 66.2\%, counting advising students who join or drop sessions.
+\item \textbf{Published draft.} A later run (222.9\,s) placed all 448 sessions with zero room, instructor and group overlap pairs. All 65 rooms are used by more than one programme, so the absence of room double-booking is a cross-programme property rather than a per-programme one. Room time used was 23.0\% and seats filled 66.2\%, counting advising students who join or drop sessions. Part of this timetable is shown in Figure~\ref{fig:shot-teaching-timetable-2} (Appendix~\ref{app:screenshots}).
 \item \textbf{Two parts.} Built as Applied Computer Science and Informatics (217 sessions) followed by the remaining seven programmes (231 sessions) with the first part fixed, the parts took 128\,s and 129\,s, each passed validation as a combined timetable, and only the complete draft could be published.
 \end{itemize}
 
@@ -113,7 +113,7 @@ In the reported run, exact outputs by language were 20/36 (English), 12/36 (mixe
 Testing the interpretation workflow on the demonstration workspace also found three faults that were then corrected: a closure ending at 15:15 was stored as ending at 15:00 (closures are now rounded outwards and permitted or preferred windows inwards); the review editor could not show a 10:30 interpretation (it now offers half hours); and Arabic statements could not name instructors stored in English (names are now compared by consonant sounds in both scripts, with Egyptian and classical readings, and a shared first name triggers a clarification).
 
 \section{Local language model interpretation}\label{evidence-llm}
-The local model (Section~\ref{baselines}) was run on the same 144 development statements twice: first with the application's own prompt, then with a prompt written for the evaluation contract. Both runs used the same model, schema order and decoding settings, and were scored with the same scorer and adapter as the parser. Table~\ref{tab:llm} compares the three results. The data, predictions, logs and analyses are in \texttt{thesis/evidence/2026-11-23-full/} and \texttt{thesis/evidence/2026-11-24-contract/}.
+The local model (Section~\ref{baselines}) was run on the same 144 development statements twice: first with the application's own prompt, then with a prompt written for the evaluation contract. Both runs used the same model, schema order and decoding settings, and were scored with the same scorer and adapter as the parser. Table~\ref{tab:llm} and Figure~\ref{fig:llm} compare the three results. The data, predictions, logs and analyses are in \texttt{thesis/evidence/2026-11-23-full/} and \texttt{thesis/evidence/2026-11-24-contract/}.
 
 \begin{table}[h]
 \centering
@@ -137,6 +137,25 @@ Median seconds per statement & --- & 116 & 39 \\
 \caption{Interpretation of the 144 development statements by the parser and by the local model with two prompts (95\% percentile bootstrap intervals over the 36 intent families, 1{,}000 replicates, seed~42).}
 \label{tab:llm}
 \end{table}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar, bar width=7mm, width=0.85\textwidth, height=6cm,
+  ymin=0, ymax=0.8, ylabel={Proportion of 144 statements},
+  symbolic x coords={Exact output, Decision accuracy}, xtick=data,
+  enlarge x limits=0.4, legend style={at={(0.5,-0.18)}, anchor=north, legend columns=-1, draw=none, font=\small, /tikz/every even column/.append style={column sep=4mm}},
+  error bars/y dir=both, error bars/y explicit]
+\addplot[fill=black!70] coordinates {(Exact output,0.326) += (0,0.132) -= (0,0.111) (Decision accuracy,0.597) += (0,0.139) -= (0,0.132)};
+\addplot[fill=black!35] coordinates {(Exact output,0.090) += (0,0.077) -= (0,0.062) (Decision accuracy,0.479) += (0,0.125) -= (0,0.139)};
+\addplot[fill=black!10] coordinates {(Exact output,0.167) += (0,0.097) -= (0,0.098) (Decision accuracy,0.556) += (0,0.118) -= (0,0.125)};
+\legend{Rule-based parser, Model with application prompt, Model with contract prompt}
+\end{axis}
+\end{tikzpicture}
+\caption{Exact output and decision accuracy of the three interpretation methods on the development statements. Error bars are the 95\% intervals from Table~\ref{tab:llm}; those of the parser and of the model with the contract prompt overlap.}
+\label{fig:llm}
+\end{figure}
 
 \paragraph{First run: application prompt.} Only 18 of the 144 outputs passed the contract check. The main reason was a mismatch between the application and the evaluation contract, not only the model. The application's prompt had been extended after the contract was fixed in October: it describes rule types such as preferred teaching windows and daily teaching limits, and a parameter field, which the contract does not know. The model used them in 56 proposals. The prompt also did not list the guide's clarification codes, so the model invented its own (for example \texttt{clarify\_if\_needed}), and clarification F1 was zero. Decisions are scored separately from the vocabulary, and they show a real behaviour: the model mostly answered \texttt{ready}. It treated 24 of 44 statements that need a question, all 8 conflicts and 11 of 16 unsupported requests as ready, and it referred to identifiers that were not in the context in 16 cases.
 

@@ -78,9 +78,9 @@ published?} This is verified by testing
 \item
   Give administrators understandable checks and feedback for generated timetables and manual changes before publication.
 \item
-  Evaluate interpretation correctness, administrative task effort and understanding separately from timetable quality.
+  Evaluate interpretation correctness separately from timetable quality, and evaluate the local assistant model before and after fine-tuning.
 \item
-  Deliver a working prototype, reproducible experiments and this thesis.
+  Deliver a working prototype, reproducible evaluation records and this thesis.
 \end{enumerate}
 
 \hypertarget{contribution-proportional-to-the-evidence}{%
@@ -95,7 +95,7 @@ language categories with a versioned annotation guide, whose labels are
 draft and unreviewed; (iii) a development-level comparison of a
 rule-based parser and a locally hosted language model on that corpus,
 with family-level uncertainty; (iv) a fine-tuning study of a local
-assistant model in three rounds, including a round that made it worse
+assistant model in four rounds, including a round that made it worse
 and the reason; and (v) a working prototype for teaching and examination
 timetables in which an approval workflow and an independent validator
 keep unreviewed or invalid output from being used. No claim is made
@@ -105,13 +105,13 @@ administrative effort.
 \hypertarget{scope}{%
 \section{Scope}\label{scope}}
 
-\textbf{Confirmed project scope:} JadwAI supports course timetabling for one department and one semester, using a repeating weekly pattern. Lectures, tutorials and laboratories have durations and weekly occurrences; student groups are the unit of student-conflict checking. Natural-language requirements in English, formal Arabic, Egyptian Arabic and mixed Arabic/English are part of the core research scope, alongside an English/Arabic interface with right-to-left presentation. JAI (pronounced ``jay'') is the website's chat assistant; its language model runs on the same server as the application.
+\textbf{Project scope:} JadwAI supports course timetabling for one semester at a time, using a repeating weekly pattern, from a single department up to a whole university built in parts. Lectures, tutorials and laboratories have durations and weekly occurrences; student groups are the unit of student-conflict checking. Natural-language requirements in English, formal Arabic, Egyptian Arabic and mixed Arabic/English are part of the core research scope, alongside an English/Arabic interface with right-to-left presentation. JAI (pronounced ``jay'') is the website's chat assistant; its language model runs on the same server as the application.
 
-The solver is intended to choose instructors, times and rooms. Eligibility is recorded separately for lecture, tutorial and laboratory activities. Each activity retains one instructor across its weekly occurrences; instructor, time and room assignments may be locked. Mandatory weekly instructor workload limits and configurable mandatory or preferred daily limits for instructors and groups are in scope. The confirmed unit is elapsed teaching hours: a 90-minute session contributes 1.5 hours, counted once per instructor irrespective of how many groups attend; fixed breaks are excluded. Configured weekly instructor maxima and global hard daily caps are implemented. Preferred daily-limit variants and entity-specific daily overrides remain proposed extensions.
+The solver chooses instructors, times and rooms. Eligibility is recorded separately for lecture, tutorial and laboratory activities. Each activity retains one instructor across its weekly occurrences; instructor, time and room assignments may be locked. Mandatory weekly instructor workload limits and daily limits for instructors and groups are supported. The unit is elapsed teaching hours: a 90-minute session contributes 1.5 hours, counted once per instructor irrespective of how many groups attend; fixed breaks are excluded. Configured weekly instructor maxima and global hard daily caps are implemented. Preferred daily-limit variants and entity-specific daily overrides are not implemented.
 
 \textbf{Added during the project:} examination timetabling (quizzes, midterms and finals, with halls and TA invigilators), repair suggestions for impossible timetables (proposed to the administrator, never applied automatically), and generation in parts for university-scale data. \textbf{Deferred extensions:} individual enrolments, minimal-change regeneration, calendar feeds and notifications. \textbf{Excluded:} native mobile applications, attendance, payroll, full student-information-system integration, automated registration or sectioning, and institution-wide production deployment. The implementation status of each requirement is listed in Appendix~\ref{app:requirements}.
 
 \hypertarget{organisation-of-the-thesis}{%
 \section{Organisation of the thesis}\label{organisation-of-the-thesis}}
 
-Chapter~\ref{chap:background} introduces university timetabling and the constraint-entry problem. Chapter~\ref{literature-review} reviews five timetabling papers through educational needs, implemented capabilities and reported evidence, and examines a study of natural-language preference interpretation. Chapter~\ref{methodology-proposed-study} describes the method followed: the research design, the interpretation contract, the development corpus, the methods compared, the metrics, the fine-tuning of the assistant model, the engineering verification, and the threats to validity. Chapter~\ref{chap:implementation} describes the implemented system and the JAI assistant. Chapter~\ref{evidence} reports the measurements, and Chapter~\ref{chap:conclusion} summarises the findings, limitations and future work. The appendices list the requirements, screenshots of the prototype and planning records from the proposal.
+Chapter~\ref{chap:background} introduces university timetabling and the constraint-entry problem. Chapter~\ref{literature-review} reviews five timetabling papers through educational needs, implemented capabilities and reported evidence, and examines a study of natural-language preference interpretation. Chapter~\ref{methodology-proposed-study} describes the method followed: the research design, the interpretation contract, the development corpus, the methods compared, the metrics, the fine-tuning of the assistant model, the engineering verification, and the threats to validity. Chapter~\ref{chap:implementation} describes the implemented system and the JAI assistant. Chapter~\ref{evidence} reports the measurements, and Chapter~\ref{chap:conclusion} summarises the findings, limitations and future work. The appendices list the requirements, screenshots of the prototype, and the project timeline with traceability to the requirements.

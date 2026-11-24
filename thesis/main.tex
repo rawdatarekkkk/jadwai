@@ -114,8 +114,7 @@
 \begin{center}
 	\thesisimage[width=3.5cm]{giu_logo.png}\\[2mm]
 	\textbf{German International University}\\[2mm]
-		% NOTE: check the exact faculty name (old draft said "ICS - Software Engineering")
-		\textbf{Faculty of Informatics and Computer Science}\\[1mm]
+		\textbf{Faculty of Informatics \& CS}\\[1mm]
 
 	
 	\vspace{2cm}
@@ -280,9 +279,9 @@ published?} This is verified by testing
 \item
   Give administrators understandable checks and feedback for generated timetables and manual changes before publication.
 \item
-  Evaluate interpretation correctness, administrative task effort and understanding separately from timetable quality.
+  Evaluate interpretation correctness separately from timetable quality, and evaluate the local assistant model before and after fine-tuning.
 \item
-  Deliver a working prototype, reproducible experiments and this thesis.
+  Deliver a working prototype, reproducible evaluation records and this thesis.
 \end{enumerate}
 
 \hypertarget{contribution-proportional-to-the-evidence}{%
@@ -297,7 +296,7 @@ language categories with a versioned annotation guide, whose labels are
 draft and unreviewed; (iii) a development-level comparison of a
 rule-based parser and a locally hosted language model on that corpus,
 with family-level uncertainty; (iv) a fine-tuning study of a local
-assistant model in three rounds, including a round that made it worse
+assistant model in four rounds, including a round that made it worse
 and the reason; and (v) a working prototype for teaching and examination
 timetables in which an approval workflow and an independent validator
 keep unreviewed or invalid output from being used. No claim is made
@@ -307,16 +306,16 @@ administrative effort.
 \hypertarget{scope}{%
 \section{Scope}\label{scope}}
 
-\textbf{Confirmed project scope:} JadwAI supports course timetabling for one department and one semester, using a repeating weekly pattern. Lectures, tutorials and laboratories have durations and weekly occurrences; student groups are the unit of student-conflict checking. Natural-language requirements in English, formal Arabic, Egyptian Arabic and mixed Arabic/English are part of the core research scope, alongside an English/Arabic interface with right-to-left presentation. JAI (pronounced ``jay'') is the website's chat assistant; its language model runs on the same server as the application.
+\textbf{Project scope:} JadwAI supports course timetabling for one semester at a time, using a repeating weekly pattern, from a single department up to a whole university built in parts. Lectures, tutorials and laboratories have durations and weekly occurrences; student groups are the unit of student-conflict checking. Natural-language requirements in English, formal Arabic, Egyptian Arabic and mixed Arabic/English are part of the core research scope, alongside an English/Arabic interface with right-to-left presentation. JAI (pronounced ``jay'') is the website's chat assistant; its language model runs on the same server as the application.
 
-The solver is intended to choose instructors, times and rooms. Eligibility is recorded separately for lecture, tutorial and laboratory activities. Each activity retains one instructor across its weekly occurrences; instructor, time and room assignments may be locked. Mandatory weekly instructor workload limits and configurable mandatory or preferred daily limits for instructors and groups are in scope. The confirmed unit is elapsed teaching hours: a 90-minute session contributes 1.5 hours, counted once per instructor irrespective of how many groups attend; fixed breaks are excluded. Configured weekly instructor maxima and global hard daily caps are implemented. Preferred daily-limit variants and entity-specific daily overrides remain proposed extensions.
+The solver chooses instructors, times and rooms. Eligibility is recorded separately for lecture, tutorial and laboratory activities. Each activity retains one instructor across its weekly occurrences; instructor, time and room assignments may be locked. Mandatory weekly instructor workload limits and daily limits for instructors and groups are supported. The unit is elapsed teaching hours: a 90-minute session contributes 1.5 hours, counted once per instructor irrespective of how many groups attend; fixed breaks are excluded. Configured weekly instructor maxima and global hard daily caps are implemented. Preferred daily-limit variants and entity-specific daily overrides are not implemented.
 
 \textbf{Added during the project:} examination timetabling (quizzes, midterms and finals, with halls and TA invigilators), repair suggestions for impossible timetables (proposed to the administrator, never applied automatically), and generation in parts for university-scale data. \textbf{Deferred extensions:} individual enrolments, minimal-change regeneration, calendar feeds and notifications. \textbf{Excluded:} native mobile applications, attendance, payroll, full student-information-system integration, automated registration or sectioning, and institution-wide production deployment. The implementation status of each requirement is listed in Appendix~\ref{app:requirements}.
 
 \hypertarget{organisation-of-the-thesis}{%
 \section{Organisation of the thesis}\label{organisation-of-the-thesis}}
 
-Chapter~\ref{chap:background} introduces university timetabling and the constraint-entry problem. Chapter~\ref{literature-review} reviews five timetabling papers through educational needs, implemented capabilities and reported evidence, and examines a study of natural-language preference interpretation. Chapter~\ref{methodology-proposed-study} describes the method followed: the research design, the interpretation contract, the development corpus, the methods compared, the metrics, the fine-tuning of the assistant model, the engineering verification, and the threats to validity. Chapter~\ref{chap:implementation} describes the implemented system and the JAI assistant. Chapter~\ref{evidence} reports the measurements, and Chapter~\ref{chap:conclusion} summarises the findings, limitations and future work. The appendices list the requirements, screenshots of the prototype and planning records from the proposal.
+Chapter~\ref{chap:background} introduces university timetabling and the constraint-entry problem. Chapter~\ref{literature-review} reviews five timetabling papers through educational needs, implemented capabilities and reported evidence, and examines a study of natural-language preference interpretation. Chapter~\ref{methodology-proposed-study} describes the method followed: the research design, the interpretation contract, the development corpus, the methods compared, the metrics, the fine-tuning of the assistant model, the engineering verification, and the threats to validity. Chapter~\ref{chap:implementation} describes the implemented system and the JAI assistant. Chapter~\ref{evidence} reports the measurements, and Chapter~\ref{chap:conclusion} summarises the findings, limitations and future work. The appendices list the requirements, screenshots of the prototype, and the project timeline with traceability to the requirements.
 \clearpage
 
 \clearpage
@@ -412,7 +411,7 @@ The review is a focused reading of five retained timetabling papers and one pape
 
 \textbf{Evidence and limits.} The paper illustrates the interfaces and shows example combinations with 100\% and 82\% viability, including a conflict explanation for an individual student. These are demonstration results, not a controlled evaluation of graduation rates, student satisfaction, or staff time savings. Helping students graduate sooner is a motivation, not a measured outcome. The authors explicitly state that the suite does not address classroom allocation or class-size issues. They also identify fixed time slots and dependence on instructors' chosen times as limitations; generating times from student needs is future work (pp.~16--17).
 
-\textbf{Implications for this project.} A useful timetable must protect access to required teaching and explain conflicts in terms an administrator can act on. This supports conflict reporting, review, and safe manual adjustment in the proposed project. However, the proposed prototype starts with predefined course activities and student groups. It does not select semester course offerings, optimise degree completion, or provide individual enrolment-based schedules unless those extensions are approved.
+\textbf{Implications for this project.} A useful timetable must protect access to required teaching and explain conflicts in terms an administrator can act on. JadwAI accordingly reports conflicts, supports review and validates every manual change. Unlike Course Scheduler, it starts from predefined course activities and student groups: it does not select semester course offerings or optimise degree completion, and individual schedules exist only for advising students.
 
 \subsection{Müller, Rudová and Müllerová: real-world course timetabling}
 \textbf{Educational problem and beneficiaries.} Müller et al.~\cite{muller2025itc} examine the diversity of real university course-timetabling needs through ITC~2019. The central educational issue is whether students can attend the required combination of lectures, seminars, and laboratories. Beneficiaries include students seeking compatible class combinations and administrators coordinating teaching across faculties, buildings, and institutional calendars.
@@ -423,7 +422,7 @@ The review is a focused reading of five retained timetabling papers and one pape
 
 \textbf{Evidence and limits.} The paper analyses instance characteristics and compares scheduling solutions. This provides substantial evidence that real timetabling requires more than avoiding simultaneous room use. Its evaluation concerns feasibility and scheduling penalties, including student conflicts; it does not establish improvements in learning, retention, or satisfaction. Competition results also cannot be transferred directly to a smaller prototype with a different scope.
 
-\textbf{Implications for this project.} The proposed system should make its supported educational requirements explicit and assess them against the approved institutional policy. Initial group-based conflict checking is a deliberate simplification of individual sectioning. Travel-time checking, irregular week patterns, and student sectioning should not be claimed as implemented features of the prototype without corresponding requirements and tests.
+\textbf{Implications for this project.} A system should make its supported requirements explicit and check them against the approved institutional policy. JadwAI checks clashes per student group, plus advising students whose courses differ from their group's. This is a deliberate simplification of full individual sectioning. Travel time between buildings, irregular week patterns and student sectioning are not implemented, and no claim is made about them.
 
 \section[Examination access and workload]{Examination access, workload and institutional coordination}
 \subsection{Abdennadher and Edward: examination timetabling at GUC}
@@ -433,7 +432,7 @@ The review is a focused reading of five retained timetabling papers and one pape
 
 \textbf{Evidence and limits.} The authors report a test using Spring~2007 final-examination data: 140 courses, 5,500 students and 1,300 available seats, with a solution generated within a few seconds. This demonstrates scheduling functionality on the stated data. The historical manual preparation time is not a measured before-and-after comparison of the entire administrative workflow. The paper does not report effects on exam performance, stress, or satisfaction. Integration with the invigilation system and further timetable repair and optimisation are future work (pp.~7--8).
 
-\textbf{Implications for this project.} The paper supports clear distinctions between student access rules, assessment-spacing rules, and resource restrictions. It also motivates collecting local institutional requirements rather than copying another university's rules. Examination spacing and retake accommodation are relevant if an examination extension is approved; they are not automatically requirements for the current weekly course-timetabling scope.
+\textbf{Implications for this project.} The paper supports a clear distinction between student access rules, assessment-spacing rules and resource restrictions, and it shows why local institutional rules should be collected rather than copied from another university. JadwAI's examination timetables (Chapter~\ref{chap:implementation}) prevent exam clashes for groups and advising students and reduce same-day and consecutive-day exams. The spacing rules themselves are configurable, not taken from GUC's policy.
 
 \subsection{Kaya: multi-campus examination decision support}
 \textbf{Educational problem and beneficiaries.} Kaya~\cite{kaya2026drl} addresses large-scale examination scheduling at a multi-campus Turkish university. Examinations have different durations, and many cohorts require more seats than a single room provides. Coordinators need to organise examinations within campus and facility restrictions while maintaining compatible assessment schedules. Students and teaching staff are affected by the resulting placements, although coordinators are the direct decision-support users.
@@ -442,7 +441,7 @@ The review is a focused reading of five retained timetabling papers and one pape
 
 \textbf{Evidence and limits.} The main comparison uses 1,127 representative examinations, 110 rooms and 520 instructors, derived from 1,332 raw events. The paper reports high assignment coverage and an independent audit finding no hard-rule violation among assigned examinations. Coverage and validity must be read together: unassigned exams still require resolution. Crucially, cohort conflicts were made active through synthetic conflict injection because naturally occurring cohort overlap was absent from the evaluated production period; an accessibility requirement was also inactive. The operational logs establish execution at institutional scale, but the forty recorded coordinator interventions were a controlled replay, not observed live coordinator behaviour. The study is limited to one institution and period, and it does not establish reduced student stress, improved marks, or live administrative time savings (Sections~5.12 and 6.3).
 
-\textbf{Implications for this project.} This paper supports reviewed changes, preservation of approved decisions, explicit reporting of unscheduled activities, and independent checking after edits. It also demonstrates why an educational review must ask whether relevant requirements were exercised in realistic data. The proposed evaluation will distinguish operational records, simulated cases, and participant evidence rather than treating them as interchangeable.
+\textbf{Implications for this project.} This paper supports reviewed changes, preservation of approved decisions, explicit reporting of unscheduled activities, and independent checking after edits, all of which JadwAI implements. It also shows why an evaluation must ask whether the relevant requirements were exercised on realistic data. Chapter~\ref{evidence} therefore keeps synthetic cases, adjusted university-scale data and the absence of participant evidence clearly apart.
 
 \section{University timetabling as an institutional decision}
 \subsection{Petrovic and Burke: University Timetabling}
@@ -452,11 +451,11 @@ The review is a focused reading of five retained timetabling papers and one pape
 
 \textbf{Evidence and limits.} The reviewed studies provide scheduling results and examples of ways to represent competing objectives. The chapter does not supply one controlled evaluation of an integrated product or evidence of improved learning outcomes. Its range of examples supports context-sensitive requirements, not a universal checklist that every university should adopt.
 
-\textbf{Implications for this project.} The proposed prototype should let administrators express supported local requirements, identify which are mandatory, and inspect which preferences remain unmet. The distinction is important educationally: avoiding a clash protects access, while satisfying a preferred teaching time improves convenience under a particular institutional policy. Neither should be conflated with a demonstrated change in educational achievement.
+\textbf{Implications for this project.} Administrators should be able to express their local requirements, mark which are mandatory, and see which preferences remain unmet. JadwAI supports this through mandatory and preferred rules, the convenience score and the statistics report. The distinction matters educationally: avoiding a clash protects access, while meeting a preferred teaching time improves convenience under one institution's policy. Neither is evidence of a change in educational achievement.
 
 \section{Natural-language preferences and faithful interpretation}
 \subsection{Sanguinetti et al.: From User Preferences to Optimization Constraints Using Large Language Models}
-\textbf{Problem and beneficiaries.} Sanguinetti et al.~\cite{sanguinetti2025preferences} investigate how people can express household appliance needs in ordinary language so that those needs become constraints for an energy optimizer. The motivation is that a community's energy-saving objectives may conflict with individual routines: a technically efficient recommendation is of limited use if it ignores when a person needs hot water or air conditioning. The direct beneficiaries are household users in Italian renewable energy communities. Although this is not an educational study, the same concern motivates the proposed timetable interface: an administrator's intended attendance or availability requirement must survive its translation into a formal rule (supplied PDF, pp.~1--3).
+\textbf{Problem and beneficiaries.} Sanguinetti et al.~\cite{sanguinetti2025preferences} investigate how people can express household appliance needs in ordinary language so that those needs become constraints for an energy optimizer. The motivation is that a community's energy-saving objectives may conflict with individual routines: a technically efficient recommendation is of limited use if it ignores when a person needs hot water or air conditioning. The direct beneficiaries are household users in Italian renewable energy communities. Although this is not an educational study, the same concern motivates JadwAI's interface: an administrator's intended attendance or availability requirement must survive its translation into a formal rule (supplied PDF, pp.~1--3).
 
 \textbf{Capabilities studied.} The evaluated component converts Italian utterances into representations of appliance operating times or desired temperatures. It supports requests applying throughout the time horizon, within a specified interval, after a start time, or until an end time. The input includes both the utterance and manually identified preference spans marked with XML tags. The study therefore evaluates conversion of identified preferences, rather than the complete discovery of all requirements in unrestricted text. A connection to an external optimizer is described within the wider project; the paper does not establish a completed, evaluated workflow with user clarification, interpretation approval and downstream schedule validation (pp.~3--8).
 
@@ -464,7 +463,7 @@ The review is a focused reading of five retained timetabling papers and one pape
 
 \textbf{Limits of the evidence.} The small, handcrafted sample, Italian appliance domain and supplied preference spans limit transfer to English university requirements containing multiple rules, ambiguous staff names or institutional terms. Character similarity cannot establish that a constraint preserves user intent. The supplied version also has a reporting inconsistency: its model-selection and results narrative describes four models and excludes two, while Table~1 additionally lists Cerbero, Maestrale and IT5 without matching experimental descriptions. Those additional rows are not used here to infer a reproducible ranking. The paper does not report a controlled comparison of manual and assisted entry, measured user effort, educational outcomes, or an evaluated clarification-and-approval process. Functional evaluation after connection to the optimizer is proposed as future work (pp.~7--10).
 
-\textbf{Implications for this project.} This is a close conceptual precedent for converting everyday requirements into a restricted constraint vocabulary, but it does not establish that the proposed university application will work. The thesis will consequently assess complete semantic interpretation and individual fields separately, including time boundaries, entity references and mandatory versus preferred status. Requirements will be evaluated from the full statement, with the supplied institutional context; manually highlighted spans will not be assumed in the main evaluation. Review and targeted clarification are proposed safeguards whose effectiveness must be measured. The human comparison will assess final interpretation correctness alongside time and corrections, rather than treating a fluent response or a valid timetable as evidence that the administrator's intent was understood. These implications support the existing SRS requirements for entity resolution, named periods, clarification, review and evaluation (FR-016--FR-020, FR-049 and FR-050); they add no appliance-related functions to the project.
+\textbf{Implications for this project.} This is a close precedent for converting everyday requirements into a restricted rule vocabulary, but it does not show that the same works for university timetabling. This thesis therefore scores complete interpretations and individual fields separately, including times, entity references and mandatory versus preferred strength (Section~\ref{metrics}). Statements are interpreted in full with the institutional context, without manually highlighted spans. Review and clarification are built in as safeguards. A comparison of manual and AI-assisted entry with participants, which would measure their effect on effort, could not be carried out (Section~\ref{meth-rq3}).
 
 \section[Language models for structured interpretation]{Language models for structured interpretation, clarification and local deployment}\label{rw-llm}
 % NOTE (24 Nov 2026): New section, drafted with AI assistance at the owner's request; reword in your own words. Sources checked against arXiv, ACL Anthology, PMLR, NeurIPS or publisher records on 24 Nov 2026.
@@ -493,19 +492,19 @@ LAraBench~\cite{abdelali2024larabench} evaluates LLMs, including GPT-3.5, GPT-4 
 \subsection{Implications for this project}
 These works establish that LLMs can map text to formal structures, that grounding in real data and dialects makes this harder, that a clarifying question can be more useful than a guess, and that small fine-tuned models can compete on narrow tasks. None of them combines these elements for university timetabling: interpretation into a closed rule vocabulary, references to the institution's own records, explicit clarification and unsupported decisions, review and approval before use, and evaluation in English, formal Arabic, Egyptian Arabic and mixed text. The thesis does not claim that any single element is new. It evaluates the combination on development data.
 
-\section[Cross-paper synthesis]{Cross-paper synthesis and implications for the proposed system}
-\textbf{Access and progression.} Sobh et al. emphasise course requirements and degree progression, Müller et al. emphasise attendance across compatible class combinations, and the GUC study explicitly considers retake students. Together, they show that avoiding clashes has educational meaning: students must be able to attend required teaching or assessment. However, offering selection, individual sectioning and group-based conflict prevention are different capabilities. The proposed prototype initially addresses the last of these.
+\section[Cross-paper synthesis]{Cross-paper synthesis and implications for JadwAI}
+\textbf{Access and progression.} Sobh et al. emphasise course requirements and degree progression, Müller et al. emphasise attendance across compatible class combinations, and the GUC study explicitly considers retake students. Together, they show that avoiding clashes has educational meaning: students must be able to attend required teaching or assessment. However, offering selection, individual sectioning and group-based conflict prevention are different capabilities. JadwAI addresses the last of these, extended to advising students.
 
-\textbf{Workload and assessment organisation.} GUC's core-exam and difficulty-spacing requirements show how assessment policy affects scheduling. These rules are institution-specific; they do not establish an optimal universal spacing policy. Course gaps, late sessions and daily-load balance are related concerns for the proposed course prototype, but their thresholds and priority require local agreement.
+\textbf{Workload and assessment organisation.} GUC's core-exam and difficulty-spacing requirements show how assessment policy affects scheduling. These rules are institution-specific; they do not establish an optimal universal spacing policy. Gaps, late sessions and daily load are the related concerns in JadwAI's convenience score, and their weights and limits require local agreement.
 
 \textbf{Staff coordination and usable decisions.} Course Scheduler's conflict feedback and Kaya's reviewed revisions show the importance of giving administrators actionable information and control. A useful system should expose incomplete schedules, violated preferences and the consequences of a change. Faster generation alone is insufficient if the administrator cannot understand or approve the result.
 
-\textbf{Evidence quality.} Across the papers, most evaluation concerns scheduling feasibility, coverage, runtime or penalties. Those outcomes are relevant to institutional operations, but they do not directly measure learning, retention, graduation, fairness, stress or satisfaction. The thesis will therefore describe improved access and workload organisation as intended educational benefits, and claim improvements only for outcomes actually measured.
+\textbf{Evidence quality.} Across the papers, most evaluation concerns scheduling feasibility, coverage, runtime or penalties. Those outcomes are relevant to institutional operations, but they do not directly measure learning, retention, graduation, fairness, stress or satisfaction. This thesis therefore describes improved access and workload organisation as intended benefits and claims improvements only for outcomes it actually measured.
 
 \textbf{Functional response.} JadwAI responds to these needs as follows. Requirements are entered in ordinary language, the proposed interpretation is displayed, clarification is requested where needed, and the administrator approves every rule. Course and examination timetables are generated from approved rules only. Group, instructor, room and advising-student conflicts and capacity and facility suitability are checked by an independent validator. Comparison and validated manual changes are supported, and only validated timetables are released to authorised users. Individual enrolment, beyond advising students, remains an extension. Chapter~\ref{chap:implementation} describes how each capability is implemented.
 
 \section{Research gap and limits of the review}
-Within the five retained timetabling papers, the educational needs are represented as predefined rules, input data, preferences or choices made through interfaces. None evaluates the proposed combination of ordinary-language requirement entry, explicit interpretation review, useful clarification, and separate measurement of interpretation accuracy for university course scheduling. This bounded observation motivates studying whether administrators can record their scheduling needs with less effort while preserving their intended meaning. It is not a claim that no related system exists anywhere. Within the sources examined, Arabic and Egyptian Arabic administrative constraint extraction is not evaluated; the Cairo examination context does not itself establish natural-language input support. This motivates language-stratified evaluation without asserting broader novelty.
+Within the five retained timetabling papers, the educational needs are represented as predefined rules, input data, preferences or choices made through interfaces. None evaluates the combination of ordinary-language requirement entry, explicit interpretation review, useful clarification, and separate measurement of interpretation accuracy for university course scheduling. This bounded observation motivates studying whether such requirements can be interpreted correctly and safely; whether this also reduces administrators' effort remains future work. It is not a claim that no related system exists anywhere. Within the sources examined, Arabic and Egyptian Arabic administrative constraint extraction is not evaluated; the Cairo examination context does not itself establish natural-language input support. This motivates language-stratified evaluation without asserting broader novelty.
 
 The study by Sanguinetti et al.~\cite{sanguinetti2025preferences} directly evaluates preference-to-constraint conversion in another domain, and the work reviewed in Section~\ref{rw-llm} shows text-to-model translation, grounding in data, clarification and small fine-tuned models in other settings, so none of these is claimed as new. None of them evaluates the university review workflow with records of the institution and Arabic dialect input. A documented search of further educational timetabling and human-centred scheduling literature is needed before making a broader novelty claim. The search should record sources, dates, inclusion criteria and screening decisions, and include terms concerning student access, administrative workload, participatory scheduling and requirement entry alongside natural-language scheduling.
 
@@ -1128,7 +1127,7 @@ Cases won (8 ties) & 3 & 8 \\
 
 The largest gains were in Arabic: an Arabic privacy question that v1 answered in English, and a request for ``no classes at 08:30'' that v1 answered by claiming such classes were forbidden, while v3 correctly said no mandatory rule prevents them. Six cases received the minimum score for both models, including an off-topic request for a poem and an Arabic question about shared lectures.
 
-\paragraph{Live use.} With v3 in the running application, four questions taken from the weakest cases were asked in the chat. The display of mixed Arabic and English text was correct after the fix described in Section~\ref{evidence-jai}, but the answers were weak: an Arabic question about laboratories with GPUs used wrong words for rooms; the poem request produced a poem; a frustrated Arabic message drifted into Chinese mid-sentence; and a question about connecting to the university's student information system, asked after the complaint, was answered with a request for a rule identifier from the previous topic. The held-out measurements therefore overstate live reliability, particularly for topic changes within one conversation. These cases were used to write a fourth round of training examples (off-topic requests, topic changes, Arabic room vocabulary and examination publishing), which had not been trained at the time of writing.
+\paragraph{Live use.} With v3 in the running application, four questions taken from the weakest cases were asked in the chat. The display of mixed Arabic and English text was correct after the fix described in Section~\ref{evidence-jai}, but the answers were weak: an Arabic question about laboratories with GPUs used wrong words for rooms; the poem request produced a poem; a frustrated Arabic message drifted into Chinese mid-sentence; and a question about connecting to the university's student information system, asked after the complaint, was answered with a request for a rule identifier from the previous topic. The held-out measurements therefore overstate live reliability, particularly for topic changes within one conversation. These cases were used to write a fourth round of training examples (off-topic requests, topic changes, Arabic room vocabulary and examination publishing), which were trained as round~4 (v4; Table~\ref{tab:jai-rounds}). The evaluation of v4 was still running at the time of writing.
 
 
 \paragraph{Limits.} The examples and contexts are fictional and were drafted with AI assistance; approvals were bulk approvals by the project owner. The held-out sets are small (16--19 conversation cases and 5 action cases), the automatic checks do not measure correctness, and the human rating had one rater who was not independent of the project. All runs used one machine, one random seed and temperature~0. These results describe the development of a local assistant; they are not estimates of constraint-extraction accuracy (RQ1).
@@ -1340,83 +1339,78 @@ The following screenshots were taken from the running prototype on 23 November 2
 
 \clearpage
 
-\chapter{Planning Records from the Proposal}\label{app:planning}
+\chapter{Project Record and Traceability}\label{app:planning}
 
-% NOTE (migration 23 Nov 2026): Text moved unchanged from main.tex. Much of it was drafted with AI assistance; rewrite it in your own words before submission (the supervisor runs AI checks).
-% NOTE (migration 23 Nov 2026): These sections came from the proposed-methodology chapter. Keep only what still helps the reader, or remove this appendix.
-\hypertarget{timeline}{%
-\section{Timeline}\label{timeline}}
+% NOTE (24 Nov 2026): Replaces the October planning records (timeline without dates, proposed deliverables, open decisions). Drafted with AI assistance; reword in your own words. Dates come from the SRS versions, the corpus manifests, finetuning/RESULTS.md and the git history.
 
-No deadline has been provided, so no dates are proposed (OQ-14). The
-order of work is set out in SRS Section\textasciitilde16 and refined in a
-current phased implementation roadmap that places
-the annotation guide and evaluation data before AI extraction.
+\section{Timeline}\label{timeline}
 
-\hypertarget{proposed-deliverables-of-the-study}{%
-\section{Proposed deliverables of the
-study}\label{proposed-deliverables-of-the-study}}
+Table~\ref{tab:timeline} lists the main milestones of the project as they happened.
 
-Constraint vocabulary and schema; annotation guide; annotated dataset
-(shareable portion, if permitted); frozen prompts and configurations;
-raw outputs; analysis scripts; results with limitations; the prototype;
-the thesis.
-
-\hypertarget{consistency-with-the-srs-traceability}{%
-\section{Consistency with the SRS
-(traceability)}\label{consistency-with-the-srs-traceability}}
-
-\begin{longtable}[]{@{}p{\dimexpr(\linewidth-4\tabcolsep)/2\relax}p{\dimexpr(\linewidth-4\tabcolsep)/2\relax}@{}}
-\toprule\noalign{}
-Methodology element & Specified feature or research procedure \\
-\midrule\noalign{}
+\begin{longtable}[]{@{}p{0.24\textwidth}p{0.68\textwidth}@{}}
+\caption{Project milestones.}\label{tab:timeline}\\
+\toprule
+Date (2026) & Milestone \\
+\midrule
 \endhead
-\bottomrule\noalign{}
+\bottomrule
 \endlastfoot
-Extraction with schema-constrained output & FR-015, FR-022 \\
-Entity resolution; invented entities & FR-016 \\
-Parameters, named periods & FR-001, FR-017 \\
-Negation, polarity, hard/soft & FR-018 \\
-Clarification and unsupported handling & FR-019 \\
-Review; raw versus post-review & FR-020 (stores raw and approved) \\
-Approval gate & FR-021 \\
-Experiment harness; metrics incl. paraphrase and run-to-run consistency;
-versioned development records; frozen held-out configuration; held-out
-isolation and access log & FR-049 \\
-Annotator rating of clarification-question usefulness; inter-annotator
-agreement; sample-size and statistics & research procedures
-(dataset/analysis), no FR \\
-Audit of model, prompt, cost, latency & FR-023 \\
-Manual-entry baseline & FR-010 \\
-Manual versus assisted timing and corrections & FR-050 \\
-Scheduling measures & FR-024--FR-029, FR-031 \\
-Seeded-violation and differential tests of the validator & FR-031 (SRS
-EV-7; research procedure) \\
-Coverage statements & FR-030, FR-032 \\
-System-behaviour tests & SRS AC-01--AC-23 \\
-Concurrent changes and publication consistency & FR-059; AC-16 \\
-Interrupted operations and recovery & FR-060; AC-17 \\
-Duplicate requests and bounded retries & FR-061; AC-18 \\
-Incomplete results and cancellation completion & FR-062; AC-19 \\
-Validator failures and publication blocking & FR-063; AC-20 \\
-Session expiry and permission changes & FR-064; AC-21 \\
-Reproducibility records & FR-023--FR-025, FR-046; NFR-016 \\
-Differential testing against the solver model & research procedure
-(Section\textasciitilde3.11); requires the validator and model to be
-separately callable (NFR-002) \\
-Rule-based baseline (optional) & research procedure; \textbf{no FR} ---
-it is a test-time artefact, not a product feature \\
+10 October & SRS draft v0.2 reviewed by the supervisor \\
+25 October & Synthetic corpus release \texttt{0.1.0-draft} (128 statements) and annotation guide v1 \\
+1 November & Development bundle \texttt{0.2.0-draft} (144 statements, two contexts) and annotation guide v2 \\
+4--8 November & Examination halls and invigilators, scenarios and publication, portals, advising students, generation in parts, repair suggestions \\
+8 November & Measured evidence for Chapter~\ref{evidence} (department and university scale, repair, rule-based baseline) \\
+12 November & Examination plans with quizzes, midterms, finals and second chances \\
+14--18 November & JAI chat: built-in answers, local model, confirmed tasks; SRS v0.4 \\
+19--23 November & JAI fine-tuning rounds 1--3, verified guide, blind rating, Arabic reply and display fixes \\
+23--24 November & Fine-tuning round 4; local-model extraction runs on the development corpus; thesis moved to the GIU template \\
+10 December & Full draft due to the supervisor \\
 \end{longtable}
 
-Instructor eligibility, locks and continuity are covered by AC-22; four-language input and the bilingual RTL interface by AC-23. These identifiers refer to the revised scope and do not imply that the older exported SRS has been synchronised. Fixed-assignment solver/validator cross-checks must fix instructor variables too. Infeasibility reporting provides available conflict details; automatic repair remains deferred.
+\section{Deliverables}\label{proposed-deliverables-of-the-study}
 
-Items marked "research procedure" are deliberately not product
-requirements. Every other evaluated capability has an FR.
+\begin{itemize}
+\item The JadwAI prototype (\texttt{frontend/}, \texttt{backend/}, \texttt{worker/}) with its automated tests.
+\item The requirements with their status (\texttt{docs/REQUIREMENTS.md}, summarised in Appendix~\ref{app:requirements}).
+\item The output contract, annotation guides, synthetic corpus and offline scorer (\texttt{evaluation/}).
+\item The fine-tuning data, training notebook, merge and evaluation tools, and results (\texttt{finetuning/}).
+\item The scripts, logs, predictions and scores behind every reported measurement, in \texttt{thesis/evidence/}.
+\item This thesis.
+\end{itemize}
 
-\hypertarget{decisions-needed-to-finalise-this-chapter}{%
-\section{Decisions needed to finalise this
-chapter}\label{decisions-needed-to-finalise-this-chapter}}
+\section{Traceability to the requirements}\label{consistency-with-the-srs-traceability}
 
-The remaining decisions concern complete constraint semantics; university template and length; dataset source, size and annotators; success targets; participant study and ethics; model selection and approved cost cap; data/provider policy; institutional workload values and additional daily-limit variants; partial diagnostic result sources; and the submission deadline. Exams, language scope, group-based conflict checking and elapsed-teaching-hour units have been resolved as stated in Chapter~1. The citation style has been resolved as IEEE (BibTeX style \texttt{ieeetr}, numbered in order of first citation). The initial corpus remains unreviewed, so its current size and labels do not resolve the final research sampling or annotation decisions.
+Table~\ref{tab:trace} links each part of the method in Chapter~\ref{methodology-proposed-study} to the functional requirements it relies on.
+
+\begin{longtable}[]{@{}p{0.5\textwidth}p{0.42\textwidth}@{}}
+\caption{Traceability of the method to the requirements.}\label{tab:trace}\\
+\toprule
+Element of the method & Requirement or procedure \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Schema-constrained interpretation & FR-015, FR-022, FR-074 \\
+Entity resolution without invented entities & FR-016 \\
+Parameters and named periods & FR-001, FR-017, FR-067 \\
+Negation and mandatory/preferred strength & FR-018 \\
+Clarification and unsupported requests & FR-019 \\
+Review beside the original statement & FR-020 \\
+Approval gate before generation & FR-021 \\
+Rule-based parser compared with the model & FR-073 \\
+Four language categories & FR-054 \\
+Corpus, scorer and development records & FR-049 \\
+Manual entry (forms) & FR-010 \\
+Manual versus assisted entry with participants & FR-050 (not carried out) \\
+Scheduling measures & FR-024--FR-029, FR-031 \\
+Validator checks, coverage and publication gate & FR-030--FR-033, FR-040, FR-063 \\
+Repair suggestions & FR-058 \\
+Examination timetables & FR-051, FR-071, FR-072 \\
+JAI assistant and its evaluation & FR-075--FR-077 \\
+Reproducibility records & FR-023--FR-025; NFR-016 \\
+Comparison of validator and solver model & NFR-002 (research procedure) \\
+Annotator agreement and confidence intervals & Research procedure, no FR \\
+\end{longtable}
 
 \clearpage
 

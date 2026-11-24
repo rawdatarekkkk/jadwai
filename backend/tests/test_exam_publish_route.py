@@ -87,6 +87,16 @@ def test_several_exam_drafts_ask_which_one_and_the_name_picks_it():
     assert reply_to('please publish the exam schedule', view)['action']['run_id'] == 'exam-mid1'
 
 
+def test_more_exam_drafts_than_listed_says_how_many_are_left_out():
+    view = exam_view(screen=False)
+    view['newest'] = None
+    view['exam_drafts'] = [{**EXAM, 'id': f'exam-{i}', 'name': f'Exams {i}'} for i in range(7)]
+    text = reply_to('please publish the exam schedule', view)['text'][0]
+    assert text.startswith('There are 7 unpublished exam timetables: Exams 0,') and 'Exams 5, and 1 more. Which one' in text
+    ar = reply_to('ممكن تنشر جدول الامتحانات؟', view)['text'][0]
+    assert ar.startswith('فيه 7 جداول') and 'و1 كمان' in ar
+
+
 def test_exam_publish_problems_are_still_explained():
     view = exam_view()
     view['exam_run']['stale'] = True

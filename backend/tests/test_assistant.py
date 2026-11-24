@@ -42,7 +42,7 @@ def test_is_and_it_are_not_programme_initials():
 def test_free_labs_with_seats_at_a_bare_time():
     meaning, reply = ask('free labs on Monday 11:30 for 25 students')
     assert meaning['intent'] == 'free_rooms' and meaning['slots']['window'] == (690, 691)
-    assert reply['text'][0] == '1 free rooms on Monday 11:30:' and 'C.101' in reply['text'][1]
+    assert reply['text'][0] == '1 free room on Monday 11:30:' and 'C.101' in reply['text'][1]
 
 
 def test_group_by_programme_initials_year_and_number_with_free_periods():

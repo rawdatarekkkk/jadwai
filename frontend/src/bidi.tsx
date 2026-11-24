@@ -24,7 +24,10 @@ export function BidiLine({ text }: { text: string }): ReactNode {
   for (const m of text.matchAll(RUN)) {
     const start = m.index ?? 0;
     if (start > last) parts.push(text.slice(last, start));
-    parts.push(<bdi key={start} dir="ltr">{m[0]}</bdi>);
+    // A run without spaces (a date, time range or code) must not wrap: a break at its hyphens would put
+    // the two halves on different lines in the wrong order ("(2026-10-20" showed as "(-2026-10" + "20").
+    const whole = !/\s/.test(m[0]);
+    parts.push(<bdi key={start} dir="ltr" style={whole ? { whiteSpace: "nowrap" } : undefined}>{m[0]}</bdi>);
     last = start + m[0].length;
   }
   if (last < text.length) parts.push(text.slice(last));

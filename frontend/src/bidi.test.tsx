@@ -17,6 +17,12 @@ describe("mixed Arabic and English chat text", () => {
     expect(container.textContent).toBe("الحصة من 08:30–10:00 في Room H12، والـ solver بيحترم Check inputs.");
   });
 
+  it("keeps dates, time ranges and codes on one line, but lets English phrases wrap", () => {
+    const { container } = render(<p><BidiLine text="جدول midterm (2026-12-20 إلى 2026-12-31) في Room H12" /></p>);
+    const runs = [...container.querySelectorAll("bdi")].map(b => [b.textContent, (b as HTMLElement).style.whiteSpace]);
+    expect(runs).toEqual([["midterm", "nowrap"], ["2026-12-20", "nowrap"], ["2026-12-31", "nowrap"], ["Room H12", ""]]);
+  });
+
   it("leaves English lines untouched", () => {
     const { container } = render(<p><BidiLine text="Draft 3 has 212 sessions." /></p>);
     expect(container.querySelector("bdi")).toBeNull();

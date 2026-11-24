@@ -651,7 +651,7 @@ def free_rooms(view, slots, ar):
         busy = {s.get('room_id') for s in view['sessions'] if overlaps(s, day, span)}
         free = sorted((r for r in rooms if r['id'] not in busy), key=lambda r: (r['data'].get('capacity') or 0, r['data'].get('code', '')))
         when = f"{say(ar, day, AR_DAYS.get(day, day))} {clock(span[0])}" + (f"–{clock(span[1])}" if span[1] - span[0] > 1 else '')
-        lines.append(say(ar, f'{len(free)} free rooms on {when}:', f'{len(free)} قاعة متاحة يوم {when}:'))
+        lines.append(say(ar, f"{len(free)} free room{'' if len(free) == 1 else 's'} on {when}:", f'{len(free)} قاعة متاحة يوم {when}:'))
         lines += [f"• {r['data'].get('code')} · {r['data'].get('capacity') or '?'} {say(ar, 'seats', 'مقعد')}"
                   + (f" · {say(ar, 'reserved for ', 'محجوزة لـ ')}{', '.join(r['data'].get('reserved_majors'))}" if r['data'].get('reserved_majors') else '')
                   for r in free[:30]]
@@ -826,6 +826,8 @@ def publishing(intent, slots, view, ar):
             elif not pinned and len(drafts) > 1:
                 # Several exam drafts and none on screen or in this chat: never guess the newest.
                 names = [exam_label(d, ar) for d in drafts[:6]]
+                if len(drafts) > 6:  # never claim a count the list does not show
+                    names.append(say(ar, f'and {len(drafts) - 6} more', f'و{len(drafts) - 6} كمان'))
                 return {'text': [say(ar, f"There are {len(drafts)} unpublished exam timetables: {', '.join(names)}. Which one should I publish?",
                                      f"فيه {len(drafts)} جداول امتحانات متنشرتش: {'، '.join(names)}. أنشر أنهي واحد؟")],
                         'choices': [{'label': d['name'], 'text': say(ar, f"publish {d['name']}", f"انشر {d['name']}")} for d in drafts[:6] if d.get('name')]}

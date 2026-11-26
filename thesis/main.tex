@@ -1009,7 +1009,7 @@ The backend, the web interface and the evaluation tools each have an automated t
 \item A complete audit export of model calls.
 \item Formal accessibility and cross-browser checks.
 \end{itemize}
-Remote deployment and production operation were outside the project. The requirement-by-requirement status is in Appendix~\ref{app:requirements}.
+\paragraph{Public demonstration.} A demonstration copy of JadwAI runs on a free cloud virtual machine (Oracle Cloud Always Free: four ARM processor cores, 24~GB of memory, no GPU) with the synthetic demonstration data. The database, the API, the worker and an HTTPS proxy run in containers. The API and the worker connect with restricted database roles, and only the one-off migration job uses the owner role. The fine-tuned model was rebuilt on the server from the training adapter, by the same merge as on the laptop, and runs on the processor. Forms, the built-in parser and the built-in chat answers respond immediately; a model reply takes several minutes. Production operation, with backups, monitoring and institutional accounts, remained outside the project. The requirement-by-requirement status is in Appendix~\ref{app:requirements}.
 \clearpage
 
 \clearpage

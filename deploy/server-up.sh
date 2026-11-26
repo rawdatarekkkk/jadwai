@@ -6,7 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 umask 077
 if [ ! -f .env ]; then
-  ip="${1:?Give the server's public IP address the first time}"
+  ip="${1:?Give the public IP address of the server the first time}"
   echo "SITE=${ip//./-}.sslip.io" > .env
   echo "DB_OWNER_PASSWORD=$(openssl rand -hex 24)" >> .env
 fi

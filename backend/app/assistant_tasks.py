@@ -103,7 +103,7 @@ def understand_task(raw, text, view):
                                                                                      'why did it fail', 'what went wrong', 'what stopped', 'حل المشاكل', 'صلح المشاكل', 'ليه وقف')):
         return {'intent': 'fix_problems', 'slots': {}}
     if H(text, ('input check', 'can i generate', 'ready to generate', 'what is blocking', "what's blocking", 'what blocks', 'blockers', 'preflight',
-                'check the data', 'check inputs', 'check my data', 'problems with the data', 'is the data ready', 'الفحوص', 'جاهز للانشاء', 'ايه اللي مانع')):
+                'check the data', 'check inputs', 'check my inputs', 'check the inputs', 'check my data', 'problems with the data', 'is the data ready', 'الفحوص', 'جاهز للانشاء', 'ايه اللي مانع')):
         return {'intent': 'input_checks', 'slots': {}}
     exam = next((k for k, w in (('final', ('final', 'نهائي', 'فاينل')), ('midterm', ('midterm', 'ميدترم', 'منتصف')), ('quiz', ('quiz', 'كويز'))) if H(text, w)), None)
     if (exam or H(text, ('exam', 'امتحان'))) and H(text, ('pdf', 'print', 'طباعة')):
@@ -472,7 +472,7 @@ def answer_task(meaning, view, ar, say_fn):
         if not blockers:
             lines = [say('Yes: nothing blocks generation.', 'نعم: لا شيء يمنع الإنشاء.')]
             if warnings:
-                lines.append(say(f'{len(warnings)} warnings to look at:', f'{len(warnings)} تنبيهات للمراجعة:'))
+                lines.append(say(f'{len(warnings)} {"warning" if len(warnings) == 1 else "warnings"} to look at:', f'{len(warnings)} تنبيهات للمراجعة:'))
                 lines += ['• ' + (w.get(key) or w.get('message', '')) for w in warnings[:6]]
             return {'text': lines, 'choices': [{'label': say('Generate the whole university', 'إنشاء جدول الجامعة كلها'), 'text': 'generate the whole university timetable'}]}
         return {'text': [say(f'{len(blockers)} problems block generation:', f'{len(blockers)} مشكلة تمنع الإنشاء:')] + ['• ' + (b.get(key) or b.get('message', '')) for b in blockers[:8]]

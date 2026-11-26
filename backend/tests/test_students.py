@@ -26,8 +26,12 @@ def test_student_scoped_access(environment):
     assert client.get('/api/student/schedule').json()['run'] is None
     login(client)
     assert client.post(f'/api/schedules/{run_id}/publish', headers=version(client)).status_code == 200
+    # The overview's light summary: names and states only, no snapshot or timetable.
+    summary = client.get('/api/schedules?summary=true').json()
+    assert [r['id'] for r in summary] == [run_id] and summary[0]['published_at'] and summary[0]['status'] == 'completed'
+    assert set(summary[0]) == {'id', 'name', 'status', 'created_at', 'published_at', 'stale'}
     login(client, 's@example.test')
-    for path in ('/api/workspace', '/api/users', '/api/schedules', f'/api/schedules/{run_id}', f'/api/schedules/{run_id}/statistics'):
+    for path in ('/api/workspace', '/api/users', '/api/schedules', '/api/schedules?summary=true', f'/api/schedules/{run_id}', f'/api/schedules/{run_id}/statistics'):
         assert client.get(path).status_code == 403
     assert client.post('/api/schedules', json={'request_key':'00000000-0000-0000-0000-000000000001'}).status_code == 403
     data = client.get('/api/student/schedule?group_id=other').json()

@@ -79,3 +79,22 @@ def test_revoked_administrator_cannot_save_completion(environment):
     result=client.post('/api/model-calls',json={'request_key':str(uuid4()),'text':'test'},headers=version(client))
     assert result.status_code==403
     with factory() as db:assert not db.scalars(select(ExtractionProposal)).all()
+
+
+def test_call_cut_off_by_a_restart_does_not_block_later_calls(environment):
+    from datetime import timedelta
+    from app.models import utcnow
+    client,factory=environment;login(client)
+    adapter=DeterministicProvider(output(client));app.dependency_overrides[provider]=lambda:adapter
+    with factory.begin() as db:
+        admin=db.scalar(select(User).where(User.role=='administrator'))
+        db.add(ExtractionJob(id=str(uuid4()),request_key=str(uuid4()),submitted_by=admin.id,input_sha256='x'*64,status='running',created_at=utcnow()-timedelta(hours=2)))
+        db.add(ExtractionJob(id=str(uuid4()),request_key=str(uuid4()),submitted_by=admin.id,input_sha256='y'*64,status='running',created_at=utcnow()))
+    # A recent running call still blocks a second one.
+    assert client.post('/api/model-calls',json={'request_key':str(uuid4()),'text':'one'},headers=version(client)).json()['detail']=='model_call_in_progress'
+    with factory.begin() as db:
+        for job in db.scalars(select(ExtractionJob).where(ExtractionJob.input_sha256=='y'*64)):job.created_at=utcnow()-timedelta(hours=1)
+    result=client.post('/api/model-calls',json={'request_key':str(uuid4()),'text':'two'},headers=version(client))
+    assert result.status_code==201 and result.json()['status']=='completed',result.text
+    with factory() as db:
+        assert {j.status for j in db.scalars(select(ExtractionJob).where(ExtractionJob.input_sha256.in_(['x'*64,'y'*64])))}=={'abandoned'}

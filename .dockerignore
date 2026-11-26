@@ -9,3 +9,12 @@
 **/*.log
 **/tests
 **/*.jpg
+finetuning
+thesis
+docs
+backups
+output
+reports
+data-entry
+demo-accounts.json
+.claude

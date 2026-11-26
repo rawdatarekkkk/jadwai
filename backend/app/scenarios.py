@@ -100,7 +100,7 @@ def edit(ident: str, body: Edit, request: Request, user=Depends(administrator), 
     result['statistics'] = build_statistics(snapshot, result)
     row = ScheduleRun(id=str(uuid4()), workspace_id=1, created_by=user.id, input_version=source.input_version,
                       request_key=str(body.request_key), snapshot=snapshot, status='completed', result=result,
-                      name=body.name or f"{source.name or 'Draft'} (edited)", parent_run_id=source.id)
+                      name=body.name or (source.name if (source.name or '').endswith(' (edited)') else f"{source.name or 'Draft'} (edited)"), parent_run_id=source.id)
     db.add(row)
     event(db, ws, user, 'schedule.edited', row.id)
     db.commit()

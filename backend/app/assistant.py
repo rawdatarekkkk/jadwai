@@ -23,7 +23,7 @@ from typing import Literal
 from fastapi import APIRouter, Depends
 from pydantic import Field
 from sqlalchemy import select
-from app.dependencies import administrator, db_session, fail
+from app.dependencies import administrator, db_session, fail, on_event_loop
 from uuid import uuid4
 from app.models import AssistantChat, AssistantMessage, CourseCatalog, ExamRun, Record, Rule, ScheduleRun, User, Workspace, utcnow
 from app.rule_parser import ARABIC_DIGITS, DAYS, TIME, days_in, find_records, hour, mentions, normalise, plain, times
@@ -338,7 +338,7 @@ PUBLISH_WORDS = ('publish', 'make it live', 'release it', 'go live', 'share it w
 AR_PUBLISH = r'(?<![\w])[اينت]?نشر(?:ه|ها|وه|وها|ي|يه|يها|لي|لنا)?(?![\w])'
 # "not the teaching draft" / "مش جدول المحاضرات": the other kind is named only to exclude it.
 NOT_THAT = r'\b(?:not|instead of|rather than|but not)\b|(?<![\w])(?:مش|مو|ليس|وليس|لا|بدل|بدلا)(?![\w])'
-HELP_WORDS = ('help', 'what can you do', 'how do i', 'مساعدة', 'تقدر تعمل ايه', 'بتعمل ايه')
+HELP_WORDS = ('help', 'what can you do', 'how do i', 'مساعدة', 'تقدر تعمل ايه', 'بتعمل ايه', 'تقدر تعمله', 'ممكن تعمل ايه', 'تعرف تعمل ايه')
 ROOM_HINT = ('room', 'hall', 'lab', 'قاعة', 'قاعه', 'معمل', 'مدرج')
 
 
@@ -1474,7 +1474,7 @@ def generated_in(db, chat, user):
 
 
 @router.post('')
-async def ask(body: Ask, user=Depends(administrator), db=Depends(db_session)):
+def ask(body: Ask, user=Depends(administrator), db=Depends(db_session)):
     from app.assistant_context import remember, remember_record, resolve_references, with_context
     screen = body.screen.model_dump() if body.screen else {}
     chat = chat_of(db, user, body.chat_id) if body.chat_id else None
@@ -1518,11 +1518,16 @@ async def ask(body: Ask, user=Depends(administrator), db=Depends(db_session)):
     ordinal_followup = memory.get('recent_results') and re.search(r'\b(first|second|third|last|one above)\b|الأول|الثاني|التاني|التالت|الأخير', body.text.lower())
     if (discussion or ordinal_followup) and settings:
         meaning = {'intent': 'unknown', 'slots': {}, 'ambiguous': []}
+    if meaning['intent'] == 'unknown' and not state.get('capability_pending') and not filling:
+        from app.assistant_basics import basic_answer
+        basic = basic_answer(body.text, view, ar)
+        if basic:
+            meaning = {'intent': 'conversation', 'slots': {}, 'ambiguous': [], 'held': basic}
     unsure = meaning['intent'] == 'unknown' or meaning.get('weak') or bool(state.get('capability_pending'))
     if (unsure or state.get('capability_pending')) and body.use_model and settings:
         from app.assistant_capabilities import converse as local_converse
         from app.main import app
-        conversation = await local_converse(body.text, view, history, settings, app, pending=state.get('capability_pending'))
+        conversation = on_event_loop(local_converse, body.text, view, history, settings, app, pending=state.get('capability_pending'))
         if conversation:
             meaning = {'intent': 'conversation', 'slots': {}, 'ambiguous': [], 'held': conversation}
             source = conversation.get('source', 'local-model')
@@ -1536,7 +1541,8 @@ async def ask(body: Ask, user=Depends(administrator), db=Depends(db_session)):
     if meaning['intent'] in ('statistics', 'input_checks', 'generate_timetable', 'fix_problems', 'move_session'):
         extra(db, view, meaning['intent'])
     reply = meaning['held'] if meaning.get('held') else answer(meaning, view, ar)
-    if meaning['intent'] == 'add_rule' and settings:
+    # The built-in parser is instant; the local model is only asked when it cannot read the rule.
+    if meaning['intent'] == 'add_rule' and settings and (reply.get('action') or {}).get('type') != 'add_rules':
         if not body.use_model:
             reply = {'text': [say(ar, 'I will interpret that with the local model before proposing any change.', 'سأفسر الطلب بالنموذج المحلي قبل اقتراح أي تعديل.')], 'retry_with_model': True}
         else:
@@ -1550,7 +1556,7 @@ async def ask(body: Ask, user=Depends(administrator), db=Depends(db_session)):
             req = ExtractionRequest.create(raw, ctx, view['version'], PROMPT_VERSION, 'proposal-contract-v1')
             try:
                 provider = LocalProvider.configured()
-                result = await extract_candidate(provider, req, timeout_seconds=provider.timeout_seconds + 5, retry_limit=0)
+                result = on_event_loop(extract_candidate, provider, req, timeout_seconds=provider.timeout_seconds + 5, retry_limit=0)
                 output = json.loads(result.candidate_json) if result.status == 'candidate' else None
                 check = validate_proposal(output, records={r['id']: r['kind'] for r in view['records']}, calendar=view['calendar']) if output else None
                 if check and check.valid and check.eligible_for_review:

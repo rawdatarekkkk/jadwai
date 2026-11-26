@@ -4,8 +4,9 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, Request, HTTPException
 from pydantic import Field
 from sqlalchemy import select
-from app.dependencies import administrator, db_session, workspace_lock, lock_workspace, event, fail
-from app.models import ExtractionJob
+from app.dependencies import administrator, db_session, workspace_lock, lock_workspace, event, fail, on_event_loop
+from app.models import ExtractionJob, utcnow
+from datetime import timedelta
 from app.schemas import Strict
 from app.proposals import context
 from app.provenance import fingerprint
@@ -71,7 +72,7 @@ def cancel(ident:UUID,request:Request,user=Depends(administrator),db=Depends(db_
 
 
 @router.post('',status_code=201)
-async def create(body:ModelInput,request:Request,user=Depends(administrator),db=Depends(db_session),adapter=Depends(provider)):
+def create(body:ModelInput,request:Request,user=Depends(administrator),db=Depends(db_session),adapter=Depends(provider)):
     actor_id=user.id
     ws=workspace_lock(db)
     digest=fingerprint({'text':body.text})
@@ -81,7 +82,13 @@ async def create(body:ModelInput,request:Request,user=Depends(administrator),db=
         return job_data(previous)
     ws=lock_workspace(request,db)
     if not body.text.strip():fail(422,'invalid_input')
-    # One in-flight call per administrator bounds accidental parallel spending.
+    # One in-flight call per administrator bounds accidental parallel spending. A call still marked
+    # running long after any provider timeout was cut off (for example by a server restart); it must
+    # not block this administrator for ever.
+    limit=getattr(adapter,'timeout_seconds',25)+120
+    for stale in db.scalars(select(ExtractionJob).where(ExtractionJob.submitted_by==actor_id,ExtractionJob.status=='running',
+                                                        ExtractionJob.created_at<utcnow()-timedelta(seconds=limit))):
+        stale.status='abandoned'
     if db.scalar(select(ExtractionJob).where(ExtractionJob.submitted_by==actor_id,ExtractionJob.status=='running')):
         fail(409,'model_call_in_progress')
     original=ExtractionRequest.create(body.text,context(db,ws),ws.version,PROMPT_VERSION,'proposal-contract-v1')
@@ -90,7 +97,7 @@ async def create(body:ModelInput,request:Request,user=Depends(administrator),db=
     event(db,ws,user,'model_call.started',ident)
     db.commit()  # Release account/workspace lock BEFORE awaiting network.
     try:
-        result=await extract_candidate(adapter,original,timeout_seconds=adapter.timeout_seconds+5 if isinstance(adapter,LocalProvider) else 25,retry_limit=0)
+        result=on_event_loop(extract_candidate,adapter,original,timeout_seconds=adapter.timeout_seconds+5 if isinstance(adapter,LocalProvider) else 25,retry_limit=0)
     except asyncio.CancelledError:
         db.rollback();workspace_lock(db)
         current=db.get(ExtractionJob,ident,populate_existing=True)

@@ -494,7 +494,7 @@ export function Timetable({
             </span>
             <span>
               <b>{ws.rules.filter((r) => r.status === "approved").length}</b>{" "}
-              {t.rules}
+              {lang === "en" && ws.rules.filter((r) => r.status === "approved").length === 1 ? "approved rule" : t.rules}
             </span>
           </div>
           <small>{t.rulesNote}</small>
@@ -630,7 +630,7 @@ export function Timetable({
                   onChange={(e) => setGroup(e.target.value)}
                 >
                   <option value="">{t.all}</option>
-                  {visibleGroups.map((r) => (
+                  {[...visibleGroups].sort((a, b) => groupLabel(a.id).localeCompare(groupLabel(b.id), undefined, { numeric: true })).map((r) => (
                     <option key={r.id} value={r.id}>
                       {groupLabel(r.id)}
                     </option>

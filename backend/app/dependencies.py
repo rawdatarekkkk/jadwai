@@ -108,3 +108,15 @@ def info(user):
         "active": user.active,
         "version": user.version,
     }
+
+
+def on_event_loop(function, *args, **kwargs):
+    """Run a coroutine (a model call) on the event loop from a sync endpoint's worker thread.
+
+    Endpoints that touch the database must be plain `def` so their queries and lock waits run in the
+    thread pool. An `async def` endpoint that waits on a workspace lock blocks the event loop, and the
+    request holding that lock can then never finish: the whole site stops answering.
+    """
+    from functools import partial
+    from anyio import from_thread
+    return from_thread.run(partial(function, *args, **kwargs))

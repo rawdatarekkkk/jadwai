@@ -29,6 +29,8 @@ def record_kind(text):
     padded = f' {text} '
     if re.search(r'account|login|user|حساب', text):
         return None  # "create a student account": an account, not a record
+    if re.search(r'\b(?:rules?|constraints?|preferences?)\b|قاعدة|قيد', text):
+        return None  # "add a rule: Dr. X can't teach Monday": a rule, not a new instructor
     if re.match(r'^(?:i want to |i would like to |i need to |can you |please |عايز |عاوز |محتاج )?(?:add|create|register|اضيف|أضيف|ضيف|اضف|أضف)(?:\s+(?:something|a new one|new|one|حاجة|حاجه))?\s*[.?!]?$', text):
         return ''
     if not any(w in padded for w in ADD_WORDS) or any(w in text for w in ('timetable', 'schedule', 'جدول')):

@@ -154,8 +154,10 @@ export const words = {
     herotext:
       "A home for every course, every teaching preference, and every detail that makes your department work.",
     continue: "Set up your semester",
+    openTimetable: "Open the timetable",
+    reviewRules: "Review your rules",
     illustration: "A little order. A lot of possibility.",
-    illustrationNote: "Illustration · your timetable comes next",
+    illustrationNote: "Illustration, not your timetable",
     courses: "Teaching activities",
     instructors: "Instructors",
     rooms: "Rooms",
@@ -536,8 +538,10 @@ export const words = {
     herotext:
       "مكان لكل مقرر، ولكل تفضيل تدريسي، ولكل تفصيلة تساعد قسمك على العمل.",
     continue: "جهّز فصلك الدراسي",
+    openTimetable: "افتح الجدول",
+    reviewRules: "راجع القواعد",
     illustration: "قليل من التنظيم. كثير من الإمكانات.",
-    illustrationNote: "رسم توضيحي · جدولك يأتي لاحقاً",
+    illustrationNote: "رسم توضيحي، وليس جدولك",
     courses: "الأنشطة التعليمية",
     instructors: "أعضاء هيئة التدريس",
     rooms: "القاعات",
@@ -927,4 +931,21 @@ export const auditLabels: Record<string, [string, string]> = {
   "account.created": ["Created account", "إنشاء حساب"],
   "account.updated": ["Updated account", "تعديل حساب"],
   "sessions.revoked": ["Ended all sessions", "إنهاء جميع الجلسات"],
+  "schedule.queued": ["Started generating a timetable", "بدء إنشاء جدول"],
+  "schedule.edited": ["Edited a timetable draft", "تعديل مسودة جدول"],
+  "schedule.published": ["Published a teaching timetable", "نشر جدول التدريس"],
+  "schedule.unpublished": ["Unpublished the teaching timetable", "إلغاء نشر جدول التدريس"],
+  "schedule.renamed": ["Renamed a timetable draft", "إعادة تسمية مسودة جدول"],
+  "schedule.merged": ["Merged timetable parts", "دمج أجزاء الجدول"],
+  "schedule.cancelled": ["Cancelled timetable generation", "إلغاء إنشاء الجدول"],
+  "exam.generated": ["Generated an exam timetable", "إنشاء جدول امتحانات"],
+  "exam.published": ["Published an exam timetable", "نشر جدول امتحانات"],
+  "exam.unpublished": ["Unpublished an exam timetable", "إلغاء نشر جدول امتحانات"],
+  "model_call.started": ["Asked the local AI to interpret a requirement", "طلب تفسير متطلب من الذكاء المحلي"],
+  "model_call.cancelled": ["Cancelled an AI interpretation", "إلغاء تفسير بالذكاء المحلي"],
+  "proposal.interpreted": ["Interpreted a typed requirement", "تفسير متطلب مكتوب"],
+  "proposal.create_drafts": ["Created draft rules from a requirement", "إنشاء قواعد مسودة من متطلب"],
 };
+
+/** Sign-ins and sign-outs: kept in the activity log, left out of the overview's short list of changes. */
+export const sessionEvents = new Set(["login.succeeded", "login.failed", "logout"]);

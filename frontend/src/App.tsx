@@ -69,7 +69,7 @@ export default function App() {
   const [importOpen, setImportOpen] = useState(false);
   const [courseSetupOpen, setCourseSetupOpen] = useState(false);
   const [advisingOpen, setAdvisingOpen] = useState(false);
-  const [scheduleMode,setScheduleMode] = useState<"teaching"|"exams">("exams");
+  const [scheduleMode,setScheduleMode] = useState<"teaching"|"exams">("teaching");
   const [sessionExpired, setSessionExpired] = useState(false);
   const [resetToken, setResetToken] = useState(() =>
     new URLSearchParams(window.location.hash.slice(1)).get("reset"),
@@ -154,6 +154,16 @@ export default function App() {
     setQuery("");
     setError("");
   }, [page, kind]);
+  // The overview's third step is done once a timetable has been published.
+  const [published, setPublished] = useState(false);
+  useEffect(() => {
+    if (user?.role !== "administrator" || page !== "overview") return;
+    let live = true;
+    api<{ status: string; published_at?: string | null }[]>("/schedules?summary=true")
+      .then((runs) => { if (live) setPublished(runs.some((r) => r.status === "completed" && !!r.published_at)); })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [user?.role, page, ws?.version]);
   const mutate = async (
     path: string,
     method: string,
@@ -454,7 +464,7 @@ export default function App() {
             <div>
               <div className="eyebrow">{ws?.term || t("term")}</div>
               <h1>{page === "timetable" && scheduleMode === "exams" && user.role === "administrator" ? (lang === "ar" ? "جدول امتحاناتك." : "Your exam timetable.") : t(heading[page][0])}</h1>
-              <p>{page === "timetable" && scheduleMode === "exams" && user.role === "administrator" ? (lang === "ar" ? "امتحانات منتصف الفصل مدتها ساعتان ضمن فترة مؤرخة." : "Two-hour midterm exams across a dated exam period.") : t(heading[page][1])}</p>
+              <p>{page === "timetable" && scheduleMode === "exams" && user.role === "administrator" ? (lang === "ar" ? "اختبارات قصيرة وامتحانات منتصف الفصل ونهائية ضمن فترة مؤرخة." : "Quizzes, midterms and finals across a dated exam period.") : t(heading[page][1])}</p>
             </div>
             {page === "overview" && (
               <button
@@ -496,18 +506,17 @@ export default function App() {
                       <p>{t("herotext")}</p>
                       <button
                         className="btn primary"
-                        onClick={() => navigate("data")}
+                        onClick={() => navigate(published ? "timetable" : dataReady ? "constraints" : "data")}
                       >
-                        {t("continue")}
+                        {published ? t("openTimetable") : dataReady ? t("reviewRules") : t("continue")}
                         <Icon name="arrow" size={18} />
                       </button>
                       <div className="hero-bottom">
-                        <span className="mini-avatar">CS</span>
+                        <span className="mini-avatar">
+                          {ws.name.split(/\s+/).filter((w) => /^\p{L}/u.test(w)).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "J"}
+                        </span>
                         <span>
-                          {t("department")} <i>·</i>{" "}
-                          {lang === "en"
-                            ? "One department. One semester."
-                            : "قسم واحد. فصل واحد."}
+                          {ws.name} <i>·</i> {ws.term}
                         </span>
                       </div>
                     </div>
@@ -571,7 +580,8 @@ export default function App() {
                         </div>
                         <span className="step-count">
                           {(dataReady ? 1 : 0) +
-                            (approved > 0 && pending === 0 ? 1 : 0)}{" "}
+                            (approved > 0 && pending === 0 ? 1 : 0) +
+                            (published ? 1 : 0)}{" "}
                           / 3
                         </span>
                       </div>
@@ -584,7 +594,7 @@ export default function App() {
                             approved > 0 && pending === 0,
                             "constraints",
                           ],
-                          ["step3", "step3text", false, "timetable"],
+                          ["step3", "step3text", published, "timetable"],
                         ] as const
                       ).map(([title, desc, done, p], i) => (
                         <button
@@ -665,7 +675,7 @@ export default function App() {
                       </button>
                     ))}
                   </div>
-                  {kind === "courses" && !!ws.course_catalog?.length && <div className="meaning-preview"><strong>{ws.course_catalog.length} {t("catalogueCourses")}</strong><p>{t("catalogueCoursesHelp")}</p></div>}
+                  {kind === "courses" && !!ws.course_catalog?.length && counts("courses") === 0 && <div className="meaning-preview"><strong>{ws.course_catalog.length} {t("catalogueCourses")}</strong><p>{t("catalogueCoursesHelp")}</p></div>}
                   <section className="panel records-panel">
                     <div className="table-toolbar">
                       <div className="search-box">
@@ -705,7 +715,7 @@ export default function App() {
                         }}
                       >
                         <Icon name="plus" size={17} />
-                        {t("add")} {t(kind)}
+                        {lang === "en" ? `Add ${{ courses: "teaching activity", instructors: "instructor", rooms: "room", groups: "student group" }[kind]}` : `${t("add")} ${t(kind)}`}
                       </button>
                     </div>
                     {kind === "groups" ? (
@@ -738,6 +748,7 @@ export default function App() {
                                 .toLowerCase()
                                 .includes(query.toLowerCase()),
                           )
+                          .sort((a, b) => `${a.code || ""} ${a.name}`.localeCompare(`${b.code || ""} ${b.name}`, undefined, { numeric: true }))
                           .map((r) => (
                             <article className="record-card" key={r.id}>
                               <div className="record-top">
@@ -763,10 +774,13 @@ export default function App() {
                               {kind === "courses" && (
                                 <div className="course-links">
                                   <Icon name="people" size={14} />
-                                  {r.eligible_instructors?.length}{" "}
-                                  {t("instructors")}
+                                  {lang === "en"
+                                    ? `${r.eligible_instructors?.length || 0} ${(r.eligible_instructors?.length || 0) === 1 ? "instructor" : "instructors"}`
+                                    : `${r.eligible_instructors?.length || 0} ${t("instructors")}`}
                                   <span>·</span>
-                                  {r.group_ids?.length} {t("groups")}
+                                  {lang === "en"
+                                    ? `${r.group_ids?.length || 0} ${(r.group_ids?.length || 0) === 1 ? "student group" : "student groups"}`
+                                    : `${r.group_ids?.length || 0} ${t("groups")}`}
                                 </div>
                               )}
                               {kind === "instructors" && <p>{t("standardWeeklyHours")}: 12 · {t("extraAfter12")}</p>}

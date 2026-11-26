@@ -25,3 +25,8 @@ finetuning/reviews.local.json
 # Thesis: figures zip is rebuilt by thesis/build.sh; thesis-giu-overleaf/ is a local unzipped copy
 thesis/thesis-giu-overleaf/
 thesis/overleaf.zip
+
+# Server deployment: generated secrets and the database copy stay local
+deploy/.env
+deploy/*.env
+deploy/data/

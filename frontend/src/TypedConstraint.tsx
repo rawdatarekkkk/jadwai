@@ -32,6 +32,9 @@ type Saved = { id: string; record: { text: string; output: Envelope; origin: str
 export function TypedConstraint({ ws, lang, t, refresh }: { ws: Workspace; lang: "en" | "ar"; t: (key: Word) => string; refresh: () => Promise<void> }) {
   const [text, setText] = useState(""), [saved, setSaved] = useState<Saved | null>(null), [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(""), [gpt, setGpt] = useState<boolean | null>(null);
+  const [modelSince, setModelSince] = useState<number | null>(null), [, tick] = useState(0);
+  useEffect(() => { if (modelSince === null) return; const id = setInterval(() => tick(n => n + 1), 1000); return () => clearInterval(id); }, [modelSince]);
+  const waited = modelSince === null ? "" : (s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`)(Math.floor((Date.now() - modelSince) / 1000));
   const key = useRef({ text: "", value: "" });
   const ar = lang === "ar";
   useEffect(() => { api<{ enabled: boolean; provider?: string }>("/model-calls/configuration").then(c => setGpt(c.enabled === true && c.provider === "local")).catch(() => setGpt(false)); }, []);
@@ -42,13 +45,19 @@ export function TypedConstraint({ ws, lang, t, refresh }: { ws: Workspace; lang:
     try { await action(); } catch (e) { const code = e instanceof ApiError ? e.code : "invalid_input"; setMessage(errors[code]?.[ar ? 1 : 0] || code); } finally { setBusy(false); }
   }
   const interpretBuiltin = () => run(async () => setSaved(await api<Saved>("/proposals/interpret", "POST", { text, request_key: requestKey("parser:" + text) }, ws.version)));
-  const interpretModel = () => run(async () => {
-    const job = await api<{ status: string; proposal_id: string | null }>("/model-calls", "POST", { text, request_key: requestKey("gpt:" + text) }, ws.version);
-    if (!job.proposal_id) { key.current = {text: "", value: ""}; setMessage(ar ? `لم يكتمل التفسير (${job.status}). حاول مرة أخرى؛ لم تُضف قيود.` : `Interpretation did not complete (${job.status}). Retry; no constraints were added.`); return; }
-    const all = await api<{ proposals: Saved[] }>("/proposals");
-    setSaved(all.proposals.find(p => p.id === job.proposal_id) || null);
+  // The built-in parser answers instantly; the slower local model is only asked when the parser cannot
+  // turn the text into ready rules.
+  const interpret = () => !gpt ? interpretBuiltin() : run(async () => {
+    const quick = await api<Saved>("/proposals/interpret", "POST", { text, request_key: requestKey("parser:" + text) }, ws.version);
+    if (quick.record.output.decision === "ready") { setSaved(quick); return; }
+    setModelSince(Date.now());
+    try {
+      const job = await api<{ status: string; proposal_id: string | null }>("/model-calls", "POST", { text, request_key: requestKey("gpt:" + text) }, ws.version);
+      if (!job.proposal_id) { setSaved(quick); setMessage(ar ? `لم يكتمل تفسير النموذج (${job.status}). هذه نتيجة المحلل الأساسي.` : `The model's interpretation did not complete (${job.status}). Showing the built-in parser's result.`); return; }
+      const all = await api<{ proposals: Saved[] }>("/proposals");
+      setSaved(all.proposals.find(p => p.id === job.proposal_id) || quick);
+    } finally { setModelSince(null); }
   });
-  const interpret = () => gpt ? interpretModel() : interpretBuiltin();
   const create = () => run(async () => {
     if (!saved) return;
     await api(`/proposals/${saved.id}/review`, "POST", { action: "create_drafts", rationale: "Confirmed typed constraint", request_key: requestKey("review:" + saved.id) }, ws.version);
@@ -67,6 +76,7 @@ export function TypedConstraint({ ws, lang, t, refresh }: { ws: Workspace; lang:
       </div>
     </form>
     <p className="room-type-help">{gpt ? (ar ? "يفسّر النموذج المحلي النص ويحدد القيد الإلزامي أو التفضيل. قد يستغرق دقيقة أو أكثر. التفسير مقترح فقط؛ لا تُضاف أو تُعتمد قيود حتى تراجعها." : "The local AI interprets your wording as a hard requirement or soft preference. This may take a minute or more. Interpretation only creates a proposal; review is required before adding or approving any constraint.") : (ar ? "النموذج المحلي غير متاح. سيستخدم التفسير المحلل الأساسي محدود العبارات." : "Local AI is unavailable. Interpret will use the limited built-in phrase parser.")}</p>
+    {modelSince !== null && <p role="status" className="room-type-help">{ar ? `يفسّر النموذج المحلي النص… ${waited}` : `The local AI is interpreting your wording… ${waited}`}</p>}
     {message && <p role="status">{message}</p>}
     {output && <div className="meaning-preview" aria-live="polite">
       <span className="eyebrow">{output.decision === "ready" ? t("interpretation") : output.proposals.length ? t("needsClarification") : t("notUnderstood")}</span>

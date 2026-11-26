@@ -1,0 +1,76 @@
+# Production stack for one server (Oracle Cloud Always Free, Ubuntu ARM).
+# Ollama runs on the host (see server-setup.sh); everything else runs here.
+# Started by deploy/server-up.sh, which writes .env, api.env and worker.env next to this file.
+name: jadwai
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: jadwai_owner
+      POSTGRES_PASSWORD: ${DB_OWNER_PASSWORD:?run server-up.sh}
+      POSTGRES_DB: jadwai
+    volumes: ["pg:/var/lib/postgresql/data", "./data:/restore:ro"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jadwai_owner -d jadwai"]
+      interval: 3s
+      retries: 30
+    restart: unless-stopped
+
+  api:
+    build: { context: .., dockerfile: ops/Dockerfile.backend }
+    image: jadwai-backend
+    env_file: [api.env]
+    environment: &ai
+      JADWAI_AI_ENABLED: "true"
+      JADWAI_AI_PROVIDER: local
+      JADWAI_LOCAL_URL: http://host.docker.internal:11434
+      JADWAI_LOCAL_MODEL: ${JADWAI_LOCAL_MODEL:-jai-candidate-v4}
+      # CPU-only server: model replies take several minutes.
+      JADWAI_LOCAL_TIMEOUT_SECONDS: "1500"
+      JADWAI_COOKIE_SECURE: "true"
+      JADWAI_WEB_URL: https://${SITE:?run server-up.sh}
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    depends_on: { db: { condition: service_healthy } }
+    restart: unless-stopped
+
+  worker:
+    image: jadwai-backend
+    command: ["python", "/app/worker/main.py"]
+    env_file: [worker.env]
+    depends_on: { db: { condition: service_healthy }, api: { condition: service_started } }
+    restart: unless-stopped
+
+  web:
+    build: { context: .., dockerfile: ops/Dockerfile.web }
+    environment:
+      SITE: ${SITE}
+    ports: ["80:80", "443:443"]
+    volumes: ["./Caddyfile:/etc/caddy/Caddyfile:ro", "caddy_data:/data", "caddy_config:/config"]
+    depends_on: [api]
+    restart: unless-stopped
+
+  # One-off jobs: `docker compose run --rm migrate` and `docker compose run --rm provision`.
+  migrate:
+    image: jadwai-backend
+    profiles: ["tools"]
+    working_dir: /app/backend
+    command: ["sh", "-c", "cp -r /src/migrations /src/alembic.ini . && python -m alembic upgrade head"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://jadwai_owner:${DB_OWNER_PASSWORD}@db:5432/jadwai
+    volumes: ["../backend/migrations:/src/migrations:ro", "../backend/alembic.ini:/src/alembic.ini:ro"]
+    user: root
+    depends_on: { db: { condition: service_healthy } }
+  provision:
+    image: jadwai-backend
+    profiles: ["tools"]
+    command: ["python", "-m", "app.provision"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://jadwai_owner:${DB_OWNER_PASSWORD}@db:5432/jadwai
+    volumes: ["./runtime.env:/app/.env"]
+    user: root
+    depends_on: { db: { condition: service_healthy } }
+
+volumes:
+  pg:
+  caddy_data:
+  caddy_config:

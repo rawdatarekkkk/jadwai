@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useId } from "react";
 import { clockHour, LIMIT_RULES, type Workspace, type DataRecord, type RecordKind, type Rule, type RuleType } from "./api";
 import { describeRule, ruleTarget } from "./RuleText";
-import { auditLabels, type Word } from "./i18n";
+import { auditLabels, sessionEvents, type Word } from "./i18n";
 import { DEFAULT_CALENDAR } from "./CalendarSettings";
 export type IconName =
   | "grid"
@@ -196,6 +196,9 @@ export function Empty({
     </div>
   );
 }
+// Run and proposal IDs mean nothing to a reader; names and record codes are shown.
+const isInternalId = (value: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+
 export function EventList({
   ws,
   t,
@@ -209,7 +212,7 @@ export function EventList({
 }) {
   return (
     <div className="events">
-      {ws.events.slice(0, limit).map((e) => (
+      {ws.events.filter((e) => !limit || !sessionEvents.has(e.action_code || "")).slice(0, limit).map((e) => (
         <div className="event" key={e.id}>
           <span className="event-dot">
             <Icon name="check" size={12} />
@@ -217,8 +220,8 @@ export function EventList({
           <div>
             <strong>
               {e.action_code && auditLabels[e.action_code]
-                ? `${auditLabels[e.action_code][lang === "ar" ? 1 : 0]}${e.params?.target ? `: ${e.params.target}` : ""}`
-                : e.action}
+                ? `${auditLabels[e.action_code][lang === "ar" ? 1 : 0]}${e.params?.target && !isInternalId(String(e.params.target)) ? `: ${e.params.target}` : ""}`
+                : e.action.replace(/:\s*[0-9a-f]{8}-[0-9a-f-]{27,}$/i, "")}
             </strong>
             <small>
               {t("actor")} {e.actor} <span>·</span>{" "}

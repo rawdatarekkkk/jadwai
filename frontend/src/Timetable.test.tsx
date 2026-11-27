@@ -102,10 +102,16 @@ const response = (body: unknown, status = 200) => ({
   status,
   json: async () => structuredClone(body),
 });
+// The page lists drafts at /api/schedules?summary=true and loads the one on screen from /api/schedules/<id>.
+const draftPath = /\/api\/schedules\/([^/?]+)$/;
+const serve = <T extends { id: string }>(list: T[]) => async (path: string) => {
+  const one = draftPath.exec(path);
+  return response(one ? list.find((r) => r.id === decodeURIComponent(one[1])) ?? null : list);
+};
 
 test("generates with the current version and presents the actual assignments", async () => {
-  const fetcher = vi.fn(async (_path: string, init?: RequestInit) =>
-    response(init?.method === "POST" ? run : []),
+  const fetcher = vi.fn(async (path: string, init?: RequestInit) =>
+    response(init?.method === "POST" || draftPath.test(path) ? run : []),
   );
   vi.stubGlobal("fetch", fetcher);
   render(
@@ -132,7 +138,7 @@ test("generates with the current version and presents the actual assignments", a
 test("shows frozen names and stale warning after data changes", async () => {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => response([run])),
+    vi.fn(serve([run])),
   );
   render(
     <Timetable
@@ -149,7 +155,7 @@ test("shows frozen names and stale warning after data changes", async () => {
 test("Arabic draft displays actual time and translated generation control", async () => {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => response([run])),
+    vi.fn(serve([run])),
   );
   render(
     <Timetable ws={ws} lang="ar" administrator refresh={async () => {}} />,
@@ -178,7 +184,7 @@ test("viewer cannot request unpublished schedules", () => {
 test("icon-only layouts are accessible and persist across remounts", async () => {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => response([run])),
+    vi.fn(serve([run])),
   );
   const view = render(
     <Timetable ws={ws} lang="en" administrator refresh={async () => {}} />,
@@ -210,7 +216,7 @@ test("layout works when storage reads and writes are denied", async () => {
   });
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => response([run])),
+    vi.fn(serve([run])),
   );
   render(
     <Timetable ws={ws} lang="en" administrator refresh={async () => {}} />,
@@ -227,7 +233,7 @@ test("hostile multilingual text is rendered as text, never markup", async () => 
   changed.snapshot.records.find((r) => r.id === "a")!.name = hostile;
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => response([changed])),
+    vi.fn(serve([changed])),
   );
   const view = render(
     <Timetable ws={ws} lang="ar" administrator refresh={async () => {}} />,
@@ -240,12 +246,13 @@ test("network retries reuse the same generation key", async () => {
   const keys: string[] = [];
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (_path: string, init?: RequestInit) => {
+    vi.fn(async (path: string, init?: RequestInit) => {
       if (init?.method === "POST") {
         keys.push(JSON.parse(init.body as string).request_key);
         if (keys.length === 1) throw new Error("offline");
         return response(run);
       }
+      if (draftPath.test(path)) return response(run);
       return response([]);
     }),
   );
@@ -269,8 +276,8 @@ test("network retries reuse the same generation key", async () => {
 test("unknown search status never appears as proven infeasible", async () => {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () =>
-      response([
+    vi.fn(
+      serve([
         {
           ...run,
           status: "unknown",
@@ -307,7 +314,7 @@ test("year and major filters narrow groups and clear dependent selections", asyn
   });
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => response([classified])),
+    vi.fn(serve([classified])),
   );
   render(
     <Timetable ws={ws} lang="en" administrator refresh={async () => {}} />,
@@ -340,7 +347,7 @@ test("generating keeps the year, programme and group being viewed", async () => 
   classified.snapshot.records.find((r) => r.id === "g")!.major = "Business Administration";
   classified.snapshot.records.push({ id: "h", kind: "groups", name: "Group B", code: "B", year: 3, major: "Business Administration", size: 20 });
   const fresh = { ...structuredClone(classified), id: "new-run" };
-  vi.stubGlobal("fetch", vi.fn(async (_path: string, init?: RequestInit) => response(init?.method === "POST" ? fresh : [classified])));
+  vi.stubGlobal("fetch", vi.fn(async (path: string, init?: RequestInit) => (init?.method === "POST" ? response(fresh) : serve([classified, fresh])(path))));
   render(<Timetable ws={ws} lang="en" administrator refresh={async () => {}} />);
   fireEvent.change(await screen.findByRole("combobox", { name: "Study year" }), { target: { value: "3" } });
   fireEvent.change(screen.getByRole("combobox", { name: "Major" }), { target: { value: "Business Administration" } });
@@ -355,7 +362,7 @@ test("generating keeps the year, programme and group being viewed", async () => 
 
 test("the report PDF follows the group being viewed", async () => {
   vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
-  const fetcher = vi.fn(async (path: string) => (path.includes("/statistics?") ? { ok: true, status: 200 } : response([run])));
+  const fetcher = vi.fn(async (path: string) => (path.includes("/statistics?") ? { ok: true, status: 200 } : serve([run])(path)));
   vi.stubGlobal("fetch", fetcher);
   render(<Timetable ws={ws} lang="en" administrator refresh={async () => {}} />);
   fireEvent.change(await screen.findByRole("combobox", { name: "Student group" }), { target: { value: "g" } });
@@ -367,7 +374,7 @@ test("Save as PDF downloads the server's landscape file for the group being view
   const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
   let href = "";
   click.mockImplementation(function (this: HTMLAnchorElement) { href = this.getAttribute("href") ?? ""; });
-  vi.stubGlobal("fetch", vi.fn(async () => response([run])));
+  vi.stubGlobal("fetch", vi.fn(serve([run])));
   render(<Timetable ws={ws} lang="en" administrator refresh={async () => {}} />);
   fireEvent.change(await screen.findByRole("combobox", { name: "Student group" }), { target: { value: "g" } });
   fireEvent.click(screen.getByRole("button", { name: "Save as PDF" }));
@@ -401,7 +408,7 @@ test("PDF print view includes only filtered sessions and preserves draft warning
   });
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => response([data])),
+    vi.fn(serve([data])),
   );
   const print = vi.spyOn(window, "print").mockImplementation(() => {});
   const view = render(
@@ -430,7 +437,7 @@ test("PDF print view includes only filtered sessions and preserves draft warning
 test("Arabic PDF output retains multilingual names and timezone", async () => {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => response([run])),
+    vi.fn(serve([run])),
   );
   vi.spyOn(window, "print").mockImplementation(() => {});
   render(
@@ -456,7 +463,7 @@ test("PDF places days on rows and configured time slots on columns", async () =>
   ];
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => response([data])),
+    vi.fn(serve([data])),
   );
   vi.spyOn(window, "print").mockImplementation(() => {});
   render(
@@ -494,7 +501,7 @@ test("historical seven-period snapshots retain their exact time columns", async 
   data.result!.assignments[1].end_minute = 1275;
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => response([data])),
+    vi.fn(serve([data])),
   );
   vi.spyOn(window, "print").mockImplementation(() => {});
   render(
@@ -533,7 +540,7 @@ test("generation does not download a report; PDF downloads only on request", asy
   const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
   const fetcher = vi.fn(async (path: string, init?: RequestInit) => {
     if (path.includes("/statistics?")) return {ok: true, status: 200};
-    return response(init?.method === "POST" ? run : []);
+    return response(init?.method === "POST" || draftPath.test(path) ? run : []);
   });
   vi.stubGlobal("fetch", fetcher);
   render(<Timetable ws={ws} lang="en" administrator refresh={async () => {}} />);
@@ -557,7 +564,7 @@ test("current preset prints only five periods and no evening columns", async () 
   data.snapshot.calendar.teaching_periods = [...REFERENCE_PERIODS];
   data.snapshot.calendar.end_hour = 22;
   data.result!.assignments.forEach((a, i) => { a.start_minute = REFERENCE_PERIODS[i % 5].start; a.end_minute = REFERENCE_PERIODS[i % 5].end; });
-  vi.stubGlobal("fetch", vi.fn(async () => response([data])));
+  vi.stubGlobal("fetch", vi.fn(serve([data])));
   vi.spyOn(window, "print").mockImplementation(() => {});
   render(<Timetable ws={ws} lang="en" administrator refresh={async () => {}} />);
   fireEvent.click(await screen.findByRole("button", {name: "Print"}));
@@ -573,7 +580,7 @@ test("current preset prints only five periods and no evening columns", async () 
 
 test("print suggests a descriptive filename and restores the page title", async () => {
   document.title = "Original JadwAI title";
-  vi.stubGlobal("fetch", vi.fn(async () => response([run])));
+  vi.stubGlobal("fetch", vi.fn(serve([run])));
   const print = vi.spyOn(window, "print").mockImplementation(() => {});
   render(<Timetable ws={ws} lang="en" administrator refresh={async () => {}} />);
   fireEvent.click(await screen.findByRole("button", {name: "Print"}));

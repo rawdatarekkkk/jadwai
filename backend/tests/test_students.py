@@ -29,7 +29,7 @@ def test_student_scoped_access(environment):
     # The overview's light summary: names and states only, no snapshot or timetable.
     summary = client.get('/api/schedules?summary=true').json()
     assert [r['id'] for r in summary] == [run_id] and summary[0]['published_at'] and summary[0]['status'] == 'completed'
-    assert set(summary[0]) == {'id', 'name', 'status', 'created_at', 'published_at', 'stale'}
+    assert set(summary[0]) == {'id', 'name', 'status', 'created_at', 'published_at', 'input_version', 'stale', 'cancel_requested', 'parent_run_id'}
     login(client, 's@example.test')
     for path in ('/api/workspace', '/api/users', '/api/schedules', '/api/schedules?summary=true', f'/api/schedules/{run_id}', f'/api/schedules/{run_id}/statistics'):
         assert client.get(path).status_code == 403

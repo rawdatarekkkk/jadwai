@@ -16,12 +16,16 @@ The model runs on the CPU, so a model reply takes several minutes. Everything el
    This also tries to start the site. On a fresh server it stops early, because Docker is not installed yet; that is expected.
 3. On the server (`ssh -i ~/.ssh/jadwai_oracle ubuntu@<ip>`):
    - `bash ~/jadwai/deploy/server-setup.sh`: installs Docker and Ollama and opens the firewall. Log out and back in afterwards.
-   - `bash ~/jadwai/deploy/build-model.sh`: downloads the base model and merges the adapter into `jai-candidate-v4`, exactly as on the Mac. This takes about 30 to 60 minutes.
+   - `bash ~/jadwai/deploy/build-model.sh`: downloads the base model and merges the adapter into `jai-candidate-v4` with the same steps and tool versions as on the Mac (the weights differ only by rounding on the ARM processor). This takes about 30 to 60 minutes.
    - `bash ~/jadwai/deploy/server-up.sh <ip>`: builds the images, restores the demo database, migrates, creates the restricted database roles and starts the site.
 
 ## Updates
 
 `bash deploy/push.sh <ip>` copies the current code and rebuilds. The database on the server is kept.
+
+## Backups
+
+`server-up.sh` installs a cron job that runs `backup.sh` every night at 03:15 UTC. It writes a database dump to `~/backups` on the server and keeps the newest 14. To restore one, run the `pg_restore` command at the top of `backup.sh`.
 
 ## What stays private
 

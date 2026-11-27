@@ -23,6 +23,7 @@ import {
   downloadTimetablePdf,
   type Workspace,
   type ScheduleRun,
+  type RunMeta,
 } from "./api";
 import { Icon } from "./components";
 
@@ -178,7 +179,7 @@ const days: Record<string, string> = {
   Friday: "الجمعة",
   Saturday: "السبت",
 };
-const activeRun = (r: ScheduleRun | undefined) =>
+const activeRun = (r: { status: string } | undefined) =>
   r && ["queued", "running"].includes(r.status);
 const clock = (m: number) =>
   `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
@@ -206,7 +207,11 @@ export function Timetable({
     window.addEventListener("afterprint", done);
     return () => { window.removeEventListener("afterprint", done); restoreTitle(); };
   }, []);
-  const [runs, setRuns] = useState<ScheduleRun[]>([]);
+  // The list holds every draft's state only; the full timetable is loaded for the selected draft.
+  const [runs, setRuns] = useState<RunMeta[]>([]);
+  const [detail, setDetail] = useState<ScheduleRun | null>(null);
+  const [tick, setTick] = useState(0);
+  const [nonce, setNonce] = useState(0);
   const [selected, setSelected] = useState("");
   const [group, setGroup] = useState("");
   const [yearFilter, setYearFilter] = useState("");
@@ -268,7 +273,21 @@ export function Timetable({
       setReportBusy(false);
     }
   };
-  const selectedRun = runs.find((r) => r.id === selected) ?? runs[0];
+  const selectedMeta = runs.find((r) => r.id === selected) ?? runs[0];
+  const selectedRun: ScheduleRun | undefined =
+    selectedMeta && detail?.id === selectedMeta.id ? { ...detail, ...selectedMeta } : undefined;
+  // Load the selected draft once, again when its state changes, and on every poll while it is running.
+  const selectedState = selectedMeta
+    ? [selectedMeta.id, selectedMeta.status, selectedMeta.cancel_requested, selectedMeta.name, selectedMeta.published_at, selectedMeta.input_version].join("|")
+    : "";
+  useEffect(() => {
+    if (!selectedMeta) return;
+    let live = true;
+    api<ScheduleRun>(`/schedules/${encodeURIComponent(selectedMeta.id)}`)
+      .then((full) => { if (live) setDetail(full); })
+      .catch(() => { if (live) setErrorKind("load"); });
+    return () => { live = false; };
+  }, [selectedState, nonce, activeRun(selectedMeta) ? tick : 0]);
   useEffect(() => {
     Object.assign(timetableOnScreen, { run_id: selectedRun?.id, group: group || undefined, year: yearFilter || undefined, major: majorFilter || undefined });
     return () => { for (const k of Object.keys(timetableOnScreen)) delete (timetableOnScreen as Record<string, unknown>)[k]; };
@@ -290,9 +309,10 @@ export function Timetable({
     let timer: ReturnType<typeof setTimeout>;
     const poll = async () => {
       try {
-        const result = await api<ScheduleRun[]>("/schedules");
+        const result = await api<RunMeta[]>("/schedules?summary=true");
         if (!disposed) {
           setRuns(result);
+          setTick((n) => n + 1);
           setLoading(false);
           setErrorKind("");
         }
@@ -310,7 +330,7 @@ export function Timetable({
       clearTimeout(timer);
     };
   }, [administrator, ws.version]);
-  const reload = async () => setRuns(await api<ScheduleRun[]>("/schedules"));
+  const reload = async () => { setRuns(await api<RunMeta[]>("/schedules?summary=true")); setNonce((n) => n + 1); };
   const generate = async () => {
     setBusy(true);
     setError("");
@@ -326,6 +346,7 @@ export function Timetable({
       setRuns((old) =>
         [run, ...old.filter((r) => r.id !== run.id)].slice(0, 10),
       );
+      setDetail(run);
       setSelected(run.id);
       setHistorical(false);
       setParts(null);
@@ -413,7 +434,7 @@ export function Timetable({
   const result = run?.result;
   const completed = run?.status === "completed" && result?.validation?.passed;
   const stale = run && (run.stale || run.input_version !== ws.version);
-  const statusText = (r: ScheduleRun) =>
+  const statusText = (r: RunMeta) =>
     ({
       queued: t.queued,
       running: t.running,
@@ -538,7 +559,7 @@ export function Timetable({
               {pending.cancel_requested ? t.cancelling : statusText(pending)}
             </strong>
             <p>{t.waiting}</p>
-            {pending.result?.progress && <p>{lang==="ar"?"أفضل درجة بحث حتى الآن":"Best search score so far"}: {pending.result.progress.best_objective} · {lang==="ar"?"ليست نتيجة معتمدة بعد":"Not yet independently validated"}</p>}
+            {pending.id === selectedRun?.id && selectedRun.result?.progress && <p>{lang==="ar"?"أفضل درجة بحث حتى الآن":"Best search score so far"}: {selectedRun.result.progress.best_objective} · {lang==="ar"?"ليست نتيجة معتمدة بعد":"Not yet independently validated"}</p>}
           </div>
           <button
             className="btn secondary"
@@ -837,7 +858,10 @@ export function Timetable({
           {result?.repair && <RepairPanel repair={result.repair} ar={lang === "ar"} />}
         </section>
       )}
-      {!run && !loading && (
+      {!run && !loading && selectedMeta && (
+        <p className="room-type-help" role="status">{lang === "ar" ? "جارٍ تحميل المسودة المختارة…" : "Loading the selected draft…"}</p>
+      )}
+      {!run && !loading && !selectedMeta && (
         <section className="panel generation-outcome">
           <Icon name="calendar" size={36} />
           <h2>{t.empty}</h2>

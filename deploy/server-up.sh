@@ -30,6 +30,9 @@ grep '^DATABASE_URL=' runtime.env > api.env
 grep '^WORKER_DATABASE_URL=' runtime.env | sed 's/^WORKER_DATABASE_URL=/DATABASE_URL=/' > worker.env
 
 docker compose up -d --remove-orphans api worker web
+# Nightly database backup at 03:15 UTC (05:15 in Cairo), kept for 14 days.
+job="15 3 * * * bash $PWD/backup.sh >> $HOME/backups.log 2>&1"
+{ crontab -l 2>/dev/null | grep -v 'deploy/backup.sh' || true; echo "$job"; } | crontab -
 echo "Waiting for the site"
 for i in $(seq 1 60); do
   if curl -fsS --resolve "${SITE}:443:127.0.0.1" "https://${SITE}/api/health" 2>/dev/null | grep -q '"ready"'; then echo "Up: https://${SITE}"; exit 0; fi

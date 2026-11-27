@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { api, ApiError, type ScheduleRun, type Workspace } from "./api";
+import { api, ApiError, type RunMeta, type ScheduleRun, type Workspace } from "./api";
 import { errors, words } from "./i18n";
 
 type Comparison = { a: { name: string | null; metrics: Record<string, number> }; b: { name: string | null; metrics: Record<string, number> };
@@ -29,7 +29,7 @@ export function compactGroups(codes: string[]) {
   return [...parts, ...other].join(", ");
 }
 
-export function ScenarioActions({ ws, run, runs, lang, reload, select, notify, shows = () => true, scope = "" }: { ws: Workspace; run: ScheduleRun; runs: ScheduleRun[]; lang: "en" | "ar"; reload: () => Promise<void>; select: (id: string) => void; notify: (message: string) => void;
+export function ScenarioActions({ ws, run, runs, lang, reload, select, notify, shows = () => true, scope = "" }: { ws: Workspace; run: ScheduleRun; runs: RunMeta[]; lang: "en" | "ar"; reload: () => Promise<void>; select: (id: string) => void; notify: (message: string) => void;
   /** Whether an activity is in the year, programme or group being viewed. */ shows?: (activityId: string) => boolean; scope?: string }) {
   const t = (k: keyof typeof words.en) => words[lang][k];
   const ar = lang === "ar";
@@ -42,7 +42,7 @@ export function ScenarioActions({ ws, run, runs, lang, reload, select, notify, s
   const code = (id: string) => records.find(r => r.id === id)?.code || id;
   // Same-named activities differ by group, so show the groups in the session list.
   const groupsOf = (activityId: string) => compactGroups((records.find(r => r.id === activityId)?.group_ids || []).map(code));
-  const draftName = (r: ScheduleRun) => `${r.name || (ar ? "مسودة" : "Draft")} · ${new Date(r.created_at).toLocaleString(ar ? "ar-EG" : "en-GB")}`;
+  const draftName = (r: RunMeta) => `${r.name || (ar ? "مسودة" : "Draft")} · ${new Date(r.created_at).toLocaleString(ar ? "ar-EG" : "en-GB")}`;
   const others = runs.filter(r => r.id !== run.id && r.status === "completed");
   async function act(action: () => Promise<void>) {
     setBusy(true); setMessage("");

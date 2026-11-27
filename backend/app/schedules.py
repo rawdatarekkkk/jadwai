@@ -156,15 +156,17 @@ def continue_chain(db, ws):
 def list_runs(summary: bool = False, user=Depends(administrator), db: DB = Depends(db_session)):
     ws = db.get(Workspace, 1)
     if summary:
-        # Overview badges only: read the small columns, never the snapshots or timetables (the full
+        # The Timetable page's list and the overview: read the small columns, never the snapshots or timetables (the full
         # list can be many megabytes). The background coordinator continues part chains on its own.
-        columns = (ScheduleRun.id, ScheduleRun.name, ScheduleRun.status, ScheduleRun.created_at, ScheduleRun.published_at, ScheduleRun.input_version)
+        columns = (ScheduleRun.id, ScheduleRun.name, ScheduleRun.status, ScheduleRun.created_at, ScheduleRun.published_at,
+                   ScheduleRun.input_version, ScheduleRun.cancel_requested, ScheduleRun.parent_run_id)
         rows = list(db.execute(select(*columns).order_by(ScheduleRun.created_at.desc()).limit(20)))
         published = db.execute(select(*columns).where(ScheduleRun.published_at.isnot(None))).first()
         if published and published.id not in {r.id for r in rows}:
             rows.append(published)
-        return [{"id": r.id, "name": r.name, "status": r.status, "created_at": r.created_at,
-                 "published_at": r.published_at, "stale": r.input_version != ws.version} for r in rows]
+        return [{"id": r.id, "name": r.name, "status": r.status, "created_at": r.created_at, "published_at": r.published_at,
+                 "input_version": r.input_version, "stale": r.input_version != ws.version,
+                 "cancel_requested": r.cancel_requested, "parent_run_id": r.parent_run_id} for r in rows]
     continue_chain(db, ws)
     rows = list(db.scalars(select(ScheduleRun).order_by(ScheduleRun.created_at.desc()).limit(20)))
     published = db.scalar(select(ScheduleRun).where(ScheduleRun.published_at.isnot(None)))

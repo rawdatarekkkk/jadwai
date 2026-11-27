@@ -30,9 +30,9 @@ import {
   RecordForm,
   RuleForm,
 } from "./components";
-/** "German International University" -> "GI": the first letters of the first two words. */
+/** "German International University" -> "GIU": first letters of up to three words, skipping "of", "the"… */
 const workspaceInitials = (name: string) =>
-  name.split(/\s+/).filter((w) => /^\p{L}/u.test(w)).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "J";
+  name.split(/\s+/).filter((w) => /^\p{L}/u.test(w) && !/^(of|the|and|for|at|in)$/i.test(w)).slice(0, 3).map((w) => w[0]).join("").toUpperCase() || "J";
 type Page =
   "overview" | "data" | "constraints" | "timetable" | "activity" | "accounts" | "evaluation" | "proposals";
 const kindIcons: Record<RecordKind, IconName> = {

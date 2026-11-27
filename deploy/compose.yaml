@@ -26,7 +26,7 @@ services:
       JADWAI_LOCAL_URL: http://host.docker.internal:11434
       JADWAI_LOCAL_MODEL: ${JADWAI_LOCAL_MODEL:-jai-candidate-v4}
       # CPU-only server: model replies take several minutes.
-      JADWAI_LOCAL_TIMEOUT_SECONDS: "1500"
+      JADWAI_LOCAL_TIMEOUT_SECONDS: "900"  # the app accepts 5-900 s
       JADWAI_COOKIE_SECURE: "true"
       JADWAI_WEB_URL: https://${SITE:?run server-up.sh}
     extra_hosts: ["host.docker.internal:host-gateway"]

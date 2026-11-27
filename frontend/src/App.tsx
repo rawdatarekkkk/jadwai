@@ -30,6 +30,9 @@ import {
   RecordForm,
   RuleForm,
 } from "./components";
+/** "German International University" -> "GI": the first letters of the first two words. */
+const workspaceInitials = (name: string) =>
+  name.split(/\s+/).filter((w) => /^\p{L}/u.test(w)).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "J";
 type Page =
   "overview" | "data" | "constraints" | "timetable" | "activity" | "accounts" | "evaluation" | "proposals";
 const kindIcons: Record<RecordKind, IconName> = {
@@ -345,7 +348,7 @@ export default function App() {
       <aside className="sidebar">
         {brand}
         <div className="workspace-switch">
-          <span className="workspace-icon">CS</span>
+          <span className="workspace-icon">{workspaceInitials(ws?.name || "")}</span>
           <span>
             <strong>{ws?.name || t("department")}</strong>
             <small>{ws?.term || t("term")}</small>
@@ -513,7 +516,7 @@ export default function App() {
                       </button>
                       <div className="hero-bottom">
                         <span className="mini-avatar">
-                          {ws.name.split(/\s+/).filter((w) => /^\p{L}/u.test(w)).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "J"}
+                          {workspaceInitials(ws.name)}
                         </span>
                         <span>
                           {ws.name} <i>·</i> {ws.term}

@@ -1512,6 +1512,11 @@ def ask(body: Ask, user=Depends(administrator), db=Depends(db_session)):
         ((previous or {}).get('slots') or {}).get('field') in ('name', 'email', 'department', 'code')
     text = body.text if filling else resolve_references(body.text, memory, view)[0]
     meaning = with_context(normalise(text).translate(ARABIC_DIGITS), understand(text, view, previous), memory)
+    from app.assistant_basics import priority_answer, basic_answer
+    # Room features and "what are they?" would be misread by the patterns above (for example as a free-room question).
+    early = None if filling or state.get('capability_pending') else priority_answer(body.text, view, ar, memory)
+    if early:
+        meaning = {'intent': 'conversation', 'slots': {}, 'ambiguous': [], 'held': early}
     source = 'built-in'
     settings = model_settings()
     discussion = bool(re.search(r'\b(explain how|explain the|before changing|do not change|don.t change|discuss|trade.?off)\b|اشرح|وضح', body.text.lower()))
@@ -1519,7 +1524,6 @@ def ask(body: Ask, user=Depends(administrator), db=Depends(db_session)):
     if (discussion or ordinal_followup) and settings:
         meaning = {'intent': 'unknown', 'slots': {}, 'ambiguous': []}
     if meaning['intent'] == 'unknown' and not state.get('capability_pending') and not filling:
-        from app.assistant_basics import basic_answer
         basic = basic_answer(body.text, view, ar)
         if basic:
             meaning = {'intent': 'conversation', 'slots': {}, 'ambiguous': [], 'held': basic}
@@ -1541,6 +1545,9 @@ def ask(body: Ask, user=Depends(administrator), db=Depends(db_session)):
     if meaning['intent'] in ('statistics', 'input_checks', 'generate_timetable', 'fix_problems', 'move_session'):
         extra(db, view, meaning['intent'])
     reply = meaning['held'] if meaning.get('held') else answer(meaning, view, ar)
+    # What a following "what are they?" refers to: only the list or count just given.
+    # A new dict: changing the loaded one in place would hide the change from the database save.
+    memory = {**{k: v for k, v in memory.items() if k != 'listed'}, **({'listed': reply['listed']} if reply.get('listed') else {})}
     # The built-in parser is instant; the local model is only asked when it cannot read the rule.
     if meaning['intent'] == 'add_rule' and settings and (reply.get('action') or {}).get('type') != 'add_rules':
         if not body.use_model:

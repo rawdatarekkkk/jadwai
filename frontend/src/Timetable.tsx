@@ -75,7 +75,7 @@ const copy = {
     input_checks_failed:
       "Some inputs cannot all hold together, so no timetable was generated.",
     instance_too_large:
-      "This dataset exceeds the current draft generator’s size limit. Reduce the activities or placement options and try again.",
+      "This is more than one run can place at once. Generate the whole timetable again: it is now built in parts automatically. You can also choose the parts yourself under “Build in parts”.",
     missing_data:
       "Add at least one teaching activity and a suitable room first.",
     error: "Could not load schedules. Please try again.",
@@ -145,7 +145,7 @@ const copy = {
     input_checks_failed:
       "بعض المدخلات لا يمكن أن تتحقق معًا، لذلك لم يُنشأ جدول.",
     instance_too_large:
-      "تتجاوز البيانات الحد الحالي لمنشئ المسودات. قلّل الأنشطة أو بدائل التعيين وحاول مجدداً.",
+      "هذا أكثر مما يستطيع تشغيل واحد جدولته. أنشئ الجدول كاملاً مرة أخرى: يُنشأ الآن على أجزاء تلقائياً. يمكنك أيضاً اختيار الأجزاء بنفسك من «الإنشاء على أجزاء».",
     missing_data: "أضف نشاطاً تدريسياً وقاعة مناسبة على الأقل أولاً.",
     error: "تعذّر تحميل الجداول. حاول مجدداً.",
     retry: "إعادة المحاولة",
@@ -273,7 +273,17 @@ export function Timetable({
       setReportBusy(false);
     }
   };
-  const selectedMeta = runs.find((r) => r.id === selected) ?? runs[0];
+  // Without a choice, show the published timetable (else the newest finished one), not a draft that failed.
+  const selectedMeta =
+    runs.find((r) => r.id === selected) ??
+    runs.find((r) => r.published_at && r.status === "completed") ??
+    runs.find((r) => r.status === "completed") ??
+    runs[0];
+  // A timetable built in parts continues as a new draft for each part: follow it to the newest part.
+  useEffect(() => {
+    const next = selectedMeta && runs.find((r) => r.parent_run_id === selectedMeta.id && /· part \d+\/\d+$/.test(r.name || ""));
+    if (next) setSelected(next.id);
+  }, [runs, selectedMeta?.id]);
   const selectedRun: ScheduleRun | undefined =
     selectedMeta && detail?.id === selectedMeta.id ? { ...detail, ...selectedMeta } : undefined;
   // Load the selected draft once, again when its state changes, and on every poll while it is running.
@@ -294,7 +304,7 @@ export function Timetable({
   }, [selectedRun?.id, group, yearFilter, majorFilter]);
   // A chosen group shows its own study year and major in the other two filters.
   useEffect(() => {
-    const g = group ? selectedRun?.snapshot.records.find((r) => r.id === group) : undefined;
+    const g = group ? (selectedRun?.snapshot.records ?? ws.records).find((r) => r.id === group) : undefined;
     if (!g) return;
     setYearFilter(g.year ? String(g.year) : "unassigned");
     setMajorFilter(g.major || "__unassigned");
@@ -395,7 +405,9 @@ export function Timetable({
     );
   const activities = ws.records.filter((r) => r.kind === "courses");
   const run = selectedRun;
-  const records = run?.snapshot.records ?? [];
+  // The draft's own records when one is shown; before any timetable exists, the current academic data,
+  // so the year, major and group filters are always available.
+  const records = run?.snapshot.records ?? ws.records;
   const record = (id: string) => records.find((r) => r.id === id);
   const groupRecords = records.filter((r) => r.kind === "groups");
   const years = [
@@ -570,18 +582,16 @@ export function Timetable({
           </button>
         </section>
       )}
-      {runs.length > 0 && (
+      {(runs.length > 0 || groupRecords.length > 0) && (
         <div className="schedule-toolbar">
-          <label>
+          {runs.length > 0 && <label>
             {t.history}
             <select
               value={run?.id ?? ""}
               onChange={(e) => {
+                // The year, major and group being viewed stay chosen for the other draft.
                 setSelected(e.target.value);
                 requestKey.current=null;
-                setGroup("");
-                setYearFilter("");
-                setMajorFilter("");
               }}
               aria-label={t.history}
             >
@@ -594,8 +604,8 @@ export function Timetable({
                 </option>
               ))}
             </select>
-          </label>
-          {completed && (
+          </label>}
+          {groupRecords.length > 0 && (
             <>
               <label>
                 {lang === "ar" ? "السنة الدراسية" : "Study year"}
@@ -659,6 +669,13 @@ export function Timetable({
                 </select>
               </label>
             </>
+          )}
+          {!completed && (yearFilter || majorFilter || group) && (
+            <p className="room-type-help" role="status">
+              {lang === "ar"
+                ? "سيُعرض الجدول بهذا الاختيار بمجرد إنشائه أو اختيار مسودة مكتملة. يُنشئ زر الإنشاء الجدول كاملاً؛ لإنشاء بعض البرامج فقط استخدم «الإنشاء على أجزاء»."
+                : "The timetable is shown for this choice as soon as one is generated or a finished draft is selected. Generate builds the whole timetable; to generate only some programmes, use “Build in parts”."}
+            </p>
           )}
         </div>
       )}

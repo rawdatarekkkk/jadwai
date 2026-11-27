@@ -356,3 +356,40 @@ def test_one_groups_week_from_a_whole_draft_is_published_into_the_published_time
     kept = {(a['activity_id'], a['occurrence']): (a['day'], a['start_minute']) for a in published}
     assert all((a['day'], a['start_minute']) == kept[(a['activity_id'], a['occurrence'])] for a in now['result']['assignments'] if (a['activity_id'], a['occurrence']) in kept)
     assert len(now['result']['assignments']) == len(published) + 1
+
+
+def test_a_whole_timetable_too_large_for_one_run_is_built_in_parts_automatically(environment, monkeypatch):
+    """The Generate button sends no scope: over the solver's size limit, the server plans the parts itself."""
+    client, factory = environment
+    login(client); setup_data(client, factory)
+    records = client.get('/api/workspace').json()['records']
+    group = next(r for r in records if r['kind'] == 'groups')
+    assert client.put(f"/api/records/groups/{group['id']}", headers=version(client), json={'name': 'G', 'code': 'G', 'size': 20, 'major': 'A', 'year': 1}).status_code == 200
+    client.post('/api/records/groups', headers=version(client), json={'name': 'H', 'code': 'H', 'size': 20, 'major': 'B', 'year': 1}).raise_for_status()
+    other = next(r for r in client.get('/api/workspace').json()['records'] if r['kind'] == 'groups' and r['code'] == 'H')
+    assert client.post('/api/records/courses', headers=version(client), json={"name": "Other", "code": "O", "activity_type": "lecture", "sessions": 1, "duration": 60,
+                                                                               "eligible_instructors": ["teacher"], "group_ids": [other['id']]}).status_code == 201
+    # Shrink the limits so this small semester counts as too large: one programme per part.
+    import app.assistant, app.solver
+    original = app.assistant.plan_parts
+    def small_parts(view, limit=340):
+        saved = app.solver.MAX_SESSIONS
+        app.solver.MAX_SESSIONS = 1  # only while planning; each part is still solved with the real limit
+        try:
+            return original(view, limit=1)
+        finally:
+            app.solver.MAX_SESSIONS = saved
+    monkeypatch.setattr(app.assistant, 'plan_parts', small_parts)
+    key = str(uuid4())
+    first = client.post('/api/schedules', headers=version(client), json={'request_key': key}).json()
+    assert first['name'] == 'Whole university · part 1/2'
+    assert first['snapshot']['chain']['auto'] is True and len(first['snapshot']['chain']['parts']) == 1
+    # Retrying the same click returns the same run instead of a conflict.
+    assert client.post('/api/schedules', headers=version(client), json={'request_key': key}).json()['id'] == first['id']
+    assert process_one(factory)
+    from app.chain_coordinator import advance
+    second = advance(factory)
+    assert second is not None and second.name == 'Whole university · part 2/2' and second.parent_run_id == first['id']
+    assert process_one(factory)
+    done = client.get(f"/api/schedules/{second.id}").json()
+    assert done['status'] == 'completed' and done['progress']['complete'], done['result']

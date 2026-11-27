@@ -103,6 +103,11 @@ const response = (body: unknown, status = 200) => ({
   json: async () => structuredClone(body),
 });
 // The page lists drafts at /api/schedules?summary=true and loads the one on screen from /api/schedules/<id>.
+// The filters are shown at once (from the academic data); wait for the draft's timetable before using them.
+const timetableCombo = async (name: string) => {
+  await screen.findByText("Supported checks passed");
+  return screen.getByRole("combobox", { name });
+};
 const draftPath = /\/api\/schedules\/([^/?]+)$/;
 const serve = <T extends { id: string }>(list: T[]) => async (path: string) => {
   const one = draftPath.exec(path);
@@ -319,7 +324,7 @@ test("year and major filters narrow groups and clear dependent selections", asyn
   render(
     <Timetable ws={ws} lang="en" administrator refresh={async () => {}} />,
   );
-  const year = await screen.findByRole("combobox", { name: "Study year" });
+  const year = await timetableCombo("Study year");
   fireEvent.change(year, { target: { value: "1" } });
   const group = screen.getByRole("combobox", {
     name: "Student group",
@@ -349,7 +354,7 @@ test("generating keeps the year, programme and group being viewed", async () => 
   const fresh = { ...structuredClone(classified), id: "new-run" };
   vi.stubGlobal("fetch", vi.fn(async (path: string, init?: RequestInit) => (init?.method === "POST" ? response(fresh) : serve([classified, fresh])(path))));
   render(<Timetable ws={ws} lang="en" administrator refresh={async () => {}} />);
-  fireEvent.change(await screen.findByRole("combobox", { name: "Study year" }), { target: { value: "3" } });
+  fireEvent.change(await timetableCombo("Study year"), { target: { value: "3" } });
   fireEvent.change(screen.getByRole("combobox", { name: "Major" }), { target: { value: "Business Administration" } });
   const group = screen.getByRole("combobox", { name: "Student group" }) as HTMLSelectElement;
   fireEvent.change(group, { target: { value: "g" } });
@@ -365,7 +370,7 @@ test("the report PDF follows the group being viewed", async () => {
   const fetcher = vi.fn(async (path: string) => (path.includes("/statistics?") ? { ok: true, status: 200 } : serve([run])(path)));
   vi.stubGlobal("fetch", fetcher);
   render(<Timetable ws={ws} lang="en" administrator refresh={async () => {}} />);
-  fireEvent.change(await screen.findByRole("combobox", { name: "Student group" }), { target: { value: "g" } });
+  fireEvent.change(await timetableCombo("Student group"), { target: { value: "g" } });
   fireEvent.click(screen.getByRole("button", { name: "Download report PDF" }));
   await waitFor(() => expect(fetcher.mock.calls.some(([path]) => path.includes("/statistics?format=pdf&group=g"))).toBe(true));
 });
@@ -376,7 +381,7 @@ test("Save as PDF downloads the server's landscape file for the group being view
   click.mockImplementation(function (this: HTMLAnchorElement) { href = this.getAttribute("href") ?? ""; });
   vi.stubGlobal("fetch", vi.fn(serve([run])));
   render(<Timetable ws={ws} lang="en" administrator refresh={async () => {}} />);
-  fireEvent.change(await screen.findByRole("combobox", { name: "Student group" }), { target: { value: "g" } });
+  fireEvent.change(await timetableCombo("Student group"), { target: { value: "g" } });
   fireEvent.click(screen.getByRole("button", { name: "Save as PDF" }));
   expect(href).toBe(`/api/schedules/${run.id}/timetable.pdf?group=g`);
 });
@@ -419,7 +424,7 @@ test("PDF print view includes only filtered sessions and preserves draft warning
       refresh={async () => {}}
     />,
   );
-  const year = await screen.findByRole("combobox", { name: "Study year" });
+  const year = await timetableCombo("Study year");
   fireEvent.change(year, { target: { value: "1" } });
   fireEvent.click(screen.getByRole("button", { name: "Print" }));
   expect(print).toHaveBeenCalledOnce();
@@ -626,4 +631,16 @@ test("search settings change an explicit objective and time limit", async () => 
   expect(change).toHaveBeenLastCalledWith({...defaultSettings,time_limit_seconds:20});
   fireEvent.change(screen.getByLabelText("Search objective"),{target:{value:"weighted-v1"}});
   expect(change).toHaveBeenLastCalledWith({...defaultSettings,objective_profile:"weighted-v1"});
+});
+
+test("the year, major and group filters are there before any timetable exists", async () => {
+  const withGroups = { ...ws, records: [...ws.records, { id: "g9", kind: "groups", name: "Group Nine", code: "G9", year: 2, major: "Data Science", size: 20 }] } as typeof ws;
+  vi.stubGlobal("fetch", vi.fn(async () => response([])));
+  render(<Timetable ws={withGroups} lang="en" administrator refresh={async () => {}} />);
+  const year = (await screen.findByRole("combobox", { name: "Study year" })) as HTMLSelectElement;
+  expect([...year.options].map((o) => o.textContent)).toContain("Year 2");
+  fireEvent.change(year, { target: { value: "2" } });
+  expect([...(screen.getByRole("combobox", { name: "Major" }) as HTMLSelectElement).options].map((o) => o.textContent)).toContain("Data Science");
+  expect(screen.queryByRole("combobox", { name: "Recent drafts" })).toBeNull();
+  expect(screen.getByText(/Generate builds the whole timetable/)).toBeTruthy();
 });

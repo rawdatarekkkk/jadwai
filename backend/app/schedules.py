@@ -196,7 +196,8 @@ def create_run(body: GenerateInput, request: Request, user=Depends(administrator
     if existing:
         from app.provenance import CONFIG
         plan = existing.snapshot.get("plan") or {}
-        same_scope = (plan.get("scope"), plan.get("base_run_id")) == (scope_key(body.scope) if body.scope else None, str(body.base_run_id) if body.base_run_id else None)
+        same_scope = (plan.get("scope"), plan.get("base_run_id")) == (scope_key(body.scope) if body.scope else None, str(body.base_run_id) if body.base_run_id else None) \
+            or (not body.scope and not body.base_run_id and (existing.snapshot.get("chain") or {}).get("auto"))
         if SolverSettings.model_validate(existing.snapshot.get("provenance", {}).get("solver_config", CONFIG)).model_dump() != body.settings.model_dump() or existing.snapshot.get("provenance", {}).get("source_run_id") != (str(body.source_run_id) if body.source_run_id else None) or not same_scope:
             fail(409, "request_conflict")
         return representation(existing, ws.version)
@@ -222,12 +223,21 @@ def create_run(body: GenerateInput, request: Request, user=Depends(administrator
         for lock in db.scalars(select(AssignmentLock).where(AssignmentLock.status == "approved")):
             validate_lock(lock, db)
         snap = snapshot_of(db, ws)
+        auto = False
+        if not body.scope and not body.then:
+            # The whole semester is more than one run can place: build it in parts automatically, each placed
+            # around the ones before (the same plan JAI proposes), instead of stopping at the size limit.
+            from app.assistant import plan_parts
+            parts = plan_parts({"records": [{"id": r["id"], "kind": r["kind"], "data": r} for r in snap["records"]]})
+            if parts:
+                body = body.model_copy(update={"scope": [ScopeItem(**p) for p in parts[0]], "then": [[ScopeItem(**p) for p in part] for part in parts[1:]] or None})
+                auto = True
         if body.scope:
             snap = with_plan(db, ws, snap, body)
         if body.then:
             if not body.scope:
                 fail(422, "invalid_scope")
-            snap["chain"] = {"parts": [scope_key(p) for p in body.then], "settings": body.settings.model_dump(), "step": 1, "steps": 1 + len(body.then)}
+            snap["chain"] = {"parts": [scope_key(p) for p in body.then], "settings": body.settings.model_dump(), "step": 1, "steps": 1 + len(body.then), "auto": auto}
         snap = seal_snapshot(snap, body.settings.model_dump())
     if not any(r["kind"] == "courses" for r in snap["records"]) or not any(r["kind"] == "rooms" for r in snap["records"]):
         fail(422, "schedule_missing_data")

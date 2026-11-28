@@ -1,0 +1,833 @@
+{
+ "bundle": "0.2.1-draft",
+ "seed": 42,
+ "items": [
+  {
+   "sheet_id": "S01",
+   "case_id": "jdw-019-en",
+   "family_id": "family-019",
+   "language": "en",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "unavailable",
+       "day": "Sunday",
+       "start_hour": 8,
+       "end_hour": 10,
+       "strength": "mandatory",
+       "instructor_id": "i-nour-hassan"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S02",
+   "case_id": "jdw-026-arz",
+   "family_id": "family-026",
+   "language": "arz",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "ambiguous_group"
+    ],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S03",
+   "case_id": "design-010-mixed",
+   "family_id": "design-family-010",
+   "language": "mixed",
+   "context_id": "synthetic-design-school-v2",
+   "gold": {
+    "decision": "unsupported",
+    "proposals": [],
+    "clarifications": [],
+    "unsupported": [
+     "hard_weekly_cap_under_overtime_policy"
+    ]
+   }
+  },
+  {
+   "sheet_id": "S04",
+   "case_id": "design-008-ar",
+   "family_id": "design-family-008",
+   "language": "ar",
+   "context_id": "synthetic-design-school-v2",
+   "gold": {
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "unknown_instructor"
+    ],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S05",
+   "case_id": "jdw-014-mixed",
+   "family_id": "family-014",
+   "language": "mixed",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "day_required"
+    ],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S06",
+   "case_id": "design-009-arz",
+   "family_id": "design-family-009",
+   "language": "arz",
+   "context_id": "synthetic-design-school-v2",
+   "gold": {
+    "decision": "unsupported",
+    "proposals": [],
+    "clarifications": [],
+    "unsupported": [
+     "manual_rule_minute_precision_not_supported"
+    ]
+   }
+  },
+  {
+   "sheet_id": "S07",
+   "case_id": "jdw-030-en",
+   "family_id": "family-030",
+   "language": "en",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "preferred_period",
+       "day": "Monday",
+       "start_hour": 10,
+       "end_hour": 12,
+       "strength": "preferred",
+       "instructor_id": "i-nour-hassan"
+      }
+     },
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "preferred_period",
+       "day": "Wednesday",
+       "start_hour": 14,
+       "end_hour": 16,
+       "strength": "preferred",
+       "instructor_id": "i-nour-hassan"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S08",
+   "case_id": "jdw-011-en",
+   "family_id": "family-011",
+   "language": "en",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "assignment_lock",
+      "data": {
+       "source_run_id": "11111111-1111-4111-8111-111111111111",
+       "activity_id": "a-ds",
+       "occurrence": 0,
+       "keep_instructor": true,
+       "keep_time": true,
+       "keep_room": true
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S09",
+   "case_id": "design-002-en",
+   "family_id": "design-family-002",
+   "language": "en",
+   "context_id": "synthetic-design-school-v2",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "type": "room_unavailable",
+       "room_id": "design-studio",
+       "day": "Tuesday",
+       "start_hour": 12,
+       "end_hour": 14,
+       "strength": "mandatory"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S10",
+   "case_id": "jdw-008-ar",
+   "family_id": "family-008",
+   "language": "ar",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "activity_allowed",
+       "day": "Sunday",
+       "start_hour": 8,
+       "end_hour": 10,
+       "strength": "mandatory",
+       "activity_id": "a-ds"
+      }
+     },
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "activity_allowed",
+       "day": "Monday",
+       "start_hour": 8,
+       "end_hour": 10,
+       "strength": "mandatory",
+       "activity_id": "a-ds"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S11",
+   "case_id": "jdw-003-mixed",
+   "family_id": "family-003",
+   "language": "mixed",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "room_unavailable",
+       "day": "Tuesday",
+       "start_hour": 12,
+       "end_hour": 14,
+       "strength": "mandatory",
+       "room_id": "r-lab1"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S12",
+   "case_id": "jdw-016-en",
+   "family_id": "family-016",
+   "language": "en",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "unknown_instructor"
+    ],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S13",
+   "case_id": "design-007-mixed",
+   "family_id": "design-family-007",
+   "language": "mixed",
+   "context_id": "synthetic-design-school-v2",
+   "gold": {
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "undefined_early"
+    ],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S14",
+   "case_id": "design-004-arz",
+   "family_id": "design-family-004",
+   "language": "arz",
+   "context_id": "synthetic-design-school-v2",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "type": "preferred_period",
+       "instructor_id": "design-karim",
+       "day": "Thursday",
+       "start_hour": 14,
+       "end_hour": 16,
+       "strength": "preferred"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S15",
+   "case_id": "jdw-002-arz",
+   "family_id": "family-002",
+   "language": "arz",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "preferred_period",
+       "day": "Monday",
+       "start_hour": 10,
+       "end_hour": 12,
+       "strength": "preferred",
+       "instructor_id": "i-nour-hassan"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S16",
+   "case_id": "design-011-mixed",
+   "family_id": "design-family-011",
+   "language": "mixed",
+   "context_id": "synthetic-design-school-v2",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "type": "group_unavailable",
+       "group_id": "design-g3",
+       "day": "Saturday",
+       "start_hour": 14,
+       "end_hour": 16,
+       "strength": "mandatory"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S17",
+   "case_id": "jdw-001-ar",
+   "family_id": "family-001",
+   "language": "ar",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "unavailable",
+       "day": "Sunday",
+       "start_hour": 8,
+       "end_hour": 10,
+       "strength": "mandatory",
+       "instructor_id": "i-nour-hassan"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S18",
+   "case_id": "design-001-ar",
+   "family_id": "design-family-001",
+   "language": "ar",
+   "context_id": "synthetic-design-school-v2",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "type": "unavailable",
+       "instructor_id": "design-salma",
+       "day": "Saturday",
+       "start_hour": 10,
+       "end_hour": 12,
+       "strength": "mandatory"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S19",
+   "case_id": "jdw-015-mixed",
+   "family_id": "family-015",
+   "language": "mixed",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "time_window_required"
+    ],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S20",
+   "case_id": "jdw-020-ar",
+   "family_id": "family-020",
+   "language": "ar",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "unsupported",
+    "proposals": [],
+    "clarifications": [],
+    "unsupported": [
+     "manual_rule_minute_precision_not_supported"
+    ]
+   }
+  },
+  {
+   "sheet_id": "S21",
+   "case_id": "design-005-arz",
+   "family_id": "design-family-005",
+   "language": "arz",
+   "context_id": "synthetic-design-school-v2",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "type": "unavailable",
+       "instructor_id": "design-salma",
+       "day": "Sunday",
+       "start_hour": 8,
+       "end_hour": 10,
+       "strength": "mandatory"
+      }
+     },
+     {
+      "kind": "rule",
+      "data": {
+       "type": "room_unavailable",
+       "room_id": "design-studio",
+       "day": "Monday",
+       "start_hour": 16,
+       "end_hour": 18,
+       "strength": "mandatory"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S22",
+   "case_id": "jdw-025-arz",
+   "family_id": "family-025",
+   "language": "arz",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "historical_context_required"
+    ],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S23",
+   "case_id": "jdw-029-en",
+   "family_id": "family-029",
+   "language": "en",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "rule_type_and_strength_required"
+    ],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S24",
+   "case_id": "jdw-031-mixed",
+   "family_id": "family-031",
+   "language": "mixed",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "instructor_weekly_limit",
+      "data": {
+       "instructor_id": "i-nour-hassan",
+       "max_weekly_hours": 6
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S25",
+   "case_id": "jdw-005-ar",
+   "family_id": "family-005",
+   "language": "ar",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "activity_allowed",
+       "day": "Thursday",
+       "start_hour": 8,
+       "end_hour": 12,
+       "strength": "mandatory",
+       "activity_id": "a-ds"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S26",
+   "case_id": "jdw-012-arz",
+   "family_id": "family-012",
+   "language": "arz",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "unavailable",
+       "day": "Tuesday",
+       "start_hour": 8,
+       "end_hour": 18,
+       "strength": "mandatory",
+       "instructor_id": "i-nour-hassan"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S27",
+   "case_id": "jdw-028-mixed",
+   "family_id": "family-028",
+   "language": "mixed",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "unsupported",
+    "proposals": [],
+    "clarifications": [],
+    "unsupported": [
+     "hard_capacity_relaxation_not_supported"
+    ]
+   }
+  },
+  {
+   "sheet_id": "S28",
+   "case_id": "jdw-007-ar",
+   "family_id": "family-007",
+   "language": "ar",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "unavailable",
+       "day": "Monday",
+       "start_hour": 8,
+       "end_hour": 10,
+       "strength": "mandatory",
+       "instructor_id": "i-nour-hassan"
+      }
+     },
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "unavailable",
+       "day": "Tuesday",
+       "start_hour": 8,
+       "end_hour": 10,
+       "strength": "mandatory",
+       "instructor_id": "i-nour-hassan"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S29",
+   "case_id": "design-012-ar",
+   "family_id": "design-family-012",
+   "language": "ar",
+   "context_id": "synthetic-design-school-v2",
+   "gold": {
+    "decision": "conflict",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "type": "activity_allowed",
+       "activity_id": "design-prototype",
+       "day": "Monday",
+       "start_hour": 8,
+       "end_hour": 10,
+       "strength": "mandatory"
+      }
+     },
+     {
+      "kind": "rule",
+      "data": {
+       "type": "group_unavailable",
+       "group_id": "design-g3",
+       "day": "Monday",
+       "start_hour": 8,
+       "end_hour": 10,
+       "strength": "mandatory"
+      }
+     }
+    ],
+    "clarifications": [
+     "resolve_hard_conflict"
+    ],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S30",
+   "case_id": "jdw-017-en",
+   "family_id": "family-017",
+   "language": "en",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "ambiguous_instructor"
+    ],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S31",
+   "case_id": "jdw-009-mixed",
+   "family_id": "family-009",
+   "language": "mixed",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "instructor_weekly_limit",
+      "data": {
+       "instructor_id": "i-nour-hassan",
+       "max_weekly_hours": 6
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S32",
+   "case_id": "design-003-en",
+   "family_id": "design-family-003",
+   "language": "en",
+   "context_id": "synthetic-design-school-v2",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "type": "group_allowed",
+       "group_id": "design-g3",
+       "day": "Wednesday",
+       "start_hour": 8,
+       "end_hour": 12,
+       "strength": "mandatory"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S33",
+   "case_id": "jdw-004-arz",
+   "family_id": "family-004",
+   "language": "arz",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "ready",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "group_unavailable",
+       "day": "Wednesday",
+       "start_hour": 14,
+       "end_hour": 16,
+       "strength": "mandatory",
+       "group_id": "g-cs2a"
+      }
+     }
+    ],
+    "clarifications": [],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S34",
+   "case_id": "jdw-022-arz",
+   "family_id": "family-022",
+   "language": "arz",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "conflict",
+    "proposals": [
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "activity_allowed",
+       "day": "Sunday",
+       "start_hour": 8,
+       "end_hour": 10,
+       "strength": "mandatory",
+       "activity_id": "a-ds"
+      }
+     },
+     {
+      "kind": "rule",
+      "data": {
+       "title": "Requirement",
+       "type": "group_unavailable",
+       "day": "Sunday",
+       "start_hour": 8,
+       "end_hour": 10,
+       "strength": "mandatory",
+       "group_id": "g-cs2a"
+      }
+     }
+    ],
+    "clarifications": [
+     "hard_window_has_no_placement"
+    ],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S35",
+   "case_id": "design-006-en",
+   "family_id": "design-family-006",
+   "language": "en",
+   "context_id": "synthetic-design-school-v2",
+   "gold": {
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "day_required"
+    ],
+    "unsupported": []
+   }
+  },
+  {
+   "sheet_id": "S36",
+   "case_id": "jdw-013-ar",
+   "family_id": "family-013",
+   "language": "ar",
+   "context_id": "synthetic-dept-v1",
+   "gold": {
+    "decision": "clarify",
+    "proposals": [],
+    "clarifications": [
+     "operation_required_for_negated_closure"
+    ],
+    "unsupported": []
+   }
+  }
+ ]
+}

@@ -1,0 +1,61 @@
+{
+ "bundle": "0.2.1-draft",
+ "kind": "automated consistency check (not a human review)",
+ "cases": 144,
+ "families": 36,
+ "mechanical_flags": {},
+ "families_with_split_labels": [],
+ "code_inconsistencies": [
+  {
+   "pattern": "conflict with activity_allowed, group_unavailable",
+   "codes": {
+    "family-022": [
+     "hard_window_has_no_placement"
+    ],
+    "design-family-012": [
+     "resolve_hard_conflict"
+    ]
+   }
+  }
+ ],
+ "reading": {
+  "family-022": {
+   "verdict": "disagrees",
+   "part": "code",
+   "note": "Same situation as design-family-012 (an activity's only permitted window fully covered by a mandatory closure of its group), but labelled hard_window_has_no_placement while design-family-012 uses resolve_hard_conflict. A method cannot know which code is expected. One of the two families should change so both use one code, as v2.1 did for missing_day."
+  },
+  "design-family-012": {
+   "verdict": "disagrees",
+   "part": "code",
+   "note": "See family-022: same pattern, different clarification code."
+  },
+  "design-family-009": {
+   "verdict": "ambiguous",
+   "part": "decision",
+   "note": "Unlike family-020, the statement does not say 'exactly' or 'do not round'. A room closure of 10:00-12:00 blocks exactly the same teaching period (10:15-11:45) because adjoining intervals do not overlap, so 'ready' with room_unavailable 10-12 is a defensible reading. The guide says not to round, so 'unsupported' follows the guide; a human should confirm the guide rule is intended for this case."
+  },
+  "family-004": {
+   "verdict": "agrees",
+   "part": null,
+   "note": "arz uses 'حاسبات' and ar 'بالسنة الثانية علوم حاسب', neither an exact context alias; the meaning is clear, but resolution relies on paraphrase, not the alias list."
+  },
+  "design-family-003": {
+   "verdict": "agrees",
+   "part": null,
+   "note": "ar says 'حضور المحاضرات' (attend lectures), narrower than 'classes' in en/arz/mixed; a reader could take it to exclude labs or tutorials."
+  },
+  "design-family-007": {
+   "verdict": "agrees",
+   "part": null,
+   "note": "Also gives no day; undefined_early alone is enough because no time can be built until 'early' is defined, but a method that also asks for a day is not wrong in spirit."
+  }
+ },
+ "reading_summary": {
+  "families": {
+   "agrees": 33,
+   "disagrees": 2,
+   "ambiguous": 1
+  },
+  "labels_in_non_agreeing_families": 12
+ }
+}

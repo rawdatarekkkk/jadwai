@@ -141,7 +141,7 @@ Each rule is mandatory or preferred. A mandatory rule holds in every valid timet
 \item repeated sessions of one activity on the same day;
 \item empty periods between a group's first and last session of a day, and the same for instructors;
 \item the number of days on which students and instructors must come to campus;
-\item each group's busiest day;
+\item each group's busiest day, and the busiest day on campus as a whole, which spreads teaching over the week;
 \item sessions in the first or last period;
 \item long teaching days;
 \item uneven instructor workload.
@@ -172,8 +172,10 @@ Each course has an exam plan: a number of quizzes, a midterm, an optional second
 \begin{itemize}
 \item assigns each exam to dates and halls whose seats cover its students, splitting a large exam over several halls when needed;
 \item gives every hall in use a TA invigilator;
-\item prevents any cohort, hall or invigilator from having overlapping exams.
+\item prevents any cohort, hall or invigilator from having overlapping exams;
+\item schedules each second-chance midterm to end before its course's final, since it replaces a missed midterm.
 \end{itemize}
+The exam period excludes Fridays by default and any dates the administrator lists, such as public holidays. Seminars, capstones, theses, internships and projects start unticked for quizzes, because they usually have none.
 It then minimises, in order of weight: extra exams for advising students, two exams on one day, exams on consecutive days, the busiest exam slot, and the number of halls in use. A lower bound on unavoidable consecutive-day exams is computed first. When the dates cannot avoid them, the administrator is told how many are unavoidable and what would reduce them, such as more exam dates or two exams per day.
 
 \section{The JAI assistant}\label{evidence-jai}

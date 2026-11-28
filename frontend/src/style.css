@@ -3736,9 +3736,11 @@ legend small {
 .exam-plan-setup { display:flex; flex-direction:column; gap:14px; margin:16px 0; }
 .exam-kind-choice { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr)); gap:10px; border:0; padding:0; }
 .exam-kind-choice legend { font-weight:700; margin-bottom:8px; }
-.exam-kind { display:flex; flex-direction:column; gap:4px; border:1px solid #dce5d6; border-radius:12px; padding:12px 14px; cursor:pointer; background:#fbfcf8; }
+.exam-kind { position:relative; display:flex; flex-direction:column; gap:4px; border:1px solid #dce5d6; border-radius:12px; padding:12px 14px; cursor:pointer; background:#fbfcf8; }
 .exam-kind.selected { border-color:#39745c; background:#eef5ec; box-shadow:0 0 0 1px #39745c inset; }
-.exam-kind input { position:absolute; opacity:0; pointer-events:none; }
+/* Hidden but focusable: kept 1px inside its card so focusing it cannot scroll the page sideways. */
+.exam-kind input { position:absolute; top:0; left:0; width:1px; height:1px; margin:0; opacity:0; pointer-events:none; }
+.exam-kind:focus-within { outline:2px solid #39745c; outline-offset:2px; }
 .exam-kind small { color:#5f6f63; }
 .exam-plan-toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:8px; }
 .exam-plan-toolbar span { color:#507044; font-size:13px; }
@@ -3794,3 +3796,12 @@ legend small {
 .jai-delete { border: 0; background: none; color: #8a6a62; font-size: 18px; width: 32px; border-radius: 8px; cursor: pointer; }
 .jai-delete:hover { background: #f8e6e2; }
 @media (max-width: 520px) { .jai-head-btn { padding: 4px 7px; font-size: 11px; } }
+.exam-skip-dates { border:0; padding:0; margin:10px 0; }
+.exam-skip-dates legend { font-weight:600; margin-bottom:6px; }
+.exam-skip-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.exam-skip-row input { max-width:200px; }
+.exam-skip-list { list-style:none; padding:0; margin:8px 0 0; display:flex; flex-wrap:wrap; gap:6px; }
+.exam-skip-list li { display:inline-flex; align-items:center; gap:6px; background:#eef5ec; border:1px solid #cfe0c8; border-radius:999px; padding:3px 6px 3px 12px; font-size:.9em; }
+.exam-skip-list li.outside { opacity:.6; }
+.exam-skip-list button { border:0; background:transparent; cursor:pointer; font-size:1.1em; line-height:1; padding:2px 6px; border-radius:999px; }
+.exam-skip-list button:hover, .exam-skip-list button:focus-visible { background:#d8e8d2; }

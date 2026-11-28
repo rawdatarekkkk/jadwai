@@ -23,6 +23,8 @@ class ExamInput(Strict):
     start_date: date=date(2026,10,20)
     end_date: date=date(2026,10,31)
     exclude_fridays: bool=True
+    # Holidays and other days without exams (e.g. 7 January), inside the period.
+    excluded_dates: list[date]=Field(default_factory=list,max_length=60)
     max_exams_per_cohort_day: int=Field(default=1,ge=1,le=6,strict=True)
     kind: Literal['quiz','midterm','final']='midterm'
     quiz_number: int=Field(default=1,ge=1,le=10,strict=True)
@@ -41,6 +43,7 @@ class ExamInput(Strict):
         if not 0<=(self.end_date-self.start_date).days<=60:raise ValueError('Exam period must be between 1 and 61 days')
         if any(not 1<=n<=5000 for n in self.makeup_students.values()):raise ValueError('Invalid student count')
         if any(len(v)>12 or len(set(v))!=len(v) for v in self.starts.values()):raise ValueError('Invalid start times')
+        if any(not self.start_date<=d<=self.end_date for d in self.excluded_dates):raise ValueError('Excluded dates must be inside the exam period')
         return self
 
     def start_times(self):
@@ -69,6 +72,10 @@ def exam_items(body,courses):
     return items
 
 
+def csv_kind(row):
+    """'quiz1', 'midterms', 'finals' or 'exams' for the CSV file name."""
+    st=row.snapshot.get('settings',{});k=st.get('kind')
+    return f"quiz{st.get('quiz_number') or 1}" if k=='quiz' else {'midterm':'midterms','final':'finals'}.get(k,'exams')
 def representation(row):return dict(id=row.id,input_version=row.input_version,created_at=row.created_at,snapshot=row.snapshot,result=row.result,name=row.name,published_at=row.published_at)
 @router.get('')
 def list_exams(user=Depends(administrator),db=Depends(db_session)):
@@ -78,7 +85,7 @@ def create_exam(body:ExamInput,request:Request,user=Depends(administrator),db=De
     ws=lock_workspace(request,db)
     records=db.scalars(select(Record)).all()
     sizes={r.id:r.data['size'] for r in records if r.kind=='groups'}
-    courses,missing=course_inputs(db.scalars(select(CourseCatalog).order_by(CourseCatalog.code)).all(),ws.exam_cohort_rules or DEFAULT_COHORT_RULES,sizes)
+    courses,missing=course_inputs(db.scalars(select(CourseCatalog).order_by(CourseCatalog.code)).all(),ws.exam_cohort_rules or DEFAULT_COHORT_RULES,sizes,{r.id:r.data for r in records if r.kind=='groups'})
     # Advising students sit the exams of their own courses: each is a cohort of their own.
     from app.advising import student_rows
     for student in student_rows(db):
@@ -102,7 +109,7 @@ def create_exam(body:ExamInput,request:Request,user=Depends(administrator),db=De
     courses=exam_items(body,courses)
     missing=sorted({c['code'] for c in courses if c['code'] in missing})
     days=[body.start_date+timedelta(days=i) for i in range((body.end_date-body.start_date).days+1)]
-    snapshot={'courses':courses,'missing_cohort_codes':missing,'dates':[d.isoformat() for d in days if not body.exclude_fridays or d.weekday()!=4],'starts':starts,'max_exams_per_cohort_day':body.max_exams_per_cohort_day,'timezone':ws.timezone,'settings':body.model_dump(mode='json'),'time_limit_seconds':body.time_limit_seconds}
+    snapshot={'courses':courses,'missing_cohort_codes':missing,'dates':[d.isoformat() for d in days if (not body.exclude_fridays or d.weekday()!=4) and d not in set(body.excluded_dates)],'starts':starts,'max_exams_per_cohort_day':body.max_exams_per_cohort_day,'timezone':ws.timezone,'settings':body.model_dump(mode='json'),'time_limit_seconds':body.time_limit_seconds}
     if body.use_halls:
         snapshot['halls']=[{'id':r.id,'code':r.code,'name':r.name,'capacity':r.data['capacity']} for r in sorted(records,key=lambda r:r.code) if r.kind=='rooms' and 'exam_hall' in (r.data.get('room_types') or []) and r.data.get('capacity')]
         if body.assign_invigilators:
@@ -132,8 +139,8 @@ def export_exam(ident:str,user=Depends(administrator),db=Depends(db_session)):
     for a in row.result['assignments']:
         halls=a.get('halls')
         status='Published' if row.published_at else 'Draft' if halls is not None else 'Draft: dates and times only'
-        writer.writerow([safe(v) for v in [a['date'],a['start_time'],a['end_time'],a.get('exam_type','midterm'),a.get('duration_minutes',120),a['course_code'],a['course_name'],'; '.join(f'{p["program_or_cohort"]} / semester {p["semester"] or "unknown"}' for p in a['programs']),a.get('students') or '','; '.join(h['room_code'] for h in halls or []),'; '.join(h.get('invigilator_name') or '' for h in halls or []),status]])
-    return Response('\ufeff'+stream.getvalue(),media_type='text/csv; charset=utf-8',headers={'Content-Disposition':f'attachment; filename="JadwAI-midterms-{row.snapshot["settings"]["start_date"]}.csv"'})
+        writer.writerow([safe(v) for v in [a['date'],a['start_time'],a['end_time'],a.get('exam_type','midterm'),a.get('duration_minutes',120),a['course_code'],a['course_name'],'; '.join(p['program_or_cohort']+(f' / semester {p["semester"]}' if p.get('semester') else '') for p in a['programs']),a.get('students') or '','; '.join(h['room_code'] for h in halls or []),'; '.join(h.get('invigilator_name') or '' for h in halls or []),status]])
+    return Response('\ufeff'+stream.getvalue(),media_type='text/csv; charset=utf-8',headers={'Content-Disposition':f'attachment; filename="JadwAI-{csv_kind(row)}-{row.snapshot["settings"]["start_date"]}.csv"'})
 
 
 @router.get('/{ident}/exams.pdf')

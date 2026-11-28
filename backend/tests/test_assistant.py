@@ -42,7 +42,7 @@ def test_is_and_it_are_not_programme_initials():
 def test_free_labs_with_seats_at_a_bare_time():
     meaning, reply = ask('free labs on Monday 11:30 for 25 students')
     assert meaning['intent'] == 'free_rooms' and meaning['slots']['window'] == (690, 691)
-    assert reply['text'][0] == '1 free room on Monday 11:30:' and 'C.101' in reply['text'][1]
+    assert reply['text'][0] == '1 free lab on Monday 11:30:' and 'C.101' in reply['text'][1]
 
 
 def test_group_by_programme_initials_year_and_number_with_free_periods():
@@ -822,3 +822,25 @@ def test_a_whole_university_too_big_for_one_run_is_planned_in_parts(monkeypatch)
     parts = plan_parts(view, limit=5)
     assert parts == [[{'programme': 'Business Administration', 'year': None}], [{'programme': 'IT Security', 'year': None}]]
     assert plan_parts({**VIEW}, limit=5) is None  # small enough for one run
+
+
+def test_supervisor_exam_requests_2026_11_28():
+    """Found by a supervisor-style test: 'for each program' is a limit, not a programme; Arabic 'من 17 لـ 29 أكتوبر';
+    'including second-chance midterms'; and 'how many exams per day' is a question, not a programme listing."""
+    from datetime import date
+    from app.assistant import find_dates, normalise
+    from app.assistant_basics import priority_answer
+    assert find_dates(normalise('اعمل جدول الميدترم من 17 لـ 29 أكتوبر'), date(2026, 9, 1)) == (date(2026, 10, 17), date(2026, 10, 29))
+    assert find_dates(normalise('من ١٧ إلى ٢٩ أكتوبر'), date(2026, 9, 1)) == (date(2026, 10, 17), date(2026, 10, 29))
+    reply = priority_answer('How many exams can a program have per day?', {'records': []}, False)
+    assert reply and 'Daily maximum per program/semester' in reply['text'][0]
+    assert priority_answer('Make the midterms from 17 to 29 October, max 2 exams per day', {'records': []}, False) is None
+
+
+def test_exam_dates_take_the_nearest_year():
+    from datetime import date
+    from app.assistant import find_dates
+    today = date(2026, 11, 28)
+    assert find_dates('17 to 29 october', today) == (date(2026, 10, 17), date(2026, 10, 29))
+    assert find_dates('from 26 december to 14 january', today) == (date(2026, 12, 26), date(2027, 1, 14))
+    assert find_dates('10 to 20 january', today) == (date(2027, 1, 10), date(2027, 1, 20))

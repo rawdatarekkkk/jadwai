@@ -73,8 +73,9 @@ def advising(cohort):
 def minutes(text):
     h,m=text.split(':');return int(h)*60+int(m)
 
-def course_inputs(courses,rules=None,sizes=None):
-    rules=rules or DEFAULT_COHORT_RULES;sizes=sizes or {}
+def course_inputs(courses,rules=None,sizes=None,groups=None):
+    """groups: optional {group id: group data}; names the programmes of courses that have no programme metadata."""
+    rules=rules or DEFAULT_COHORT_RULES;sizes=sizes or {};groups=groups or {}
     rows=[];missing=[];labels={}
     for c in courses:
         participants=[]
@@ -90,7 +91,12 @@ def course_inputs(courses,rules=None,sizes=None):
             participants.append(key);labels[key]={'faculty':faculty,'program':clean,'semester':semester}
         if not participants:missing.append(c.code)
         students=sum(sizes.get(g,0) for g in c.group_ids) if c.group_ids else getattr(c,'expected_students',None)
-        rows.append({'id':c.id,'name':c.name,'code':c.code,'participants':sorted(set(participants)),'programs':(c.source_info or {}).get('program_semesters',[]),'students':students or None,
+        programs=(c.source_info or {}).get('program_semesters',[])
+        if not programs:
+            # Label only (for the PDF and CSV); clashes are already checked through the groups.
+            seen=sorted({(g.get('major') or '',g.get('year')) for g in (groups.get(i) for i in c.group_ids) if g and g.get('major')},key=lambda x:(x[0],x[1] or 0))
+            programs=[{'program_or_cohort':f"{m} Year {y}" if y else m,'semester':None,'faculty_section':''} for m,y in seen]
+        rows.append({'id':c.id,'name':c.name,'code':c.code,'participants':sorted(set(participants)),'programs':programs,'students':students or None,
                      'quiz_count':getattr(c,'quiz_count',3),'second_chance':getattr(c,'second_chance',True)})
     # General/core cohorts conservatively share students with specialization cohorts.
     for row in rows:
@@ -151,6 +157,12 @@ def pack_halls(students,halls,limit):
     return [[h for h in range(len(halls)) if solver.value(y[e,h])] for e in range(len(students))]
 
 
+def second_chance_pairs(courses):
+    """(second-chance index, final index) for every course that has both in this timetable."""
+    at={(c.get('course_id',c['id']),c.get('exam_type')):i for i,c in enumerate(courses)}
+    return [(i,at[cid,'final']) for (cid,kind),i in at.items() if kind=='makeup' and (cid,'final') in at]
+
+
 def generate_exam_draft(snapshot):
     courses=snapshot['courses'];days=snapshot['dates'];per_day=snapshot['max_exams_per_cohort_day']
     with_halls='halls' in snapshot
@@ -206,6 +218,9 @@ def generate_exam_draft(snapshot):
             for d in range(len(days)):
                 for t in starts[i]:x[i,d,t]=model.new_bool_var(f'exam_{i}_{d}_{t}')
             model.add_exactly_one(x[i,d,t] for d in range(len(days)) for t in starts[i])
+        # A course's second-chance midterm ends before its final starts (it replaces a missed midterm).
+        moment=lambda i:sum((d*1440+t)*x[i,d,t] for d in range(len(days)) for t in starts[i])
+        for m,f in second_chance_pairs(courses):model.add(moment(m)+dur[m]<=moment(f))
         live=lambda i,d,p:[x[i,d,t] for t in starts[i] if covers(i,t,p)]
         for ids in maximal:
             for d in range(len(days)):
@@ -384,12 +399,16 @@ def validate_exam_draft(snapshot,assignments):
                     if not ta:errors.append('invigilator_missing');continue
                     busy[('ta',ta['id'],a.get('date'))].append((start,end))
                     if a.get('date') in snapshot['dates'] and not ta_free(ta,a['date'],(a['start_time'],a['end_time'])):errors.append('invigilator_availability')
+    when={(courses[key(a)].get('course_id',key(a)),courses[key(a)].get('exam_type')):(a.get('date'),a.get('start_time'),a.get('end_time')) for a in assignments if key(a) in courses}
+    if any(when[cid,'makeup'][0]>when[cid,'final'][0] or (when[cid,'makeup'][0]==when[cid,'final'][0] and when[cid,'makeup'][2]>when[cid,'final'][1])
+           for (cid,kind) in when if kind=='makeup' and (cid,'final') in when):errors.append('second_chance_after_final')
     overlapping=lambda spans:any(b[0]<a[1] for a,b in zip(sorted(spans),sorted(spans)[1:]))
     if any(n>snapshot['max_exams_per_cohort_day'] for (cohort,_),n in cohort_days.items() if not advising(cohort)):errors.append('cohort_daily_limit')
     if any(overlapping(v) for (kind,_,_),v in busy.items() if kind=='cohort'):errors.append('cohort_slot_conflicts')
     if any(overlapping(v) for (kind,_,_),v in busy.items() if kind=='hall'):errors.append('hall_double_booking')
     if any(overlapping(v) for (kind,_,_),v in busy.items() if kind=='ta'):errors.append('invigilator_conflict')
     checks=['course_coverage','course_identity','exam_dates','exam_times','cohort_daily_limit','cohort_slot_conflicts']
+    if any(c.get('exam_type')=='makeup' for c in courses.values()):checks.append('second_chance_after_final')
     if with_halls:checks+=['hall_type','hall_capacity','hall_double_booking']+(['invigilator_missing','invigilator_conflict','invigilator_availability'] if snapshot.get('invigilators') is not None else [])
     return {'passed':not errors,'errors':sorted(set(errors)),'checks':checks,'basis':'Program/semester metadata and configured group IDs; individual enrolments are not available.'}
 

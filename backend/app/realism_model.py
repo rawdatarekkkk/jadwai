@@ -14,6 +14,7 @@ def add_realism(model, calendar, choices, policy, convenience=False):
     days = range(len(calendar['days']))
     occupied = defaultdict(list)
     activity_days = defaultdict(list)
+    campus_days = defaultdict(list)  # day -> one flag per session placed that day
     edge = []
     # One exact-placement indicator per occurrence and possible start, reused for
     # every attending group and every eligible teacher.
@@ -48,6 +49,8 @@ def add_realism(model, calendar, choices, policy, convenience=False):
             everything += present_today
         model.add(sum(everything) == 1)
         activity_days[activity['id']].append(flags_by_day)
+        for di, flag in zip(days, flags_by_day):
+            campus_days[di].append(flag)
     if policy.get('spread_activity_days'):
         for flags_by_occurrence in activity_days.values():
             for di in days:
@@ -124,5 +127,11 @@ def add_realism(model, calendar, choices, policy, convenience=False):
                 any_today = model.new_bool_var('')
                 model.add_max_equality(any_today, [flags[di] for flags in flags_by_occurrence])
                 components['repeat_same_day'].append(sum(flags[di] for flags in flags_by_occurrence) - any_today)
+    if convenience and campus_days:
+        # The busiest day on campus: keeps teaching spread over the whole week, not piled on one day.
+        busiest = model.new_int_var(0, len(choices), 'campus_peak')
+        for flags in campus_days.values():
+            model.add(busiest >= sum(flags))
+        components['campus_peak'].append(busiest)
     components['idle_periods'] = components['student_gaps'] + components['instructor_gaps']
     return dict(components)

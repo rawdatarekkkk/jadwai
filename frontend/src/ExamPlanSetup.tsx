@@ -28,6 +28,12 @@ export function plannedExams(plan: ExamPlan, courses: CatalogCourse[]) {
   return out;
 }
 
+/** Seminars, capstones, theses, internships and projects usually have no quizzes: they start unticked (tick them if they do). */
+export const NO_QUIZ = /\b(seminar|capstone|thesis|internship|bachelor project|graduation project)\b/i;
+export function noQuizKeys(courses: CatalogCourse[], n: number) {
+  return courses.filter(c => NO_QUIZ.test(c.name)).map(c => `${c.id}:quiz${n}`);
+}
+
 /** Second-chance midterms start unticked: the admin adds the courses that need one. */
 export function makeupKeys(courses: CatalogCourse[]) {
   return courses.filter(c => c.second_chance ?? true).map(c => `${c.id}:makeup`);
@@ -63,14 +69,14 @@ export function ExamPlanSetup({ ws, ar, value, change }: { ws: Workspace; ar: bo
         <legend>{say("What is this timetable for?", "لماذا هذا الجدول؟")}</legend>
         {kinds.map(([k, title, help]) => (
           <label key={k} className={`exam-kind ${value.kind === k ? "selected" : ""}`}>
-            <input type="radio" name="exam_kind" value={k} checked={value.kind === k} onChange={() => change({ ...value, kind: k, skip: k === "final" ? makeupKeys(courses) : [] })} />
+            <input type="radio" name="exam_kind" value={k} checked={value.kind === k} onChange={() => change({ ...value, kind: k, skip: k === "final" ? makeupKeys(courses) : k === "quiz" ? noQuizKeys(courses, value.quizNumber) : [] })} />
             <strong>{title}</strong><small>{help}</small>
           </label>
         ))}
       </fieldset>
       {value.kind === "quiz" && (
         <div className="exam-settings">
-          <label>{say("Which quiz", "أي اختبار")}<select value={value.quizNumber} onChange={e => change({ ...value, quizNumber: Number(e.target.value), skip: [] })}>
+          <label>{say("Which quiz", "أي اختبار")}<select value={value.quizNumber} onChange={e => change({ ...value, quizNumber: Number(e.target.value), skip: noQuizKeys(courses, Number(e.target.value)) })}>
             {Array.from({ length: maxQuizzes }, (_, i) => <option key={i} value={i + 1}>{say(`Quiz ${i + 1}`, `اختبار قصير ${i + 1}`)}</option>)}
           </select></label>
           <label>{say("Length", "المدة")}<select value={value.quizMinutes} onChange={e => change({ ...value, quizMinutes: Number(e.target.value) })}>
@@ -112,6 +118,7 @@ export function ExamPlanSetup({ ws, ar, value, change }: { ws: Workspace; ar: bo
           ))}
           {!exams.length && <p className="room-type-help">{say("No course has this exam. Check the quiz count in Course setup.", "لا يوجد مقرر بهذا الامتحان. راجع عدد الاختبارات في إعداد المقررات.")}</p>}
         </div>
+        {value.kind === "quiz" && <p className="room-type-help">{say("Seminars, capstones, theses, internships and projects start unticked because they usually have no quizzes. Tick any that do.", "الندوات ومشروعات التخرج والرسائل والتدريب العملي غير محددة في البداية لأنها عادةً بلا اختبارات قصيرة. حدد ما له اختبار منها.")}</p>}
         {value.kind === "final" && <p className="room-type-help">{say("Second-chance midterms start unticked: tick the courses that need one. They seat the students who missed the midterm; leave the number empty to use 10% of the course.", "الفرص الثانية غير محددة في البداية: حدد المقررات التي تحتاجها. هي لمن فاتهم امتحان منتصف الفصل؛ اترك العدد فارغًا لاستخدام 10% من طلاب المقرر.")}</p>}
       </section>
       <details className="exam-times">

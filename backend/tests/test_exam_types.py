@@ -58,9 +58,12 @@ def test_validator_rejects_a_wrong_start_length_or_overlap():
     snap.pop('halls'); snap.pop('invigilators')
     rows = [{'exam_id': c['id'], 'course_id': c['course_id'], 'course_code': c['code'], 'course_name': c['name'], 'date': d, 'start_time': s, 'end_time': e,
              'duration_minutes': c['duration_minutes'], 'programs': []}
-            for c, (d, s, e) in zip(snap['courses'], [('2026-10-20', '11:30', '14:30'), ('2026-10-21', '09:00', '11:00'), ('2026-10-22', '11:30', '14:30'),
-                                                       ('2026-10-24', '09:00', '11:00'), ('2026-10-20', '15:00', '18:00'), ('2026-10-21', '11:30', '14:30')])]
+            for c, (d, s, e) in zip(snap['courses'], [('2026-10-21', '11:30', '14:30'), ('2026-10-20', '09:00', '11:00'), ('2026-10-24', '11:30', '14:30'),
+                                                       ('2026-10-22', '09:00', '11:00'), ('2026-10-20', '15:00', '18:00'), ('2026-10-21', '11:30', '14:30')])]
     assert validate_exam_draft(snap, rows)['passed'], validate_exam_draft(snap, rows)['errors']
+    swapped = [dict(r) for r in rows]  # BIG's second chance after its final
+    swapped[1].update(date='2026-10-25')
+    assert 'second_chance_after_final' in validate_exam_draft(snap, swapped)['errors']
     rows[0]['start_time'], rows[0]['end_time'] = '09:00', '12:00'  # a final in the reserved first slot
     assert 'exam_times' in validate_exam_draft(snap, rows)['errors']
     rows[0]['start_time'], rows[0]['end_time'] = '11:30', '14:30'
@@ -87,3 +90,14 @@ def test_api_builds_each_timetable_from_the_course_plans(environment):
     skipped = make({'kind': 'final', 'skip': ['c1:makeup'], 'makeup_students': {}}).json()
     assert sorted(c['id'] for c in skipped['snapshot']['courses']) == ['c1:final', 'c2:final']
     assert make({'kind': 'final', 'starts': {'final': ['09:00']}}).json()['detail'] == 'final_overlaps_second_chance'
+
+
+def test_solver_puts_every_second_chance_before_its_final():
+    from app.exam_planning import generate_exam_draft
+    snap = finals()
+    result = generate_exam_draft(snap)
+    assert result['status'] == 'completed' and result['validation']['passed']
+    at = {(a['course_id'], a['exam_type']): (a['date'], a['start_time']) for a in result['assignments']}
+    for (course, kind), when in at.items():
+        if kind == 'makeup':
+            assert when < at[course, 'final']

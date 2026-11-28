@@ -113,7 +113,7 @@ export default function App() {
     record?: DataRecord;
     rule?: Rule;
   } | null>(null);
-  const [email, setEmail] = useState<string>(BRAND.adminEmail),
+  const [email, setEmail] = useState<string>(""),
     [password, setPassword] = useState("");
   const message = (e: unknown) =>
     errors[e instanceof ApiError ? e.code : "connection_failed"]?.[
@@ -295,6 +295,7 @@ export default function App() {
                 type="email"
                 autoComplete="username"
                 required
+                placeholder={BRAND.adminEmail}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -537,6 +538,7 @@ export default function App() {
                       <button
                         className="stat"
                         key={k}
+                        aria-label={`${t(k)}: ${counts(k).toLocaleString(lang)}`}
                         onClick={() => navigate("data", k)}
                       >
                         <div className="stat-label">
@@ -603,6 +605,7 @@ export default function App() {
                         <button
                           className={`path-step ${done ? "done" : ""}`}
                           key={title}
+                          aria-label={`${t(title)}: ${t(desc)}`}
                           onClick={() => navigate(p)}
                         >
                           <span className="step-indicator">

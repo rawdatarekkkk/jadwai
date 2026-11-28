@@ -18,7 +18,7 @@ test('exam generation uses the source period and two-hour slots',async()=>{
  render(<ExamSchedule ws={ws} lang='en'/>);
  fireEvent.click(screen.getByRole('button',{name:'Generate exam schedule'}));
  await screen.findByText('Algorithms');
- expect(calls[0]).toEqual({start_date:'2026-10-20',end_date:'2026-10-31',exclude_fridays:true,max_exams_per_cohort_day:1,use_halls:true,assign_invigilators:true,
+ expect(calls[0]).toEqual({start_date:'2026-10-20',end_date:'2026-10-31',exclude_fridays:true,excluded_dates:[],max_exams_per_cohort_day:1,use_halls:true,assign_invigilators:true,
   kind:'midterm',quiz_number:1,quiz_minutes:30,starts:{},skip:[],makeup_students:{}});
  expect(screen.getByText('Independent checks passed')).toBeTruthy();
  expect(screen.getByRole('link',{name:'Download CSV'})).toBeTruthy();

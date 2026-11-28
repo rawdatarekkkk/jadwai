@@ -308,14 +308,23 @@ def find_dates(text, today=None):
     pairs = re.findall(r'(\d{1,2})\s*' + month + r'|' + month + r'\s*(\d{1,2})', text)
     days = [(int(a or d), MONTHS[b or c]) for a, b, c, d in pairs]
     if len(days) < 2:
-        m = re.search(r'(\d{1,2})\s*(?:-|–|to|الى|إلى|لحد)\s*(\d{1,2})\s*' + month, text)
+        m = re.search(r'(\d{1,2})\s*(?:-|–|to|until|till|through|الى|الي|إلى|لحد|لغايه|لغاية|حتي|حتى|ل)\s*(\d{1,2})\s*' + month, text)
         if m:
             days = [(int(m.group(1)), MONTHS[m.group(3)]), (int(m.group(2)), MONTHS[m.group(3)])]
     if len(days) < 2:
         return None
     (d1, m1), (d2, m2) = days[:2]
     year = re.search(r'\b(20\d\d)\b', text)
-    y1 = int(year.group(1)) if year else (today.year if (m1, d1) >= (today.month, today.day) else today.year + 1)
+    if year:
+        y1 = int(year.group(1))
+    else:
+        # The nearest such date: "17-29 Oct" asked in late November means this semester's October, not next year's.
+        def gap(y):
+            try:
+                return abs((date(y, m1, d1) - today).days)
+            except ValueError:
+                return 10 ** 6
+        y1 = min((today.year + 1, today.year, today.year - 1), key=gap)
     start = date(y1, m1, d1)
     end = date(y1 + (m2 < m1), m2, d2)
     return (start, end) if end >= start else None
@@ -325,6 +334,7 @@ ASK_WORDS = ('free', 'available', 'availab', 'busy', 'empty', 'vacant', 'occupie
 SCHEDULE_WORDS = ('schedule', 'timetable', 'what does', 'what is in', "what's in", 'who is in', 'classes', 'sessions', 'teach', 'lectures',
                   'جدول', 'محاضرات', 'سكشن', 'بيدرس', 'عنده', 'عندها', 'عندهم')
 CREATE_WORDS = ('generate', 'create', 'make', 'build', 'produce', 'schedule for', 'prepare', 'run the solver', 'اعمل', 'اعمللي', 'إعمل', 'انشئ', 'أنشئ', 'ولد', 'جهز', 'كون', 'اعملي')
+NO_QUIZ = re.compile(r'\b(seminar|capstone|thesis|internship|bachelor project|graduation project)\b', re.I)
 EXAM_WORDS = {'final': ('final', 'finals', 'نهائي', 'النهائي', 'فاينل'), 'midterm': ('midterm', 'midterms', 'mid-term', 'ميدترم', 'منتصف'),
               'quiz': ('quiz', 'quizzes', 'كويز', 'اختبار قصير', 'اختبارات قصيرة')}
 PDF_WORDS = ('pdf', 'download', 'print', 'export', 'نزل', 'تحميل', 'اطبع', 'طباعة')
@@ -516,13 +526,15 @@ def understand(raw, view, previous=None):
     elif exam and (has(text, CREATE_WORDS) or 'timetable' in text or 'schedule' in text or 'جدول' in text):
         intent = 'exam_timetable'
         scope_query = re.search(r'\bfor\s+(.+?)(?=\s+(?:from|between|on)\b|$)', text)
-        if scope_query and not (progs or groups or courses) and not has(scope_query.group(1), ('all', 'whole', 'university', 'everyone')):
+        # "max 2 exams per day for each program" names a limit, not a programme.
+        each = scope_query and re.fullmatch(r'(?:each|every|all|per)\s+(?:the\s+)?(?:program(?:me)?s?|groups?|cohorts?|years?|semesters?|majors?|students?)', scope_query.group(1).strip())
+        if scope_query and not each and not (progs or groups or courses) and not has(scope_query.group(1), ('all', 'whole', 'university', 'everyone')):
             slots['scope_query'] = scope_query.group(1)
-        slots['include_makeups'] = has(text, ('include second-chance', 'include second chance', 'with second-chance', 'with second chance', 'include makeup', 'including makeup', 'مع الفرصة الثانية', 'مع فرصه تانيه'))
+        slots['include_makeups'] = bool(re.search(r'\b(?:includ\w*|with|and|plus|\+)\s+(?:the\s+)?(?:second[- ]chances?|make-?ups?|makeup exams?)\b', text)) or has(text, ('مع الفرصة الثانية', 'مع الفرصه الثانيه', 'مع فرصه تانيه', 'مع الفرص الثانيه', 'والفرصه الثانيه', 'والفرص الثانيه'))
         slots['exclude_fridays'] = not has(text, ('include fridays', 'including fridays', 'fridays too', 'with fridays', 'شامل الجمعة', 'بما فيها الجمعة'))
         slots['use_halls'] = not has(text, ('without halls', 'no halls', 'dates and times only', 'بدون قاعات'))
         slots['assign_invigilators'] = not has(text, ('without invigilators', 'no invigilators', 'بدون مراقبين'))
-        daily = re.search(r'(\d+)\s+exams?\s+(?:per|a|each)\s+day', text)
+        daily = re.search(r'(\d+)\s+(?:exams?|quiz(?:zes)?|tests?)?\s*(?:per|a|each)\s+day', text)
         if daily:
             slots['max_exams_per_cohort_day'] = int(daily.group(1))
         slots.update(exam_kind=exam, dates=[d.isoformat() for d in find_dates(text) or ()],
@@ -651,7 +663,8 @@ def free_rooms(view, slots, ar):
         busy = {s.get('room_id') for s in view['sessions'] if overlaps(s, day, span)}
         free = sorted((r for r in rooms if r['id'] not in busy), key=lambda r: (r['data'].get('capacity') or 0, r['data'].get('code', '')))
         when = f"{say(ar, day, AR_DAYS.get(day, day))} {clock(span[0])}" + (f"–{clock(span[1])}" if span[1] - span[0] > 1 else '')
-        lines.append(say(ar, f"{len(free)} free room{'' if len(free) == 1 else 's'} on {when}:", f'{len(free)} قاعة متاحة يوم {when}:'))
+        noun = ('lab', 'labs', 'معمل') if slots.get('lab') else ('room', 'rooms', 'قاعة')
+        lines.append(say(ar, f"{len(free)} free {noun[0] if len(free) == 1 else noun[1]} on {when}:", f'{len(free)} {noun[2]} متاحة يوم {when}:'))
         lines += [f"• {r['data'].get('code')} · {r['data'].get('capacity') or '?'} {say(ar, 'seats', 'مقعد')}"
                   + (f" · {say(ar, 'reserved for ', 'محجوزة لـ ')}{', '.join(r['data'].get('reserved_majors'))}" if r['data'].get('reserved_majors') else '')
                   for r in free[:30]]
@@ -1184,10 +1197,15 @@ def answer(meaning, view, ar):
             body['skip'] = [] if slots.get('include_makeups') else [f'{c}:makeup' for c in view['second_chance']]  # as on the Exams page: second chances start unticked
         if kind == 'quiz':
             body.update(quiz_number=slots.get('quiz_number') or 1, quiz_minutes=min(60, max(15, round((slots.get('quiz_minutes') or 30) / 15) * 15)))
+            # As on the Exams page: seminars, capstones, theses, internships and projects have no quiz unless ticked there.
+            if no_quiz := [f"{c['id']}:quiz{body['quiz_number']}" for c in view.get('catalog') or [] if NO_QUIZ.search(c.get('name') or '')]:
+                body['skip'] = no_quiz
         title = {'final': say(ar, 'finals' + (' (with second-chance midterms in the first slot)' if slots.get('include_makeups') else ''), 'النهائي' + (' (والفرصة الثانية في أول فترة)' if slots.get('include_makeups') else '')),
                  'midterm': say(ar, 'midterms', 'منتصف الفصل'),
                  'quiz': say(ar, f"quiz {body.get('quiz_number')} ({body.get('quiz_minutes')} min)", f"الاختبار القصير {body.get('quiz_number')} ({body.get('quiz_minutes')} دقيقة)")}[kind]
         friday_label = say(ar, 'Fridays off', 'بدون أيام الجمعة') if body.get('exclude_fridays', True) else say(ar, 'including Fridays', 'شامل أيام الجمعة')
+        per_day = body.get('max_exams_per_cohort_day') or 1
+        friday_label += say(ar, f', at most {per_day} exam{"s" if per_day > 1 else ""} per programme a day', f'، بحد أقصى {per_day} امتحان لكل برنامج في اليوم')
         return {'text': [say(ar, f'I will create a draft exam timetable for the {title}, {dates[0]} to {dates[1]}, {friday_label}, {scope_label}.',
                              f'سأنشئ مسودة جدول امتحانات {title} من {dates[0]} إلى {dates[1]}، {friday_label}، {scope_label}.'),
                          say(ar, 'Second-chance midterms are left out. Ask me to include them if needed.', 'الفرص الثانية غير مضمنة؛ أضفها من صفحة الامتحانات.') if kind == 'final' and not slots.get('include_makeups') else ''],

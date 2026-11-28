@@ -87,10 +87,21 @@ def _features(view, ar):
     return {'text': lines, 'listed': 'special_rooms'}
 
 
+# "how many exams can a program have per day?" / "كام امتحان في اليوم"
+EXAMS_PER_DAY = re.compile(r'\b(?:how many|max(?:imum)?|limit)\b.*\b(?:exams?|quiz(?:zes)?|midterms?|finals?)\b.*\b(?:per|a|each|one)\s+day\b|(?:كام|كم|اقصي|حد)\s*(?:امتحان|كويز|اختبار).*(?:اليوم|يوم)')
+
+
 def priority_answer(raw, view, ar, memory=None):
     """Questions that the other routes would misread, answered before them: room features and special
     rooms ("what are the features available" is not a free-room question), and "what are they?"."""
     text = normalise(raw)
+    if EXAMS_PER_DAY.search(text) and not re.search(r'\b(?:make|create|generate|build)\b|اعمل|انشئ', text):
+        return {'text': [_say(ar, 'That is your choice for each exam timetable: "Daily maximum per program/semester" on the Exam timetable page, 1 to 4 (default 1). '
+                              'Exams of one programme and semester are never at the same time. With 1 per day, a programme with more exams than eligible days '
+                              'cannot fit; raise it to 2, or add dates. Advising students who take courses from several programmes may still have two on one day.',
+                              'هذا اختيارك لكل جدول امتحانات: «الحد اليومي لكل برنامج وفصل» في صفحة جدول الامتحانات، من 1 إلى 4 (الافتراضي 1). '
+                              'لا تتزامن امتحانات نفس البرنامج والفصل أبداً. مع امتحان واحد يومياً، البرنامج الذي له امتحانات أكثر من الأيام المتاحة لا يكفيه الجدول؛ '
+                              'ارفع الحد إلى 2 أو أضف أياماً. طلاب الإرشاد الذين يدرسون مقررات من أكثر من برنامج قد يكون لهم امتحانان في يوم واحد.')]}
     if THEM.match(text) and (memory or {}).get('listed'):
         return _listing(memory['listed'], view, ar)
     if FEATURES.search(text) and not re.search(r'\d', text):

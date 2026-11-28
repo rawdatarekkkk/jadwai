@@ -9,6 +9,7 @@ convenience-v1 components (all non-negative integers):
   student_days     group-days with any class (fewer trips for students)
   edge_sessions    sessions in the first or last slot of the day
   group_peak       per group, the busiest day's occupied slots (balances the week)
+  campus_peak      sessions on the busiest day for the whole campus (spreads teaching over the week)
   repeat_same_day  extra sessions of one activity on the same day (spreads lectures)
   long_day_minutes a group's teaching minutes beyond LONG_DAY_MINUTES in a day
   workload_balance stepped cost of each instructor's weekly load (see WORKLOAD_STEPS)
@@ -16,7 +17,7 @@ convenience-v1 components (all non-negative integers):
 from app.calendar_slots import day_slots
 
 CONVENIENCE_WEIGHTS = {'preferences': 20, 'repeat_same_day': 15, 'student_gaps': 10, 'instructor_gaps': 5,
-                       'instructor_days': 3, 'student_days': 4, 'group_peak': 2, 'edge_sessions': 1, 'long_day_minutes': 1,
+                       'instructor_days': 3, 'student_days': 4, 'group_peak': 2, 'campus_peak': 2, 'edge_sessions': 1, 'long_day_minutes': 1,
                        'workload_balance': 1}
 # A group's teaching beyond this many minutes in one day counts against convenience.
 LONG_DAY_MINUTES = 270
